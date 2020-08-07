@@ -1,0 +1,6 @@
+[submodule "analysis/analysis/data_processing/carfac"]
+	path = analysis/analysis/data_processing/carfac
+	url = https://github.com/google/carfac.git
+[submodule "tools/carfac/carfac"]
+	path = tools/carfac/carfac
+	url = https://github.com/google/carfac.git
