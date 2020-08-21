@@ -29,6 +29,10 @@ flags.DEFINE_string(
     "input_file_path",
     "data/parsed_answers.json",
     "JSON file with answers per annotator.")
+flags.DEFINE_string(
+    "answers_key",
+    "perceived_probe_levels",
+    "Key of entry with answers in JSON file with answers per annotator.")
 flags.DEFINE_integer(
     "num_failing",
     50,
@@ -37,11 +41,13 @@ flags.DEFINE_integer(
 
 
 def get_reliability_matrix(
-    input_file: str) -> Tuple[np.array, Dict[int, int], Dict[int, int]]:
+    input_file: str, answers_key="perceived_probe_levels") -> Tuple[np.array, Dict[int, int], Dict[int, int]]:
   """Returns reliability matrix of answers per annotator."""
   with open(input_file, "r") as infile:
     data = json.load(infile)
     annotator_ids = data[0]["worker_ids"]
+    if not annotator_ids:
+      annotator_ids = [i for i in range(len(data[0][answers_key]))]
     annotator_to_idx = {annotator_ids[i]: i for i in range(len(annotator_ids))}
     annotator_failing_count = {annotator_ids[i]: 0 for i in range(
         len(annotator_ids))}
@@ -50,9 +56,16 @@ def get_reliability_matrix(
     reliability_matrix = np.zeros([num_annotators, num_data_points])
     for i, data_point in enumerate(data):
       padded_answers = np.zeros(num_annotators) - 1  # TODO: change
-      answers = np.array(data_point["perceived_probe_levels"])
+      answers = np.array(data_point[answers_key])
       annotators = data_point["worker_ids"]
+      if not annotators:
+        annotators = [i for i in range(len(data_point[answers_key]))]
+      if data_point["probe_frequency"] >= 10000.0:
+        continue
       for answer, annotator in zip(answers, annotators):
+        if answers_key == "equally_loud_level" and answer < 0:
+          print(data_point)
+          answer = answers[0]
         annotator_idx = annotator_to_idx[annotator]
         padded_answers[annotator_idx] = answer
       failed = np.where(padded_answers == -1)[0]
@@ -70,7 +83,7 @@ def main(argv):
     raise ValueError("No data found at %s" % FLAGS.input_file_path)
 
   reliability_matrix, annotators_to_idx, failed_count = get_reliability_matrix(
-      FLAGS.input_file_path)
+      FLAGS.input_file_path, FLAGS.answers_key)
 
   alpha = krippendorff.alpha(reliability_matrix)
   print("Alpha without removing annotators: %.8f" % alpha)
