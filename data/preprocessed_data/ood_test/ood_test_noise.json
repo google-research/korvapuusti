@@ -1,0 +1,443 @@
+[
+    {
+        "probe_frequency": 100.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32.108401163175905,
+            30.42093493443747,
+            36.03515048956863
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600641198_1225420956.wav"
+    },
+    {
+        "probe_frequency": 135.4939,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31.559024259148124,
+            26.758881919423025,
+            27.70688191729856
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600665028_878170567.wav"
+    },
+    {
+        "probe_frequency": 174.81897607209999,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            28.60220202917565,
+            30.415344359341233,
+            35.358625086995595
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600677536_2299722534.wav"
+    },
+    {
+        "probe_frequency": 218.3887615303464,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33.741545577708465,
+            35.44207494926957,
+            29.110205574369417
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600690951_1568043601.wav"
+    },
+    {
+        "probe_frequency": 266.66142606117046,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31.918381009483333,
+            35.806271560798415,
+            34.716010121973795
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600709794_20508719.wav"
+    },
+    {
+        "probe_frequency": 320.14459372878713,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29.301163024472764,
+            36.741154735700356,
+            34.03706579234394
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600736136_2658665450.wav"
+    },
+    {
+        "probe_frequency": 379.4006810312787,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            27.90237127033403,
+            34.21903888340371,
+            27.561186552308037
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600750901_308371941.wav"
+    },
+    {
+        "probe_frequency": 445.05281114111386,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            30.15027803649658,
+            33.94868007251361,
+            35.41450895722244
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600765034_1767512693.wav"
+    },
+    {
+        "probe_frequency": 517.7913665228746,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            27.29828350434545,
+            33.197096827461614,
+            34.593505923362265
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600789372_2824144773.wav"
+    },
+    {
+        "probe_frequency": 598.3812488339871,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            27.98171091714547,
+            38.37007054822813,
+            29.38267489444319
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600812699_1190613572.wav"
+    },
+    {
+        "probe_frequency": 687.6699224518788,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            26.527019389534857,
+            35.07245241649805,
+            32.613535908106144
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600831517_622186397.wav"
+    },
+    {
+        "probe_frequency": 786.5963262114121,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            27.017442990165705,
+            32.21801464178192,
+            35.065807565111484
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600852437_3995492748.wav"
+    },
+    {
+        "probe_frequency": 896.2007470663457,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            30.10649806484175,
+            31.469448761033533,
+            33.54805734235825
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600870881_619255689.wav"
+    },
+    {
+        "probe_frequency": 1017.63575950394,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            18.76218637642561,
+            28.028837668627865,
+            28.946913121139772
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600893973_1768186504.wav"
+    },
+    {
+        "probe_frequency": 1152.1783457490358,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            5.887764861313805,
+            4.89030003726873,
+            18.494743158174153
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600910484_1277751162.wav"
+    },
+    {
+        "probe_frequency": 1301.243324210841,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            5.16560676435904,
+            3.9224320564482795,
+            16.25103905702433
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600935881_3741416977.wav"
+    },
+    {
+        "probe_frequency": 1466.3982273828349,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            6.560895551411846,
+            3.8639895337001775,
+            16.862005522268127
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600957114_2198150732.wav"
+    },
+    {
+        "probe_frequency": 1649.3797856483106,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            7.089548115040202,
+            5.58276783082313,
+            16.39257514613714
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595600979968_3846036644.wav"
+    },
+    {
+        "probe_frequency": 1852.1121903314038,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            10.04539845971469,
+            5.294925850112655,
+            14.950719812241665
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601004423_563241661.wav"
+    },
+    {
+        "probe_frequency": 2076.727328043585,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            5.831136763072308,
+            7.930765293599208,
+            14.980755685348925
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601025801_609052581.wav"
+    },
+    {
+        "probe_frequency": 2325.587199105282,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            3.2642266485980187,
+            8.680005446684717,
+            12.223748187691172
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601047271_945036990.wav"
+    },
+    {
+        "probe_frequency": 2601.308755789507,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            13.04542548495752,
+            8.964342650474407,
+            17.372877752497466
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601073900_1057830330.wav"
+    },
+    {
+        "probe_frequency": 2906.7914215806704,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            19.948543556541736,
+            18.484846546914632,
+            22.78686855468753
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601091112_3213691903.wav"
+    },
+    {
+        "probe_frequency": 3245.247580834666,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            20.570413540960004,
+            20.639345784277268,
+            24.628734019159033
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601114245_2810118719.wav"
+    },
+    {
+        "probe_frequency": 3620.2363594623794,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            24.07970662057648,
+            27.11586083529528,
+            32.236813976329394
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601143102_3486035795.wav"
+    },
+    {
+        "probe_frequency": 4035.701051866389,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            25.81732614932792,
+            27.038867467998188,
+            32.604499074019074
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601159039_2934972338.wav"
+    },
+    {
+        "probe_frequency": 4496.010587703795,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            30.845216991255533,
+            30.118595064450766,
+            31.68417080072428
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601178539_2266097350.wav"
+    },
+    {
+        "probe_frequency": 5006.005474529955,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            27.980203263429175,
+            32.87306866650019,
+            31.000359049790987
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601192609_551747754.wav"
+    },
+    {
+        "probe_frequency": 5571.048699445244,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            27.829676618434817,
+            33.78550991656112,
+            29.525926414607028
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601206985_824080566.wav"
+    },
+    {
+        "probe_frequency": 6197.082125014664,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34.06208141425762,
+            35.371103431814724,
+            28.94717280958028
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601228401_3867867675.wav"
+    },
+    {
+        "probe_frequency": 6890.688972506621,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32.74165135476797,
+            37.05434379928048,
+            30.0818819010952
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601242870_23674128.wav"
+    },
+    {
+        "probe_frequency": 7659.1630495100135,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36.07668611474696,
+            35.440879977661766,
+            29.487775928929842
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601256732_837605754.wav"
+    },
+    {
+        "probe_frequency": 8510.585449911076,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31.796258357213347,
+            35.667176709094484,
+            31.083731609914125
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_1/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1595601266130_59244272.wav"
+    },
+    {
+        "probe_frequency": 9453.909532789026,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            -19.64476701574533,
+            27.94816209852189
+        ],
+        "worker_ids": [],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "ood_white/evaluator_2/mask_1370Hz_80dB_probe_30dB_white/signal/mask.1597139877927_3628341618.wav"
+    }
+]

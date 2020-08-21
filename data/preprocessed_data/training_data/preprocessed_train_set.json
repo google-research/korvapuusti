@@ -1,0 +1,5981 @@
+[
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            21,
+            29,
+            30,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            38,
+            28,
+            33,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            31,
+            31,
+            35
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            30,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+10575.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            29,
+            33,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36,
+            28,
+            31,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            26,
+            31,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            23,
+            28,
+            34,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            27,
+            32,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            31,
+            31,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            29,
+            33,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+01370.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36,
+            25,
+            27
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+10575.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36,
+            30,
+            43,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            31,
+            33,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            29,
+            31,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29,
+            30,
+            33,
+            27
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            28,
+            33,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            30,
+            34,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            31,
+            33,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 150.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            26,
+            21,
+            31,
+            23
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00150.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            30,
+            35,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            18,
+            27,
+            34,
+            26
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            29,
+            35,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            57,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            64,
+            60,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            40,
+            59,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            58,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+01370.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            58,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 150.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            59,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+00150.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            60,
+            61,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            60,
+            58,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 350.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            57,
+            60,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+00350.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            59,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00060.00Hz_-50.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            60,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            58,
+            59,
+            54
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            60,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            60,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+01370.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            60,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            60,
+            61,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            58,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            59,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00060.00Hz_-30.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            58,
+            61,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            60,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            59,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            59,
+            59,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            53,
+            58,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            56,
+            61,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            59,
+            60,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 350.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            58,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+00350.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            59,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 60.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00060.00Hz_-10.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            28,
+            33,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29,
+            26,
+            32,
+            27
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            29,
+            29,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            33,
+            34,
+            35
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            31,
+            37,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            30,
+            33,
+            34
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00842.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            30,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+01370.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            26,
+            36,
+            34,
+            38
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+01172.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            31,
+            30,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            29,
+            32,
+            26
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            17,
+            22,
+            25,
+            21
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            32,
+            34,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            11,
+            27,
+            30,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            29,
+            34,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29,
+            31,
+            32,
+            26
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+01172.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 150.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            14,
+            31,
+            29,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00150.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            28,
+            34,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            39,
+            32,
+            32,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            28,
+            32,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            13,
+            26,
+            28,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            -9,
+            5,
+            12,
+            10
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+01370.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            22,
+            1,
+            13,
+            14
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+01172.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 150.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            25,
+            30,
+            33,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00150.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            33,
+            40,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            41,
+            27,
+            27,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            7,
+            16,
+            17,
+            22
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 350.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            28,
+            23,
+            30,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00350.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            60,
+            61,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            60,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            59,
+            61,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            57,
+            63,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            59,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            57,
+            58,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            62,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+01370.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            59,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            58,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 350.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            56,
+            62,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+00350.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            59,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_00568.00Hz_-50.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            52,
+            53,
+            63,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            58,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            56,
+            59,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            59,
+            63,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+01370.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            64,
+            57,
+            60,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 150.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            60,
+            61,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00150.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            61,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            52,
+            55,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 350.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            56,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+00350.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            60,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_00568.00Hz_-30.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            59,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            40,
+            46,
+            55,
+            47
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            60,
+            54,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            59,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 150.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            60,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00150.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            62,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            56,
+            62,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            40,
+            51,
+            47,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 350.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            53,
+            57,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 568.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_00568.00Hz_-10.00dBFS+00350.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            38,
+            30,
+            35,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            22,
+            29,
+            31,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            26,
+            30,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            41,
+            29,
+            33,
+            37
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            30,
+            32,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            31,
+            32,
+            35
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+01598.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            37,
+            30,
+            32,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00842.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36,
+            26,
+            32,
+            34
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+01172.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            29,
+            33,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            30,
+            32,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            41,
+            30,
+            35,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            28,
+            33,
+            26
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            27,
+            34,
+            30,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            24,
+            22,
+            33,
+            25
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2150.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            25,
+            32,
+            27
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+02150.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            31,
+            33,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            30,
+            34,
+            31,
+            13
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+01598.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            39,
+            32,
+            30,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00842.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            28,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+10575.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            38,
+            29,
+            32,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            31,
+            31,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            28,
+            33,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36,
+            20,
+            31,
+            22
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            30,
+            34,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            21,
+            9,
+            17,
+            18
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            19,
+            32,
+            25
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29,
+            27,
+            28,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00842.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            42,
+            44,
+            38,
+            38
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00060.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            33,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+10575.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            43,
+            28,
+            32,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            26,
+            31,
+            33,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            44,
+            27,
+            33,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            62,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            57,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2150.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            58,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+02150.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            57,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+01598.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            58,
+            61,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            59,
+            61,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            58,
+            64
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            48,
+            56,
+            59,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            59,
+            61,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            63,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            56,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            59,
+            61,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_01370.00Hz_-50.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            60,
+            61,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            56,
+            61,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2150.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            59,
+            63,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+02150.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            45,
+            56,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+01598.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            56,
+            61,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            61,
+            64,
+            63
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            58,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            49,
+            58,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            60,
+            62,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            60,
+            62,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            57,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            59,
+            64,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_01370.00Hz_-30.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            64,
+            57,
+            61,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            57,
+            61,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            48,
+            58,
+            51,
+            48
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            58,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            59,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            52,
+            55,
+            66,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+01598.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            55,
+            62,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            62,
+            62,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            46,
+            51,
+            58,
+            42
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            63,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            57,
+            63,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            57,
+            61,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 1370.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_01370.00Hz_-10.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            33,
+            32,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            41,
+            23,
+            32,
+            24
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2150.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            29,
+            31,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+02150.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            29,
+            39,
+            34
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            38,
+            27,
+            34,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00842.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            30,
+            32,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+05800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            27,
+            40,
+            35
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+04012.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            39,
+            39,
+            41,
+            39
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00060.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            27,
+            38,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+01172.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            30,
+            32,
+            37,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29,
+            31,
+            32,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36,
+            29,
+            31,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            32,
+            31,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+01598.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            30,
+            33,
+            36
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            30,
+            29,
+            34,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            18,
+            13,
+            25,
+            10
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2150.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            30,
+            27,
+            33,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+02150.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            23,
+            30,
+            34,
+            35
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00842.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            36,
+            25,
+            30,
+            27
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+05800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            29,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+10575.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            28,
+            31,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+07000.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            31,
+            35,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29,
+            30,
+            32,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            32,
+            35,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+01598.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            37,
+            29,
+            32,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            21,
+            5,
+            5,
+            11
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            31,
+            37,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            -9,
+            2,
+            12,
+            10
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            12,
+            0,
+            12,
+            9
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            31,
+            34,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+00842.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            23,
+            24,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+10575.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            30,
+            36,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+01172.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            29,
+            30,
+            35,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            25,
+            36,
+            28
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+01598.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            28,
+            31,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            56,
+            65,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2150.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            55,
+            58,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+02150.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            57,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            60,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+05800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            60,
+            59,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+04012.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            60,
+            63,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            47,
+            59,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            59,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            59,
+            62,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+01598.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            58,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_02908.00Hz_-50.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            60,
+            62,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            57,
+            59,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            60,
+            63,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2150.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            56,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+02150.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            50,
+            53,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            60,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            56,
+            58,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+04012.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            63,
+            64,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            64,
+            60,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 7000.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            62,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+07000.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            60,
+            61,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            59,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            60,
+            63,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_02908.00Hz_-30.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            70,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            53,
+            53,
+            47
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 842.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            59,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+00842.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            44,
+            52,
+            63,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+05800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            44,
+            45,
+            54,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+04012.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            61,
+            62,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            64
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1172.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            59,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+01172.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            59,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1598.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            59,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+01598.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            67,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 2908.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_02908.00Hz_-10.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            46,
+            29,
+            35,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            30,
+            32,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            39,
+            30,
+            35,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            19,
+            29,
+            32,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            30,
+            39,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            42,
+            27,
+            30,
+            34
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+05800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            27,
+            34,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+01370.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            46,
+            28,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+10575.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 8525.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            37,
+            37,
+            28,
+            23
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+08525.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            14,
+            29,
+            35,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            30,
+            33,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00700.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            33,
+            31
+        ],
+        "worker_ids": [
+            4350346416,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            30,
+            33,
+            34
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00452.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            38,
+            32,
+            33,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+02500.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            28,
+            30,
+            31,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            34,
+            32,
+            39,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            14,
+            22,
+            28,
+            23
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+05800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            33,
+            30,
+            34
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+04012.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            30,
+            34,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+01370.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 8525.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            39,
+            26,
+            37,
+            24
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+08525.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            35,
+            30,
+            35,
+            32
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00250.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            39,
+            31,
+            34,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+01855.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            45,
+            28,
+            35,
+            27
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+04800.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            23,
+            30,
+            35,
+            35
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+00998.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            40,
+            31,
+            31,
+            29
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+03400.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            32,
+            28,
+            32,
+            30
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+04012.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 30,
+        "perceived_probe_levels": [
+            31,
+            30,
+            35,
+            33
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+01370.00Hz_-60.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            60,
+            61,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            59,
+            63,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            60,
+            61,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            60,
+            60,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            60,
+            62,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            57,
+            64,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+05800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            59,
+            61,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+01370.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            60,
+            63,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            55,
+            67
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 13500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            71,
+            64
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+13500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            60,
+            62,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            59,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 40,
+        "wavfile_identifier": "combined_07000.00Hz_-50.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            64,
+            64,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 452.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            59,
+            60,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00452.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 2500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            57,
+            60,
+            63,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+02500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            57,
+            61,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            61,
+            63,
+            54
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 5800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            51,
+            65,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+05800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            59,
+            61,
+            62,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+04012.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            59,
+            60,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+01370.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            60,
+            63,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 10575.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            58,
+            65
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+10575.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 8525.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            51,
+            61,
+            71,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+08525.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 13500.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            66,
+            65,
+            64
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+13500.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            57,
+            61,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            56,
+            58,
+            60,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            60,
+            59,
+            62,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 60,
+        "wavfile_identifier": "combined_07000.00Hz_-30.00dBFS+01855.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4800.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            65,
+            60,
+            68,
+            63
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+04800.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 998.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            58,
+            60,
+            63
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+00998.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 3400.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            58,
+            62,
+            59,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+03400.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 4012.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            62,
+            62,
+            64,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+04012.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1370.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            58,
+            60,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+01370.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 60.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            63,
+            62,
+            61,
+            62
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+00060.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 250.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            61,
+            59,
+            64,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+00250.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 700.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            55,
+            58,
+            59,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+00700.00Hz_-30.00dBFS"
+    },
+    {
+        "probe_frequency": 1855.0,
+        "probe_level": 60,
+        "perceived_probe_levels": [
+            64,
+            59,
+            62,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ],
+        "masker_frequency": 7000.0,
+        "masker_level": 80,
+        "wavfile_identifier": "combined_07000.00Hz_-10.00dBFS+01855.00Hz_-30.00dBFS"
+    }
+]

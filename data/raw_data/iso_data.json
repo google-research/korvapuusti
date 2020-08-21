@@ -1,0 +1,386 @@
+[
+    {
+        "probe_frequency": 5318.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            44,
+            42,
+            39,
+            36
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 194.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            54,
+            63,
+            63,
+            52
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 10313.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            56,
+            62,
+            67,
+            67
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 5318.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            61,
+            57,
+            67,
+            42
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 376.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            42,
+            49,
+            54,
+            42
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 2742.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            44,
+            42,
+            51,
+            44
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 2742.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            50,
+            46,
+            57,
+            51
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 1414.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            45,
+            47,
+            57,
+            43
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 10313.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            55,
+            66,
+            72,
+            24
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 194.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            45,
+            45,
+            51,
+            48
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 100.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            56,
+            63,
+            63,
+            59
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 5318.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            46,
+            52,
+            58,
+            51
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 729.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            41,
+            47,
+            40,
+            43
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 376.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            54,
+            62,
+            64,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 2742.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            59,
+            55,
+            73,
+            55
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 376.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            53,
+            49,
+            57,
+            56
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 1414.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            48,
+            39,
+            49,
+            44
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 100.0,
+        "reference_level": 40,
+        "equally_loud_level": [
+            40,
+            49,
+            59,
+            53
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 1414.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            63,
+            52,
+            62,
+            61
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 194.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            63,
+            65,
+            67,
+            57
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 729.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            54,
+            57,
+            60,
+            58
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 729.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            47,
+            56,
+            50,
+            46
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 10313.0,
+        "reference_level": 50,
+        "equally_loud_level": [
+            58,
+            60,
+            74,
+            60
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    },
+    {
+        "probe_frequency": 100.0,
+        "reference_level": 60,
+        "equally_loud_level": [
+            64,
+            67,
+            75,
+            63
+        ],
+        "worker_ids": [
+            4350346416,
+            4350360853,
+            4350361963,
+            4350362064
+        ]
+    }
+]
