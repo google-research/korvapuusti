@@ -71,13 +71,15 @@ And run:
 To pre-process the listening data created by the open-source listening tool, use
 the file `process_ood_sets.py`. This requires specifying the masker frequencies,
 masker levels, and probe levels that the data contains, and the data from the
-tool should be saved in folders per evaluator (`evaluator_<i>`) named in the
-following way:
-
-`mask_<mask frequency>Hz_<mask level>dB_<probe level>dB_signal_shape`
-
-This folder must contain `evaluations.json` with the output of the tool from
-this repository (found
+tool should be saved in folders per evaluator (`evaluator_<i>`) where the
+folders can be named in a pattern to be specified with command line argument
+`--input_file_pattern`. This folder must contain `evaluations.json` with the
+output of the tool from this repository (found
 [here](https://github.com/google-research/korvapuusti/tree/master/experiments/partial_loudness)).
 An example of the directory structure and evaluations file is found in directory
-`tool_data` of this folder.
+`tool_data` of this folder. To pre-process this data into the JSON format that
+has been shown above as well, run:
+
+`>> python3 preprocess_ood_sets.py --input_file_pattern=mask*
+--masker_frequencies=843.0 --signal_shape=sine --masker_levels=50,70
+--probe_levels=20,40`
