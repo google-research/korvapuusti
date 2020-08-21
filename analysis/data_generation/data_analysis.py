@@ -32,6 +32,10 @@ import loudness
 import data_generation
 
 
+ProbeMaskerPair = collections.namedtuple("Probe_masker_pair",
+                                         ["probe", "masker"])
+
+
 def find_stft_bin(frequency: float, window_size=2048, sample_rate=44100) -> int:
   """Finds the correct bin for a frequency in a signal processed by a STFT.
 
@@ -47,7 +51,25 @@ def find_stft_bin(frequency: float, window_size=2048, sample_rate=44100) -> int:
     Index of the bin containing the frequency.
   """
   step_size = sample_rate / window_size
-  return int(frequency / step_size)
+  return round(frequency / step_size)
+
+
+def bin_to_frequency(freq_bin: int, window_size=2048, sample_rate=48000) -> int:
+  """Finds the correct bin for a frequency in a signal processed by a STFT.
+
+  Bins in a STFT go from 0 to sample_rate. The window_size must be a power of 2
+  for FFT.
+
+  Args:
+    frequency: frequency to look for
+    window_size: window size used in STFT
+    sample_rate: sample rate of signal processed by STFT
+
+  Returns:
+    Index of the bin containing the frequency.
+  """
+  step_size = sample_rate / window_size
+  return freq_bin * step_size
 
 
 def plot_histogram(values: List[Any], path: str, bins=None, logscale=False,
@@ -134,8 +156,7 @@ def write_examples(examples: List[List[str]],
   with open(save_path, "wt") as infile:
     csv_writer = csv.writer(infile, delimiter=",")
     csv_writer.writerow(["id", "single_tone", "combined_tones"])
-    with open(os.path.join(path, file_name + "_ids.csv"),
-                    "w") as infile_ids:
+    with open(os.path.join(path, file_name + "_ids.csv"), "w") as infile_ids:
       csv_writer_ids = csv.writer(infile_ids, delimiter=",")
       num_examples = 0
       for i in example_order:
@@ -182,7 +203,7 @@ def write_data_specifications(data: Dict[str, Any],
   return save_path
 
 
-def save_two_tone_set(data: List[data_generation.ProbeMaskerPair],
+def save_two_tone_set(data: List[ProbeMaskerPair],
                       iso_data: Dict[int, Dict[str, Any]],
                       critical_bands: List[int],
                       path: str, seed=1) -> Tuple[str, str, str, str]:
@@ -306,7 +327,7 @@ def save_two_tone_set(data: List[data_generation.ProbeMaskerPair],
 
 def plot_iso_examples(data: Dict[int, Dict[str, Any]], path: str):
   """Plot ISO equal loudness curves w/ markers for the data examples."""
-  _, ax = plt.subplots(1, 1, figsize=(12, 14))
+  _, ax = plt.subplots(1, 1, figsize=(10, 10))
   frequencies_on_range = [i for i in range(20, 20000, 10)]
 
   # These are the colors that will be used in the plot
@@ -317,9 +338,9 @@ def plot_iso_examples(data: Dict[int, Dict[str, Any]], path: str):
       "#c7c7c7", "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"]
   ax.set_prop_cycle(color=colors)
   plt.xscale("log")
-  ax.set_xlabel("Frequency (Hz)")
-  ax.set_ylabel("SPL (dB)")
-  ax.set_title("ISO equal loudness curves")
+  ax.set_xlabel("Frequency (Hz)", fontsize=12)
+  ax.set_ylabel("SPL (dB)", fontsize=12)
+  ax.set_title("ISO equal-loudness contours", fontsize=18)
   phons_levels = [i * 10 for i in range(10)]
   legend_handles = ["{} Phons".format(phons) for phons in phons_levels]
   levels_per_phons = []
@@ -360,18 +381,22 @@ def plot_masking_patterns(curves: List[Dict[str, Any]],
         "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22", "#dbdb8d",
         "#17becf", "#9edae5"
     ])
-    plt.xscale("log")
+    ax.set_xscale("log")
     ax.set_xlabel("Probe Frequency (Hz)")
     ax.set_ylabel("Masked SPL (dB)")
     ax.set_title("Masker Frequency {}, Probe Level {}".format(
         masker_frequency, probe_level))
     plt.axvline(x=masker_frequency)
     plt.axhline(y=probe_level)
+    current_levels = []
+    mean_masking_per_level = []
     for masker_curve in masker_freq_probe_level["curves"]:
       masker_level = masker_curve["masker_level"]
+      current_levels.append(masker_level)
       frequencies = masker_curve["probe_frequencies"]
       masking = masker_curve["probe_masking"]
       average_masking = [np.mean(np.array(m)) for m in masking]
+      mean_masking_per_level.append(average_masking)
       std_masking = [np.std(np.array(m)) for m in masking]
       plt.errorbar(
           frequencies,
@@ -381,9 +406,16 @@ def plot_masking_patterns(curves: List[Dict[str, Any]],
           label="Masker Level {}".format(masker_level))
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles, labels)
+    save_file = "masker_{}_probe_{}".format(masker_frequency, probe_level)
+    with open(os.path.join(save_directory, save_file + ".txt"), "wt") as infile:
+      for level, mean_masking in zip(current_levels, mean_masking_per_level):
+        infile.write("level {}: ".format(level))
+        freq_maskers_str = ";".join(["{},{}".format(f, m) for f, m in zip(
+            frequencies, mean_masking)])
+        infile.write(freq_maskers_str)
+        infile.write("\n")
     plt.savefig(os.path.join(save_directory,
-                             "masker_{}_probe_{}.png".format(
-                                 masker_frequency, probe_level)))
+                             save_file + ".png"))
 
 
 def save_iso_reproduction_examples(data: Dict[int, Dict[str, Any]], path: str):

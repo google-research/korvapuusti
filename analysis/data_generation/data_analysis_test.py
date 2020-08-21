@@ -18,13 +18,11 @@ You may obtain a copy of the License at
 import csv
 import json
 import os
+import unittest
 
 from absl.testing import absltest
-
-import unittest
 import data_analysis
 import data_generation
-
 
 class DataAnalysisTest(unittest.TestCase):
 
@@ -37,19 +35,19 @@ class DataAnalysisTest(unittest.TestCase):
 
   def test_find_frequency_bin_low_cornercase(self):
     frequency = 21
-    expected_bin = 0
+    expected_bin = 1
     actual_bin = data_analysis.find_stft_bin(frequency)
     self.assertEqual(expected_bin, actual_bin)
 
   def test_find_frequency_bin_high_cornercase(self):
     frequency = 20000
-    expected_bin = 928
+    expected_bin = 929
     actual_bin = data_analysis.find_stft_bin(frequency)
     self.assertEqual(expected_bin, actual_bin)
 
   def test_find_frequency_bin_middlecase(self):
     frequency = 119
-    expected_bin = 5
+    expected_bin = 6
     actual_bin = data_analysis.find_stft_bin(frequency)
     self.assertEqual(expected_bin, actual_bin)
 

@@ -19,13 +19,13 @@ You may obtain a copy of the License at
 import collections
 import itertools
 import random
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Any
 
+import data_analysis
+import distributions
+import loudness
 import numpy as np
 import scipy.stats
-
-import loudness
-import distributions
 
 CbFrequencyPair = collections.namedtuple("CB_frequency_pair",
                                          ["cb", "frequency"])
@@ -213,39 +213,6 @@ def sample_n_per_cb(examples_per_cb: int,
   return tones_per_cb
 
 
-def generate_two_tone_set_old(
-    critical_bands: List[int], levels: List[int],
-    critical_bands_apart: int) -> List[Tuple[ToneLevelPair, ToneLevelPair]]:
-  """Generates a small two-tone dataset.
-
-  Contains all combinations of the middle freq of every 3rd critical band with
-  all the levels specified.
-
-  Args:
-    critical_bands: the boundaries of each cb are at index i and i + 1
-    levels: which levels to generate examples with (SPL)
-    critical_bands_apart: how many bands to be between each freq in an example
-
-  Returns:
-    The data with tone combinations in a list.
-  """
-  assert critical_bands_apart < len(critical_bands), ("Can't be more CB's apart"
-                                                      "than there are CB's")
-  examples = []
-  tones = []
-  for cb_i in range(0, len(critical_bands) - 1, critical_bands_apart):
-    tone = (critical_bands[cb_i] + critical_bands[cb_i + 1]) / 2
-    tones.append(np.round(tone))
-  all_combinations = list(itertools.product(levels, tones))
-  for i in range(len(all_combinations) - 1):
-    level_i, tone_i = all_combinations[i]
-    for level_j, tone_j in all_combinations[i + 1:]:
-      if tone_i != tone_j:
-        examples.append((ToneLevelPair(tone=tone_i, level=level_i),
-                         ToneLevelPair(tone=tone_j, level=level_j)))
-  return examples
-
-
 def middle_frequency(left_cb: int, right_cb: int):
   return np.round((left_cb + right_cb) / 2)
 
@@ -426,3 +393,38 @@ def generate_data(
         "levels": list(sp_levels)
     })
   return data
+
+
+def generate_extra_data(critical_bands: List[int],
+                        sample_rate: int,
+                        window_size: int,
+                        cbs_below_masker: int,
+                        cbs_above_masker: int,
+                        minimum_db_masker: int,
+                        minimum_db_probe: int,
+                        maximum_db: int) -> List[ProbeMaskerPair]:
+  """For each frequency bin of a FFT done with the specified window_size,
+  sample a masker frequency from that bin and sample a probe frequency that
+  is between cbs_below_masker and cbs_above_masker the masker CB."""
+  examples = []
+  num_bins = int(window_size / 2)
+  for k in range(2, num_bins - 2):
+    masker_frequency = data_analysis.bin_to_frequency(k, window_size,
+                                                      sample_rate)
+
+    if masker_frequency > 15000:
+      return examples
+    cb_masker = binary_search(critical_bands, masker_frequency)
+    left_limit = max(0, cb_masker - cbs_below_masker)
+    right_limit = min(len(critical_bands) - 2, cb_masker + cbs_above_masker)
+    sampled_cbs_i = random.randint(left_limit, right_limit)
+    sampled_cb_left = critical_bands[sampled_cbs_i]
+    sampled_cb_right = critical_bands[sampled_cbs_i + 1]
+    probe_frequency = random.uniform(sampled_cb_left, sampled_cb_right)
+    masker_level = int(random.uniform(minimum_db_masker, maximum_db))
+    probe_level = int(random.uniform(minimum_db_probe, masker_level))
+    examples.append(
+        ProbeMaskerPair(
+            masker=ToneLevelPair(tone=masker_frequency, level=masker_level),
+            probe=ToneLevelPair(tone=probe_frequency, level=probe_level)))
+  return examples
