@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"path"
 	"path/filepath"
@@ -137,7 +138,7 @@ func getCarfacFeatures(sampleRate int, carfacBuffer []float32) (int, []float32, 
 }
 
 // Calculate FFT and SNR on each CARFAC channel.
-func getSignalNoiseFeatures(sampleRate int, fftWindowSize int, numChannels int,
+func getSignalNoiseFeaturesCarfac(sampleRate int, fftWindowSize int, numChannels int,
 	carfacFeatures []float32, carfacStableIdx int) (int, []float32, []float32) {
 	signalPowerFeatures := make([]float32, numChannels*(fftWindowSize/2))
 	noisePowerFeatures := make([]float32, numChannels*(fftWindowSize/2))
@@ -157,32 +158,59 @@ func getSignalNoiseFeatures(sampleRate int, fftWindowSize int, numChannels int,
 	return numBins, signalPowerFeatures, noisePowerFeatures
 }
 
+// Calculate FFT and SNR on the buffer.
+func getSignalNoiseFeatures(sampleRate int, fftWindowSize int, features []float32) (int, []float32, []float32, []float32, []float32) {
+	signalPowerFeatures := make([]float32, fftWindowSize/2)
+	noisePowerFeatures := make([]float32, fftWindowSize/2)
+	fftCoefficients := make([]float32, fftWindowSize/2)
+	numBins := 0
+	buffer := make([]float64, fftWindowSize)
+	float32buffer := make([]float32, fftWindowSize)
+	for freqIdx := range buffer {
+		buffer[freqIdx] = float64(features[freqIdx])
+		float32buffer[freqIdx] = float32(features[freqIdx])
+	}
+	spec := spectrum.Compute(buffer, sampleRate)
+	numBins = len(spec.SignalPower)
+	for freqIdx := range spec.SignalPower {
+		signalPowerFeatures[freqIdx] = float32(spec.SignalPower[freqIdx])
+		noisePowerFeatures[freqIdx] = float32(spec.NoisePower[freqIdx])
+		fftCoefficients[freqIdx] = float32(spec.Coefficients[freqIdx])
+	}
+	return numBins, signalPowerFeatures, noisePowerFeatures, fftCoefficients, float32buffer
+}
+
 type example struct {
-	SampleRate     int       `json:"samplerate"`
-	Frequencies    []float32 `json:"frequencies"`
-	SPLs           []float32 `json:"spls"`
-	ProbeFrequency float32   `json:"probefrequency"`
-	ProbeLevel     int       `json:"probelevel"`
-	ProbeLoudness  int       `json:"probeloudness"`
-	Channels       int       `json:"channels"`
-	Bins           int       `json:"bins"`
-	SpectrumSignal []float32 `json:"spectrumsignal"`
-	SpectrumNoise  []float32 `json:"spectrumnoise"`
+	SampleRate           int       `json:"samplerate"`
+	Frequencies          []float32 `json:"frequencies"`
+	SPLs                 []float32 `json:"spls"`
+	ProbeFrequency       float32   `json:"probefrequency"`
+	ProbeLevel           int       `json:"probelevel"`
+	ProbeLoudness        int       `json:"probeloudness"`
+	ProbeMasking         float32   `json:"probemasking"`
+	Channels             int       `json:"channels"`
+	Bins                 int       `json:"bins"`
+	SpectrumSignalCarfac []float32 `json:"spectrumsignalcarfac"`
+	SpectrumNoiseCarfac  []float32 `json:"spectrumnoisecarfac"`
+	SpectrumSignal       []float32 `json:"spectrumsignal"`
+	SpectrumNoise        []float32 `json:"spectrumnoise"`
+	Coefficients         []float32 `json:"coefficients"`
+	Buffer               []float32 `json:"buffer"`
 }
 
 type ExampleId struct {
-	ProbeFrequency       float32 `json:"probe_frequency"`
-	ProbeLevel           int     `json:"probe_level"`
-	PerceivedProbeLevels []int   `json:"perceived_probe_levels"`
-	WorkerIds            []int   `json:"worker_ids"`
-	MaskerFrequency      float32 `json:"masker_frequency"`
-	MaskerLevel          int     `json:"masker_level"`
-	WavfileIdentifier    string  `json:"wavfile_identifier"`
+	ProbeFrequency       float32   `json:"probe_frequency"`
+	ProbeLevel           int       `json:"probe_level"`
+	PerceivedProbeLevels []float64 `json:"perceived_probe_levels"`
+	WorkerIds            []int     `json:"worker_ids"`
+	MaskerFrequency      float32   `json:"masker_frequency"`
+	MaskerLevel          int       `json:"masker_level"`
+	WavfileIdentifier    string    `json:"wavfile_identifier"`
 }
 
 // WriteExamplesToRecordIO writes TF examples to recordio shards.
 func WriteExamplesToRecordIO(waveFileDirectory string, dataPath string, filePrefix string, shardSize int, carfacStableIdx int,
-	fftWindowSize int, sampleRate int, skipSeconds float64, unityDBLevel float64) error {
+	fftWindowSize int, sampleRate int, skipSeconds float64, unityDBLevel float64, extractMetaDataFromFile bool) error {
 	count := 0
 	var done func()
 	defer func() {
@@ -230,15 +258,30 @@ func WriteExamplesToRecordIO(waveFileDirectory string, dataPath string, filePref
 	for _, exampleID := range exampleIds {
 		var foundMatch bool
 
+		if exampleID.ProbeFrequency == 17625.0 {
+			continue
+		}
 		perceivedProbeLevels := exampleID.PerceivedProbeLevels
-		sum := 0
+		actualProbeLevel := exampleID.ProbeLevel
+		sum := 0.
+		maskingSum := 0.
 		for _, perceivedLevel := range perceivedProbeLevels {
 			sum = sum + perceivedLevel
+			masking := math.Max(0., float64(actualProbeLevel)-perceivedLevel)
+			maskingSum = maskingSum + masking
 		}
-		meanPerceivedLevel := sum / len(perceivedProbeLevels)
+		meanPerceivedLevel := int(math.Abs(sum / float64(len(perceivedProbeLevels))))
+		meanProbeMasking := float32(math.Abs(float64(maskingSum / float64(len(perceivedProbeLevels)))))
 
 		for fileIdx, infilePath := range readFiles {
-			matched, _ := filepath.Match("*"+exampleID.WavfileIdentifier+".wav",
+			wavfileidentifier := ""
+			if extractMetaDataFromFile {
+				wavfileidentifier = exampleID.WavfileIdentifier
+			} else {
+				wavfileidentifierSplit := strings.Split(exampleID.WavfileIdentifier, "/")
+				wavfileidentifier = wavfileidentifierSplit[len(wavfileidentifierSplit)-1]
+			}
+			matched, _ := filepath.Match("*"+wavfileidentifier,
 				infilePath.Name())
 			// Only take combined tones.
 			if matched {
@@ -246,14 +289,20 @@ func WriteExamplesToRecordIO(waveFileDirectory string, dataPath string, filePref
 				fmt.Printf("Working on file %d: %s\n", fileIdx, infilePath.Name())
 
 				// Extract all information needed from the file.
-				frequencies, levels, err := extractMetadataFile(infilePath.Name())
-				otherFrequencies := []float32{exampleID.MaskerFrequency, exampleID.ProbeFrequency}
-				for idx, frequency := range frequencies {
-					if frequency != otherFrequencies[idx] {
-						fmt.Printf("Frequency 1: %f Frequency 2: %f", frequency, otherFrequencies[idx])
-						err := errors.New("mismatch between dataFile and WavFiles")
-						return err
+				levels := []float32{}
+				frequencies := []float32{}
+				if extractMetaDataFromFile {
+					frequencies, levels, err = extractMetadataFile(infilePath.Name())
+					otherFrequencies := []float32{exampleID.MaskerFrequency, exampleID.ProbeFrequency}
+					for idx, frequency := range frequencies {
+						if math.Floor(float64(frequency)) != math.Floor(float64(otherFrequencies[idx])) && math.Ceil(float64(frequency)) != math.Ceil(float64(otherFrequencies[idx])) {
+							fmt.Printf("Frequency 1: %f Frequency 2: %f", frequency, otherFrequencies[idx])
+							err := errors.New("mismatch between dataFile and WavFiles")
+							return err
+						}
 					}
+				} else {
+					frequencies = []float32{exampleID.MaskerFrequency, exampleID.ProbeFrequency}
 				}
 
 				if err != nil {
@@ -269,35 +318,48 @@ func WriteExamplesToRecordIO(waveFileDirectory string, dataPath string, filePref
 				if err != nil {
 					return err
 				}
-				numBins, signalPowerFeatures, noisePowerFeatures := getSignalNoiseFeatures(sampleRate, fftWindowSize,
+				numBins, signalPowerFeaturesCarfac, noisePowerFeaturesCarfac := getSignalNoiseFeaturesCarfac(sampleRate, fftWindowSize,
 					numChannels, NAP, carfacStableIdx)
-
-				realLevels := []float32{}
-				for _, level := range levels {
-					realLevel := level + float32(unityDBLevel)
-					realLevels = append(realLevels, realLevel)
+				numBinsTwo, signalPowerFeatures, noisePowerFeatures, fftCoefficients, buffer := getSignalNoiseFeatures(sampleRate, fftWindowSize, buffer)
+				if numBins != numBinsTwo {
+					err := errors.New("Two different number of frequency bins after FFT.")
+					return err
 				}
-				otherLevels := []float32{float32(exampleID.MaskerLevel), float32(exampleID.ProbeLevel)}
-				for idx, level := range realLevels {
-					fmt.Printf("level 1: %f level 2: %f", level, otherLevels[idx])
-					if level != otherLevels[idx] {
-						err := errors.New("mismatch between dataFile and WavFiles")
-						return err
+				realLevels := []float32{}
+				if extractMetaDataFromFile {
+					for _, level := range levels {
+						realLevel := level + float32(unityDBLevel)
+						realLevels = append(realLevels, realLevel)
 					}
+					otherLevels := []float32{float32(exampleID.MaskerLevel), float32(exampleID.ProbeLevel)}
+					for idx, level := range realLevels {
+						fmt.Printf("level 1: %f level 2: %f", level, otherLevels[idx])
+						if level != otherLevels[idx] {
+							err := errors.New("mismatch between dataFile and WavFiles")
+							return err
+						}
+					}
+				} else {
+					realLevels = []float32{float32(exampleID.MaskerLevel), float32(exampleID.ProbeLevel)}
 				}
 
 				// Save to TF Example and write to file.
 				example := &example{
-					SampleRate:     sampleRate,
-					Frequencies:    frequencies,
-					SPLs:           realLevels,
-					ProbeFrequency: exampleID.ProbeFrequency,
-					ProbeLevel:     exampleID.ProbeLevel,
-					ProbeLoudness:  meanPerceivedLevel,
-					Channels:       numChannels,
-					Bins:           numBins,
-					SpectrumSignal: signalPowerFeatures,
-					SpectrumNoise:  noisePowerFeatures,
+					SampleRate:           sampleRate,
+					Frequencies:          frequencies,
+					SPLs:                 realLevels,
+					ProbeFrequency:       exampleID.ProbeFrequency,
+					ProbeLevel:           exampleID.ProbeLevel,
+					ProbeLoudness:        meanPerceivedLevel,
+					ProbeMasking:         meanProbeMasking,
+					Channels:             numChannels,
+					Bins:                 numBins,
+					SpectrumSignalCarfac: signalPowerFeaturesCarfac,
+					SpectrumNoiseCarfac:  noisePowerFeaturesCarfac,
+					SpectrumSignal:       signalPowerFeatures,
+					SpectrumNoise:        noisePowerFeatures,
+					Coefficients:         fftCoefficients,
+					Buffer:               buffer,
 				}
 
 				allData = append(allData, example)
@@ -306,12 +368,17 @@ func WriteExamplesToRecordIO(waveFileDirectory string, dataPath string, filePref
 
 				fmt.Printf("Samples total: (L) %d\n", len(buffer))
 				fmt.Printf("Mean perceived level %d\n", meanPerceivedLevel)
+				fmt.Printf("Mean masking %d\n", meanProbeMasking)
 				fmt.Printf("CARFAC features total: (L) %d\n", len(NAP))
+				fmt.Printf("Signal Carfac features total: %d\n", len(signalPowerFeaturesCarfac))
+				fmt.Printf("Noise Carfac features total: %d\n", len(noisePowerFeaturesCarfac))
 				fmt.Printf("Signal features total: %d\n", len(signalPowerFeatures))
 				fmt.Printf("Noise features total: %d\n", len(noisePowerFeatures))
+				fmt.Printf("FFT coefficients total: %d\n", len(fftCoefficients))
 				if count%shardSize == 0 {
 					indentedJsonString, err := json.MarshalIndent(allData, "", "\t")
 					if err != nil {
+						fmt.Printf("Cannot Marshall data to JSON\n")
 						return err
 					}
 					ioutil.WriteFile(fmt.Sprintf("%s_%07d-%07d.json", filePrefix, count-shardSize, count),
