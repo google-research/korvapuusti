@@ -1,0 +1,188 @@
+<html>
+	<head>
+		<title>
+			Headphone calibration
+		</title>
+		<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+	</head>
+	<body>
+		<ol>
+			<li>
+				Put on the microphones next to your ear canals, and the headphones over your ears.
+			</li>
+			<li>
+				Lower the volume to zero, and click "Play reference".
+			</li>
+			<li>
+				Raise the volume until it's loud but not painful.
+			</li>
+			<li>
+				Click "Calibrate" and watch the frequency response curve build.
+			</li>
+			<li>
+				Optionally click "Calibrate" again to stop the process, and then again to restart it, and compare the curves.
+			</li>
+		</ol>
+		<button id="reference">Play reference</button>
+		<button id="calibrate">Calibrate</button>
+		Measurement variance: <span id="variance"></span>
+		<div id="response" style='width: 1000px; height: 500px;'></div>
+	</body>
+	<script>
+		const context = new AudioContext();
+                context.suspend();
+                const oscillator = context.createOscillator();
+                oscillator.start();
+                const gain = context.createGain();
+                gain.gain.value = 1.0;
+                oscillator.connect(gain).connect(context.destination);
+                let referencePlaying = false;
+                const startReference = _ => {
+			referencePlaying = true;
+			oscillator.frequency.value = 1000.0;
+			context.resume();
+			document.getElementById("reference").removeEventListener("click", startReference);
+			document.getElementById("reference").addEventListener("click", stopReference);
+		};
+                const stopReference = _ => {
+			referencePlaying = false;
+			context.suspend();
+			document.getElementById("reference").removeEventListener("click", stopReference);
+			document.getElementById("reference").addEventListener("click", startReference);
+                };
+                stopReference();
+		const calibrationRuns = [];
+		let binSize = 1;
+                const plotRuns = _ => {
+			Plotly.react("response",
+				calibrationRuns.map((run, runIdx) => {
+					const x = [];
+					const y = [];
+					Object.keys(run).forEach(bin => {
+						x.push(Number.parseFloat(bin) * binSize);
+						y.push(Number.parseFloat(run[bin]));
+					});
+					return {
+						x: x,
+						y: y,	
+						type: "scatter",
+						name: "Run " + runIdx,
+						hoverInfo: "all",
+					};
+				}),
+				{
+					xaxis: { title: { text: "Hz" }},
+					yaxis: { title: { text: "dB" }},
+				},
+			);
+		};
+		let doingCalibration = false;
+		const stopCalibration = _ => {
+			doingCalibration = false;
+			context.suspend();
+			document.getElementById("calibrate").removeEventListener("click", stopCalibration);
+			document.getElementById("calibrate").addEventListener("click", startCalibration);
+		};
+                const startCalibration = _ => { 
+			doingCalibration = true;
+			document.getElementById("calibrate").removeEventListener("click", startCalibration);
+			document.getElementById("calibrate").addEventListener("click", stopCalibration);
+			if (referencePlaying) {
+				stopReference();
+			}
+			navigator.mediaDevices.getUserMedia({
+				audio: {
+					echoCancellation: false,
+					noiseSuppression: false,
+					autoGainControl: false,
+					sampleSize: 16,
+					channelCount: 1,
+					volume: 1.0,
+				}
+			}).then(stream => {
+				const trackSettings = [];
+				stream.getAudioTracks().forEach(track => {
+					trackSettings.push(track.getSettings());
+				});
+				if (trackSettings.length != 1) {
+					throw 'Not exactly one audio track: ' + trackSettings;
+				}
+				const source = context.createMediaStreamSource(stream);
+				const analyser = context.createAnalyser();
+				source.connect(analyser);
+				binSize = trackSettings[0].sampleRate * 0.5 / analyser.frequencyBinCount;
+				const measureBufferLength = 32;
+				const measureIntervalMs = 20;
+				const varianceThreshold = 0.2;
+				const getEnergy = bin => {
+					oscillator.frequency.value = binSize * bin;
+					const measureBuffer = [];
+					return new Promise((res, rej) => {
+						const singleMeasure = _ => {
+							const ary = new Float32Array(analyser.frequencyBinCount);
+							analyser.getFloatFrequencyData(ary);
+							const measurement = ary[bin];
+							if (Number.isFinite(measurement)) {
+								measureBuffer.push(measurement);
+							}
+							while (measureBuffer.length > measureBufferLength) {
+								measureBuffer.shift();
+							}
+							let avg = 0.0;
+							let variance = 0.0;
+							if (measureBuffer.length == measureBufferLength) {
+								let sumOfSquares = 0.0;
+								let sum = 0.0;
+								measureBuffer.forEach(measurement => {
+									sumOfSquares += measurement * measurement;
+									sum += measurement;
+								});
+								avg = sum / measureBuffer.length;
+								variance = sumOfSquares / measureBuffer.length - avg * avg;
+							}
+							document.getElementById("variance").innerText = "" + variance;
+							if (avg != 0.0 && variance != 0.0 && variance < varianceThreshold) {
+								res(avg);
+							} else if (doingCalibration) {
+								setTimeout(singleMeasure, measureIntervalMs);
+							}
+						};
+						singleMeasure();
+					});
+				};
+				context.resume();
+				const binValues = {};
+				calibrationRuns.push(binValues);
+				let refEnergy = 0.0;
+				const refBin = Number.parseInt(1000 / binSize);
+				let currBin = refBin;
+				const moveDown = bin => {
+					getEnergy(bin).then(energy => {
+						if (bin == refBin) {
+							refEnergy = energy;
+						}
+						binValues[bin] = energy - refEnergy;
+						plotRuns();
+						if (bin > 3) {
+							moveDown(bin - 1);
+						} else {
+							const moveUp = bin => {
+								getEnergy(bin).then(energy => {
+									binValues[bin] = energy - refEnergy;
+									plotRuns();
+									if (bin < analyser.frequencyBinCount) {
+										moveUp(bin + 1);
+									} else {
+									}
+								});
+							};
+							moveUp(refBin + 1);
+						}
+					});
+				};
+				moveDown(refBin);
+			});
+		};
+        	stopCalibration();
+	</script>
+</html>
