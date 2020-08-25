@@ -1,0 +1,26 @@
+Unable to init server: Could not connect: Connection refused
+Unable to init server: Could not connect: Connection refused
+
+(analyse_parameters.py:3373047): Gdk-CRITICAL **: 08:37:32.687: gdk_cursor_new_for_display: assertion 'GDK_IS_DISPLAY (display)' failed
+Traceback (most recent call last):
+  File "analyse_parameters.py", line 330, in <module>
+    app.run(main)
+  File "/usr/local/google/home/lauraruis/.local/lib/python3.8/site-packages/absl/app.py", line 299, in run
+    _run_main(main, args)
+  File "/usr/local/google/home/lauraruis/.local/lib/python3.8/site-packages/absl/app.py", line 250, in _run_main
+    sys.exit(main(argv))
+  File "analyse_parameters.py", line 309, in main
+    plot_all_learned_curves(mask_frequencies,
+  File "analyse_parameters.py", line 204, in plot_all_learned_curves
+    _, other_axis = plot_curve(model_class, mask_frequency, probe_level,
+  File "analyse_parameters.py", line 103, in plot_curve
+    amps = model_class.function(*current_inputs)
+  File "/google/src/cloud/lauraruis/opensource/google3/korvapuusti/modelling/simplex_sn/model.py", line 183, in function
+    integrated = scipy.integrate.quad(self.to_integrate, integrate_left,
+  File "/usr/local/google/home/lauraruis/.local/lib/python3.8/site-packages/scipy/integrate/quadpack.py", line 341, in quad
+    retval = _quad(func, a, b, args, full_output, epsabs, epsrel, limit,
+  File "/usr/local/google/home/lauraruis/.local/lib/python3.8/site-packages/scipy/integrate/quadpack.py", line 453, in _quad
+    return _quadpack._qagse(func,a,b,args,full_output,epsabs,epsrel,limit)
+  File "/google/src/cloud/lauraruis/opensource/google3/korvapuusti/modelling/simplex_sn/model.py", line 173, in to_integrate
+    def to_integrate(self, t):
+KeyboardInterrupt
