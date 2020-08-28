@@ -22,10 +22,14 @@
 			<li>
 				Optionally click "Calibrate" again to stop the process, and then again to restart it, and compare the curves.
 			</li>
+			<li>
+				Click "Download measurements" to download a JSON blob with the results.
+			</li>
 		</ol>
 		<button id="reference">Play reference</button>
 		<button id="calibrate">Calibrate</button>
 		Measurement variance: <span id="variance"></span>
+		<button id="download">Download</button>
 		<div id="response" style='width: 1000px; height: 500px;'></div>
 	</body>
 	<script>
@@ -58,14 +62,15 @@
 				calibrationRuns.map((run, runIdx) => {
 					const x = [];
 					const y = [];
-					Object.keys(run).forEach(bin => {
-						x.push(Number.parseFloat(bin) * binSize);
-						y.push(Number.parseFloat(run[bin]));
+					Object.keys(run).map(Number.parseFloat).sort((a, b) => { return a - b; }).forEach(f => {
+						x.push(Number.parseFloat(f));
+						y.push(Number.parseFloat(run[f]));
 					});
 					return {
 						x: x,
 						y: y,	
 						type: "scatter",
+						mode: "lines",
 						name: "Run " + runIdx,
 						hoverInfo: "all",
 					};
@@ -166,14 +171,14 @@
 						if (bin == refBin) {
 							refEnergy = energy;
 						}
-						binValues[bin] = energy - refEnergy;
+						binValues[bin * binSize] = energy - refEnergy;
 						plotRuns();
 						if (bin > 3) {
 							moveDown(bin - 1);
 						} else {
 							const moveUp = bin => {
 								getEnergy(bin).then(energy => {
-									binValues[bin] = energy - refEnergy;
+									binValues[bin * binSize] = energy - refEnergy;
 									plotRuns();
 									if (bin < analyser.frequencyBinCount) {
 										moveUp(bin + 1);
@@ -189,5 +194,14 @@
 			});
 		};
         	stopCalibration();
+		document.getElementById("download").addEventListener("click", ev => {
+			const link = document.createElement("a");
+			link.download = "frequency_response.json";
+			link.href = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(calibrationRuns));
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			delete link;
+		});
 	</script>
 </html>
