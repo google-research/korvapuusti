@@ -223,21 +223,49 @@ function documentLoaded() {
 
 	const datapoints = [];
 	let currState = {};
-	const experiments = [];
+	const unfinishedEvaluations = [];
+	let currentEvaluation = null;
+	const finishedEvaluations = [];
 
-	// Remove one experiment from the array of experiments to run, and run it.
-	const runNextExperiment = _ => {
-		if (experiments.length > 0) {
-			const nextExperiment = experiments.shift();
-			nextExperiment();
+	const updateUndoButton = _ => {
+		if (finishedEvaluations.length > 0) {
+			document.getElementById("undo").disabled = false;
 		} else {
+			document.getElementById("undo").disabled = true;
+		}
+	};
+	updateUndoButton();
+
+	document.getElementById("undo").addEventListener("click", _ => {
+		fetch(new Request("/log", {
+			method: "DELETE"
+		})).then(resp => {
+			unfinishedEvaluations.unshift(currentEvaluation);
+			currentEvaluation = finishedEvaluations.pop();
+			plotLog();
+			updateUndoButton();
+			currentEvaluation();
+		});
+	});
+
+	// Remove one evaluation from the array of evaluations to run, and run it.
+	const runNextEvaluation = _ => {
+		if (currentEvaluation) {
+			finishedEvaluations.push(currentEvaluation);
+		}
+		if (unfinishedEvaluations.length > 0) {
+			currentEvaluation = unfinishedEvaluations.shift();
+			updateUndoButton();
+			currentEvaluation();
+		} else {
+			currentEvaluation = null;
 			pauseProbeFunc();
 			pauseCombinedFunc();
-			alert("All experiments finished, click restart to get a new set of experiments.")
+			alert("All evaluations finished, click restart to get a new set of evaluations.")
 		}
 	};
 
-	// Generate the list of experiments and run the first one.
+	// Generate the list of evaluations and run the first one.
 	const restart = _ => {
 		datapoints.length = 0;
 		currState = {};
@@ -253,9 +281,10 @@ function documentLoaded() {
 		}
 		currState.ProbeLevel = Number.parseFloat(probeLevelInput.value);
 		currState.ERBApart = Number.parseFloat(erbApartInput.value);
-		experiments.length = 0;
-		const addExperimentForFrequency = frequency => {
-			experiments.push(_ => {
+		unfinishedEvaluations.length = 0;
+		finishedEvaluations.length = 0;
+		const addEvaluationForFrequency = frequency => {
+			unfinishedEvaluations.push(_ => {
 				active = true;
 				randomizeEquivalentProbeLevel();
 				setProbeLevel();
@@ -300,15 +329,15 @@ function documentLoaded() {
 			exactFrequenciesInput.value.
 				split(",").
 				map(Number.parseFloat).
-				forEach(addExperimentForFrequency);
+				forEach(addEvaluationForFrequency);
 		} else {
 			for (let frequency = minFrequency;
 				frequency < maxFrequency;
 				frequency += erb(frequency) * currState.ERBApart) {
-				addExperimentForFrequency(frequency);
+				addEvaluationForFrequency(frequency);
 			}
 		}
-		runNextExperiment();
+		runNextEvaluation();
 	};
 
 	document.getElementById("restart").addEventListener("click", restart);
@@ -371,7 +400,7 @@ function documentLoaded() {
 				return;
 			}
 			plotLog();
-			runNextExperiment();
+			runNextEvaluation();
 		});
 	};
 

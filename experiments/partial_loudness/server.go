@@ -26,6 +26,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -33,6 +34,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"strings"
 	"text/template"
 
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/bindata"
@@ -162,6 +164,7 @@ type equivalentLoudness struct {
 }
 
 func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
+	filePath := filepath.Join(*experimentOutput, "evaluations.json")
 	if r.Method == "POST" {
 		equiv := &equivalentLoudness{}
 		if err := json.NewDecoder(r.Body).Decode(equiv); err != nil {
@@ -183,7 +186,7 @@ func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 			return
 		}
-		logFile, err := os.OpenFile(filepath.Join(*experimentOutput, "evaluations.json"),
+		logFile, err := os.OpenFile(filePath,
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			handleError(w, err)
@@ -197,7 +200,7 @@ func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if r.Method == "GET" {
 		w.Header().Set("Content-Type", "application/json")
-		logFile, err := os.Open(filepath.Join(*experimentOutput, "evaluations.json"))
+		logFile, err := os.Open(filePath)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return
@@ -207,6 +210,21 @@ func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 		}
 		defer logFile.Close()
 		if _, err := io.Copy(w, logFile); err != nil {
+			handleError(w, err)
+			return
+		}
+	} else if r.Method == "DELETE" {
+		data, err := ioutil.ReadFile(filePath)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		lines := strings.Split(string(data), "\n")
+		for strings.TrimSpace(lines[len(lines)-1]) == "" {
+			lines = lines[:len(lines)-1]
+		}
+		text := strings.Join(lines[:len(lines)-1], "\n") + "\n"
+		if err := ioutil.WriteFile(filePath, []byte(text), 0644); err != nil {
 			handleError(w, err)
 			return
 		}
