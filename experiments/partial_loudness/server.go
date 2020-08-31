@@ -145,6 +145,7 @@ func renderSignal(w http.ResponseWriter, r *http.Request) {
 }
 
 type equivalentLoudness struct {
+	RunID                           string
 	EvaluationID                    string
 	ProbePath                       string
 	CombinedPath                    string
@@ -161,37 +162,54 @@ type equivalentLoudness struct {
 }
 
 func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
-	equiv := &equivalentLoudness{}
-	if err := json.NewDecoder(r.Body).Decode(equiv); err != nil {
-		handleError(w, err)
-		return
-	}
-	val := reflect.ValueOf(*equiv)
-	for fieldNo := 0; fieldNo < val.NumField(); fieldNo++ {
-		if val.Field(fieldNo).IsZero() {
-			handleError(w, fmt.Errorf("field %v of %+v is zero", val.Type().Field(fieldNo).Name, equiv))
+	if r.Method == "POST" {
+		equiv := &equivalentLoudness{}
+		if err := json.NewDecoder(r.Body).Decode(equiv); err != nil {
+			handleError(w, err)
 			return
 		}
-	}
-	if equiv.ProbePath == "" || equiv.CombinedPath == "" || equiv.FullScaleSineDBSPL == 0 || equiv.ProbeGainForEquivalentLoudness == 0 || equiv.ProbeDBSPLForEquivalentLoudness == 0 {
-		handleError(w, fmt.Errorf("%+v isn't fully populated", equiv))
-		return
-	}
-	if err := os.MkdirAll(*experimentOutput, 0755); err != nil {
-		handleError(w, err)
-		return
-	}
-	logFile, err := os.OpenFile(filepath.Join(*experimentOutput, "evaluations.json"),
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	defer logFile.Close()
-	encoder := json.NewEncoder(logFile)
-	if err := encoder.Encode(equiv); err != nil {
-		handleError(w, err)
-		return
+		val := reflect.ValueOf(*equiv)
+		for fieldNo := 0; fieldNo < val.NumField(); fieldNo++ {
+			if val.Field(fieldNo).IsZero() {
+				handleError(w, fmt.Errorf("field %v of %+v is zero", val.Type().Field(fieldNo).Name, equiv))
+				return
+			}
+		}
+		if equiv.ProbePath == "" || equiv.CombinedPath == "" || equiv.FullScaleSineDBSPL == 0 || equiv.ProbeGainForEquivalentLoudness == 0 || equiv.ProbeDBSPLForEquivalentLoudness == 0 {
+			handleError(w, fmt.Errorf("%+v isn't fully populated", equiv))
+			return
+		}
+		if err := os.MkdirAll(*experimentOutput, 0755); err != nil {
+			handleError(w, err)
+			return
+		}
+		logFile, err := os.OpenFile(filepath.Join(*experimentOutput, "evaluations.json"),
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		defer logFile.Close()
+		encoder := json.NewEncoder(logFile)
+		if err := encoder.Encode(equiv); err != nil {
+			handleError(w, err)
+			return
+		}
+	} else if r.Method == "GET" {
+		w.Header().Set("Content-Type", "application/json")
+		logFile, err := os.Open(filepath.Join(*experimentOutput, "evaluations.json"))
+		if err != nil {
+			if os.IsNotExist(err) {
+				return
+			}
+			handleError(w, err)
+			return
+		}
+		defer logFile.Close()
+		if _, err := io.Copy(w, logFile); err != nil {
+			handleError(w, err)
+			return
+		}
 	}
 }
 
