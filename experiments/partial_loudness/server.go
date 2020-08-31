@@ -43,9 +43,17 @@ const (
 	rate = 48000
 )
 
+func MustAsset(n string) []byte {
+	b, err := bindata.Asset(n)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
 var (
 	signalRequestReg = regexp.MustCompile("^/signal/(.*)\\.((probe|mask|calib)(\\.[0-9_]+)?\\.wav)$")
-	indexTemplate    = template.Must(template.New("index.html").Parse(string(bindata.MustAsset("html/index.html"))))
+	indexTemplate    = template.Must(template.New("index.html").Parse(string(MustAsset("html/index.html"))))
 )
 
 var (
