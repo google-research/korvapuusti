@@ -17,7 +17,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-//go:generate go-bindata -o bindata/bindata.go -pkg bindata images/ html/
+//go:generate go-bindata -o bindata/bindata.go -pkg bindata images/ html/ js/
 package main
 
 import (
@@ -195,16 +195,18 @@ func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func renderImage(w http.ResponseWriter, r *http.Request) {
-	b, err := bindata.Asset(filepath.Join("images", filepath.Base(r.URL.Path)))
-	if err != nil {
-		handleError(w, fmt.Errorf("Unable to find asset for %q: %v", r.URL.Path, err))
-		return
-	}
-	w.Header().Set("Content-Type", "image/png")
-	if _, err := io.Copy(w, bytes.NewBuffer(b)); err != nil {
-		handleError(w, err)
-		return
+func createAssetFunc(dir string, contentType string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		b, err := bindata.Asset(filepath.Join(dir, filepath.Base(r.URL.Path)))
+		if err != nil {
+			handleError(w, fmt.Errorf("Unable to find asset for %q: %v", r.URL.Path, err))
+			return
+		}
+		w.Header().Set("Content-Type", contentType)
+		if _, err := io.Copy(w, bytes.NewBuffer(b)); err != nil {
+			handleError(w, err)
+			return
+		}
 	}
 }
 
@@ -213,7 +215,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/signal/", renderSignal)
 	mux.HandleFunc("/log", logEquivalentLoudness)
-	mux.HandleFunc("/images/", renderImage)
+	mux.HandleFunc("/images/", createAssetFunc("images", "image/png"))
+	mux.HandleFunc("/js/", createAssetFunc("js", "application/javascript"))
 	mux.HandleFunc("/", renderIndex)
 	log.Printf("Starting server. Browse to http://%v", *listen)
 	log.Fatal(http.ListenAndServe(*listen, mux))
