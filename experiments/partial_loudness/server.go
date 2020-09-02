@@ -22,6 +22,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -32,10 +33,11 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"text/template"
+	"time"
 
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/bindata"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
@@ -54,7 +56,7 @@ func MustAsset(n string) []byte {
 }
 
 var (
-	signalRequestReg = regexp.MustCompile("^/signal/(.*)\\.((probe|mask|calib)(\\.[0-9_]+)?\\.wav)$")
+	signalRequestReg = regexp.MustCompile("^/signal/(.*)\\.\\w+\\.wav$")
 	indexTemplate    = template.Must(template.New("index.html").Parse(string(MustAsset("html/index.html"))))
 )
 
@@ -64,18 +66,19 @@ var (
 		"Path to store the experiment results to.")
 	listen                         = flag.String("listen", "localhost:12000", "Interface and port to listen for connections on.")
 	erbWidth                       = flag.Float64("erb_width", 0.0, "Preset ERB width for white noise in the experiment.")
-	maskFrequencies                = flag.String("mask_frequencies", "", "Preset mask frequencies for the experiment.")
-	maskLevels                     = flag.String("mask_levels", "", "Preset mask levels for the experiment.")
+	maskLevel                      = flag.Float64("mask_level", 0.0, "Preset mask level for the experiment.")
 	probeLevel                     = flag.Float64("probe_level", 0.0, "Preset probe level for the experiment.")
+	probeFrequency                 = flag.Float64("probe_frequency", 0.0, "Preset probe freqency for the experiment.")
 	erbApart                       = flag.Float64("erb_apart", 0.0, "Preset ERB apart for the experiment.")
-	exactFrequencies               = flag.String("exact_frequencies", "", "Preset exact frequencies to present the probe at.")
+	exactMaskFrequencies           = flag.String("exact_mask_frequencies", "", "Preset exact frequencies to present the masker at.")
 	signalType                     = flag.String("signal_type", "", "Preset signal type for the experiment.")
 	hideControls                   = flag.Bool("hide_controls", false, "Whether to hide the controls in the experiment.")
 	headphoneFrequencyResponseFile = flag.String("headphone_frequency_response_file", "", "Frequency response file for headphones used, produced by the calibrate/calibrate.html tool.")
 )
 
 type server struct {
-	headphoneFrequencyResponse signals.FrequencyResponse
+	headphoneFrequencyResponse     signals.FrequencyResponse
+	headphoneFrequencyResponseHash string
 }
 
 func (s *server) renderIndex(w http.ResponseWriter, r *http.Request) {
@@ -83,13 +86,13 @@ func (s *server) renderIndex(w http.ResponseWriter, r *http.Request) {
 	if err := indexTemplate.Execute(w, map[string]interface{}{
 		"ExperimentOutput":               *experimentOutput,
 		"ERBWidth":                       *erbWidth,
-		"MaskFrequencies":                *maskFrequencies,
-		"MaskLevels":                     *maskLevels,
+		"MaskLevel":                      *maskLevel,
 		"ProbeLevel":                     *probeLevel,
+		"ProbeFrequency":                 *probeFrequency,
 		"ERBApart":                       *erbApart,
 		"SignalType":                     *signalType,
 		"HideControls":                   *hideControls,
-		"ExactFrequencies":               *exactFrequencies,
+		"ExactMaskFrequencies":           *exactMaskFrequencies,
 		"HeadphoneFrequencyResponseFile": *headphoneFrequencyResponseFile,
 	}); err != nil {
 		s.handleError(w, err)
@@ -137,19 +140,24 @@ func (s *server) renderSignal(w http.ResponseWriter, r *http.Request) {
 }
 
 type equivalentLoudness struct {
-	EntryType                       string
-	RunID                           string
-	EvaluationID                    string
-	FullScaleSineDBSPL              float64
-	ProbeGainForEquivalentLoudness  float64
-	ProbeDBSPLForEquivalentLoudness float64
-	ERBWidth                        float64
-	MaskFrequencies                 []float64
-	MaskLevels                      []float64
-	ProbeFrequency                  float64
-	ProbeLevel                      float64
-	SignalType                      string
-	ERBApart                        float64
+	EntryType   string
+	Calibration struct {
+		HeadphoneFrequencyResponseHash string
+		FullScaleSineDBSPL             float64
+	}
+	Run struct {
+		ID string
+	}
+	Evaluation struct {
+		ID        string
+		Frequency float64
+		Probe     signals.SamplerWrapper
+		Combined  signals.SamplerWrapper
+	}
+	Results struct {
+		ProbeGainForEquivalentLoudness  float64
+		ProbeDBSPLForEquivalentLoudness float64
+	}
 }
 
 func (s *server) log(i interface{}) error {
@@ -176,17 +184,7 @@ func (s *server) logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		equiv.EntryType = "EquivalentLoudnessMeasurement"
-		val := reflect.ValueOf(*equiv)
-		for fieldNo := 0; fieldNo < val.NumField(); fieldNo++ {
-			if val.Type().Field(fieldNo).Name != "EntryType" && val.Field(fieldNo).IsZero() {
-				s.handleError(w, fmt.Errorf("field %v of %+v is zero", val.Type().Field(fieldNo).Name, equiv))
-				return
-			}
-		}
-		if equiv.FullScaleSineDBSPL == 0 || equiv.ProbeGainForEquivalentLoudness == 0 || equiv.ProbeDBSPLForEquivalentLoudness == 0 {
-			s.handleError(w, fmt.Errorf("%+v isn't fully populated", equiv))
-			return
-		}
+		equiv.Calibration.HeadphoneFrequencyResponseHash = s.headphoneFrequencyResponseHash
 		if err := s.log(equiv); err != nil {
 			s.handleError(w, err)
 			return
@@ -255,9 +253,12 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		s.headphoneFrequencyResponseHash = fmt.Sprintf("%x", sha1.Sum(blob))
 		s.headphoneFrequencyResponse = freqResp
 		s.log(map[string]interface{}{
 			"EntryType":    "FrequencyResponseMeasurements",
+			"Hash":         s.headphoneFrequencyResponseHash,
+			"Path":         *headphoneFrequencyResponseFile,
 			"Measurements": measurements,
 		})
 	}
@@ -268,5 +269,20 @@ func main() {
 	mux.HandleFunc("/js/", s.createAssetFunc("js", "application/javascript"))
 	mux.HandleFunc("/", s.renderIndex)
 	log.Printf("Starting server. Browse to http://%v", *listen)
-	log.Fatal(http.ListenAndServe(*listen, mux))
+	log.Fatal(http.ListenAndServe(*listen, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		logInProgress := int64(1)
+		go func() {
+			for {
+				time.Sleep(10 * time.Second)
+				if atomic.LoadInt64(&logInProgress) == 0 {
+					break
+				}
+				log.Printf("%v\t%v\tprocessing (%v)", r.Method, r.URL, time.Now().Sub(start))
+			}
+		}()
+		mux.ServeHTTP(w, r)
+		atomic.StoreInt64(&logInProgress, 0)
+		log.Printf("%v\t%v\t%v", r.Method, r.URL, time.Now().Sub(start))
+	})))
 }
