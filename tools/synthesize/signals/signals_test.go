@@ -27,6 +27,10 @@ const (
 	tolerance = 0.001
 )
 
+func testFrequencyResponseFunc(f Hz) (DB, error) {
+	return DB((f - 1000.0) * 0.001), nil
+}
+
 func makeSignal(frequency Hz, gain float64, rate Hz, len int) Float64Slice {
 	result := Float64Slice{}
 	period := rate.Period()
@@ -34,6 +38,66 @@ func makeSignal(frequency Hz, gain float64, rate Hz, len int) Float64Slice {
 		result = append(result, gain*math.Sin(2*math.Pi*float64(i)*float64(period)*float64(frequency)))
 	}
 	return result
+}
+
+func TestLoadCalibrateFrequencyResponse(t *testing.T) {
+	frequencyResponseData := []map[string]float64{
+		{
+			"100": -2,
+			"200": -4,
+			"300": -2,
+		},
+		{
+			"100": -1,
+			"200": -4,
+			"300": -2,
+		},
+	}
+	frequencyResponse, err := LoadCalibrateFrequencyResponse(frequencyResponseData)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		f            Hz
+		wantedOffset DB
+	}{
+		{
+			f:            100,
+			wantedOffset: -1.5,
+		},
+		{
+			f:            200,
+			wantedOffset: -4,
+		},
+		{
+			f:            300,
+			wantedOffset: -2,
+		},
+		{
+			f:            150,
+			wantedOffset: -1.5/2.0 + -4.0/2.0,
+		},
+		{
+			f:            250,
+			wantedOffset: -3,
+		},
+		{
+			f:            225,
+			wantedOffset: -4.0*3.0/4.0 + -2.0/4.0,
+		},
+		{
+			f:            275,
+			wantedOffset: -4.0/4.0 + -2.0*3.0/4.0,
+		},
+	} {
+		gotOffset, err := frequencyResponse(tc.f)
+		if err != nil {
+			t.Error(err)
+		}
+		if gotOffset != tc.wantedOffset {
+			t.Errorf("Got %v for %v, wanted %v", gotOffset, tc.f, tc.wantedOffset)
+		}
+	}
 }
 
 func TestOnset(t *testing.T) {
@@ -227,6 +291,14 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			spec: `{"Type": "Superposition", "Params": [{"Type": "Signal", "Params": {"Frequency": 2050}}]}`,
+			wantedSignal: Superposition{
+				&Signal{
+					Frequency: 2050,
+				},
+			},
+		},
+		{
 			spec:        `{"Type": "plur", "Params": {}}`,
 			wantedError: fmt.Errorf(`unknown sampler type "plur"`),
 		},
@@ -249,6 +321,7 @@ func TestParse(t *testing.T) {
 
 type samplerTestCase struct {
 	s                     Sampler
+	frequencyResponse     FrequencyResponse
 	wantedPeakSignals     Signals
 	wantedSpectrumGains   Float64Slice
 	wantedPower           Power
@@ -269,7 +342,7 @@ func (t samplerTestCase) verify() error {
 		ts = *t.forceTimeStretch
 	}
 	period := 1.0 / rate
-	signal, err := t.s.Sample(ts, rate)
+	signal, err := t.s.Sample(ts, rate, t.frequencyResponse)
 	if err != nil {
 		if t.wantedError == nil {
 			return err
@@ -401,6 +474,51 @@ func TestSignal(t *testing.T) {
 		{
 			s: Signal{
 				Shape:     Sine,
+				Frequency: 500,
+				Level:     0,
+			},
+			frequencyResponse: testFrequencyResponseFunc,
+			wantedPeakSignals: Signals{
+				{
+					Frequency: 500,
+					Level:     0.5,
+				},
+			},
+			wantedPower: 0.5 * Power(math.Pow(10.0, 0.5/10.0)),
+		},
+		{
+			s: Signal{
+				Shape:     Sine,
+				Frequency: 2000,
+				Level:     0,
+			},
+			frequencyResponse: testFrequencyResponseFunc,
+			wantedPeakSignals: Signals{
+				{
+					Frequency: 2000,
+					Level:     -1.0,
+				},
+			},
+			wantedPower: 0.5 * Power(math.Pow(10.0, -1.0/10.0)),
+		},
+		{
+			s: Signal{
+				Shape:     Sine,
+				Frequency: 1000,
+				Level:     0,
+			},
+			frequencyResponse: testFrequencyResponseFunc,
+			wantedPeakSignals: Signals{
+				{
+					Frequency: 1000,
+					Level:     0.0,
+				},
+			},
+			wantedPower: 0.5,
+		},
+		{
+			s: Signal{
+				Shape:     Sine,
 				Frequency: 1000,
 				Level:     0,
 			},
@@ -433,6 +551,33 @@ func TestSignal(t *testing.T) {
 					Frequency: 100,
 				},
 				Shape:     Sine,
+				Frequency: 2000,
+				Level:     -6,
+			},
+			frequencyResponse: testFrequencyResponseFunc,
+			wantedPeakSignals: Signals{
+				{
+					Frequency: 1900,
+					Level:     -14.12994793217803,
+				},
+				{
+					Frequency: 2000,
+					Level:     -9.324527032907175,
+				},
+				{
+					Frequency: 2100,
+					Level:     -14.12994793217803,
+				},
+			},
+			wantedPower: Power(math.Pow(10.0, -7.0/10.0)) / 2,
+		},
+		{
+			s: Signal{
+				FM: FM{
+					Width:     100,
+					Frequency: 100,
+				},
+				Shape:     Sine,
 				Frequency: 2500,
 				Level:     -6,
 			},
@@ -451,6 +596,29 @@ func TestSignal(t *testing.T) {
 				},
 			},
 			wantedPower: Power(math.Pow(10.0, -6.0/10.0)) / 2,
+		},
+		{
+			s: Signal{
+				AM: AM{
+					Fraction:  0.5,
+					Frequency: 1000,
+				},
+				Shape:     Sine,
+				Frequency: 2000,
+				Level:     -6,
+			},
+			frequencyResponse: testFrequencyResponseFunc,
+			wantedPeakSignals: Signals{
+				{
+					Frequency: 1000.0,
+					Level:     -12.020599913276246,
+				},
+				{
+					Frequency: 2000.0,
+					Level:     -13.020599913290981,
+				},
+			},
+			wantedPower: 0.056339359330931656,
 		},
 		{
 			s: Signal{
@@ -486,18 +654,63 @@ func TestFMNoise(t *testing.T) {
 		{
 			s: &NoisyFMSignal{
 				Shape:       Sine,
-				Frequency:   1000,
+				Frequency:   2000,
+				FMFrequency: 7.5,
+				Level:       0,
+			},
+			frequencyResponse: testFrequencyResponseFunc,
+			wantedPeakSignals: Signals{
+				{
+					Frequency: 1940.0,
+					Level:     -11.983525919896652,
+				},
+				{
+					Frequency: 1985.0,
+					Level:     -12.768670735492549,
+				},
+				{
+					Frequency: 2000.0,
+					Level:     -13.250035441017559,
+				},
+				{
+					Frequency: 2015.0,
+					Level:     -12.925096213872031,
+				},
+				{
+					Frequency: 2060.0,
+					Level:     -11.848607621924683,
+				},
+			},
+			wantedPower:           0.5 * Power(math.Pow(10.0, -1.0/10.0)),
+			forcePeakSignalsRatio: 0.8,
+		},
+		{
+			s: &NoisyFMSignal{
+				Shape:       Sine,
+				Frequency:   2000,
 				FMFrequency: 7.5,
 				Level:       0,
 			},
 			wantedPeakSignals: Signals{
 				{
-					Frequency: 970.0,
-					Level:     -8.381803045116627,
+					Frequency: 1940.0,
+					Level:     -10.983525919896655,
 				},
 				{
-					Frequency: 1030.0,
-					Level:     -8.370246252315447,
+					Frequency: 1985.0,
+					Level:     -11.768670735492549,
+				},
+				{
+					Frequency: 2000.0,
+					Level:     -12.250035441017559,
+				},
+				{
+					Frequency: 2015.0,
+					Level:     -11.925096213872031,
+				},
+				{
+					Frequency: 2060.0,
+					Level:     -10.848607621924685,
 				},
 			},
 			wantedPower:           0.5,
@@ -515,13 +728,29 @@ func TestAMNoise(t *testing.T) {
 		{
 			s: &NoisyAMSignal{
 				Shape:       Sine,
-				Frequency:   1000,
+				Frequency:   2000,
+				AMFrequency: 7.5,
+				Level:       0,
+			},
+			frequencyResponse: testFrequencyResponseFunc,
+			wantedPeakSignals: Signals{
+				{
+					Frequency: 2000.0,
+					Level:     -1.04762461738375294,
+				},
+			},
+			wantedPower: 0.5 * Power(math.Pow(10, -1.0/10.0)),
+		},
+		{
+			s: &NoisyAMSignal{
+				Shape:       Sine,
+				Frequency:   2000,
 				AMFrequency: 7.5,
 				Level:       0,
 			},
 			wantedPeakSignals: Signals{
 				{
-					Frequency: 1000.0,
+					Frequency: 2000.0,
 					Level:     -0.04762461738375294,
 				},
 			},
@@ -544,6 +773,20 @@ func TestNoise(t *testing.T) {
 			},
 			wantedSpectrumGains: []float64{0.19956147760195608, 0.6037301956977843, 0.7505630521497461, 0.22663055211981142, 0.14423435234451365, 1.60181777003812e-16, 2.630087941734199e-16, 1.5552972796815324e-16, 3.0603615779402827e-16, 1.3986459080436508e-16},
 			wantedPower:         0.5,
+			forceRate:           1000.0,
+			forceTimeStretch:    &TimeStretch{0, 0.02},
+		},
+		{
+			s: &Noise{
+				LowerLimit: 0,
+				UpperLimit: 250,
+				Level:      0,
+			},
+			frequencyResponse: func(f Hz) (DB, error) {
+				return DB(f / 2.5), nil
+			},
+			wantedSpectrumGains: []float64{0.010372902545003955, 0.003138097872746913, 0.00039013127620547206, 1.177991193043902e-05, 7.497082595746869e-07, 3.503739015785315e-18, 3.5236570605778894e-18, 1.7163516786632708e-18, 3.9422435812461906e-18, 1.7041216874547862e-18},
+			wantedPower:         0.5 * Power(math.Pow(10.0, -50.0/10.0)),
 			forceRate:           1000.0,
 			forceTimeStretch:    &TimeStretch{0, 0.02},
 		},

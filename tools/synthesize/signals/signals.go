@@ -19,12 +19,15 @@ package signals
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
 	"math/cmplx"
 	"math/rand"
 	"reflect"
+	"sort"
+	"strconv"
 
 	"github.com/mjibson/go-dsp/fft"
 	"github.com/youpy/go-wav"
@@ -87,10 +90,84 @@ func (t TimeStretch) FrequencyDiscrimination() Hz {
 	return Hz(1.0 / t.Len())
 }
 
+// OutsideKnownFrequencyResponseError means that the asked for frequency is outside the known
+// frequency range for a FrequencyResponse.
+var OutsideKnownFrequencyResponseError = errors.New("Outside known frequency response")
+
+// FrequencyResponse functions return a DB offset for a given frequency.
+type FrequencyResponse func(f Hz) (DB, error)
+
+type sortedOffset struct {
+	f      Hz
+	offset DB
+}
+
+type sortedOffsets []sortedOffset
+
+func (s sortedOffsets) Len() int {
+	return len(s)
+}
+
+func (s sortedOffsets) Less(i, j int) bool {
+	return s[i].f < s[j].f
+}
+
+func (s sortedOffsets) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+// LoadCalibrateFrequencyResponse returns a FrequencyResponse from the measurements, which
+// has to be of the format produced by the tools/calibrate tool.
+// The returned FrequencyResponse will linearly interpolate between the values in the
+// provided measurements.
+func LoadCalibrateFrequencyResponse(inputMappings []map[string]float64) (FrequencyResponse, error) {
+	mergedMappings := map[Hz][]DB{}
+	for _, inputMapping := range inputMappings {
+		for inputFString, inputOffset := range inputMapping {
+			inputF, err := strconv.ParseFloat(inputFString, 64)
+			if err != nil {
+				return nil, err
+			}
+			mergedMappings[Hz(inputF)] = append(mergedMappings[Hz(inputF)], DB(inputOffset))
+		}
+	}
+	averagedMappings := map[Hz]DB{}
+	for inputF, inputOffsets := range mergedMappings {
+		sum := DB(0.0)
+		for _, inputOffset := range inputOffsets {
+			sum += inputOffset
+		}
+		averagedMappings[Hz(inputF)] = sum / DB(len(inputOffsets))
+	}
+	sortedMappings := sortedOffsets{}
+	for inputF, averagedOffset := range averagedMappings {
+		sortedMappings = append(sortedMappings, sortedOffset{f: inputF, offset: averagedOffset})
+	}
+	sort.Sort(sortedMappings)
+	return func(f Hz) (DB, error) {
+		if f < sortedMappings[0].f || f > sortedMappings[len(sortedMappings)-1].f {
+			return 0.0, OutsideKnownFrequencyResponseError
+		}
+		index1 := sort.Search(len(sortedMappings), func(idx int) bool {
+			return sortedMappings[idx].f > f
+		})
+		if index1 == len(sortedMappings) {
+			return sortedMappings[len(sortedMappings)-1].offset, nil
+		}
+		f1 := sortedMappings[index1-1].f
+		offset1 := sortedMappings[index1-1].offset
+		f2 := sortedMappings[index1].f
+		offset2 := sortedMappings[index1].offset
+		partOffset2 := (f - f1) / (f2 - f1)
+		partOffset1 := 1 - partOffset2
+		return DB(partOffset1)*offset1 + DB(partOffset2)*offset2, nil
+	}, nil
+}
+
 // Sampler can synthesize a signal for a given time.
 type Sampler interface {
 	// Sample returns samples during the provided time stretch at the given sample rate.
-	Sample(t TimeStretch, rate Hz) (Float64Slice, error)
+	Sample(t TimeStretch, rate Hz, speakerFrequencyResponse FrequencyResponse) (Float64Slice, error)
 }
 
 // NoiseColor defines a distribution of noise.
@@ -201,7 +278,8 @@ func (n *Noise) String() string {
 // Sample samples this noise source at the given rate within the given time slice.
 // NB: Assumes that this duration is all that is sampled, and will generate samples
 // that (for this duration) should be indistinguisable from noise.
-func (n *Noise) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
+// Generates all samples at levels appropriate for the provided FrequencyResponse.
+func (n *Noise) Sample(ts TimeStretch, rate Hz, speakerFrequencyResponse FrequencyResponse) (Float64Slice, error) {
 	switch n.Color {
 	case White:
 		nSamples := int(float64(ts.Len()) * float64(rate))
@@ -212,7 +290,15 @@ func (n *Noise) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
 		randSource := rand.NewSource(n.Seed)
 		r := rand.New(randSource)
 		for i := fMinIdx; i < fMaxIdx; i++ {
-			coefficients[i] = complex(r.NormFloat64(), r.NormFloat64())
+			frequencyResponseScaling := 1.0
+			if speakerFrequencyResponse != nil {
+				frequencyResponseOffset, err := speakerFrequencyResponse(freqStepHz * Hz(i))
+				if err != nil {
+					return nil, err
+				}
+				frequencyResponseScaling = math.Pow(10, float64(-frequencyResponseOffset/20.0))
+			}
+			coefficients[i] = complex(r.NormFloat64()*frequencyResponseScaling, r.NormFloat64()*frequencyResponseScaling)
 		}
 		samples := fft.IFFT(coefficients)
 		result := make(Float64Slice, len(samples))
@@ -222,7 +308,15 @@ func (n *Noise) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
 			result[idx] = sample
 			pc.Feed(sample)
 		}
-		result.AddLevel(FullScaleSinePower.DB() - pc.Power().DB() + n.Level)
+		frequencyResponseOffset := DB(0.0)
+		if speakerFrequencyResponse != nil {
+			var err error
+			frequencyResponseOffset, err = speakerFrequencyResponse(0.5 * (n.LowerLimit + n.UpperLimit))
+			if err != nil {
+				return nil, err
+			}
+		}
+		result.AddLevel(FullScaleSinePower.DB() - pc.Power().DB() + n.Level - frequencyResponseOffset)
 		if err := n.Onset.Filter(result, ts); err != nil {
 			return nil, err
 		}
@@ -252,7 +346,8 @@ func (n *NoisyFMSignal) String() string {
 }
 
 // Sample samples this signal during the provided time stretch, at the provided rate.
-func (n NoisyFMSignal) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
+// Generates all samples at the level appropriate for the center frequency using the provided FrequencyResponse.
+func (n NoisyFMSignal) Sample(ts TimeStretch, rate Hz, speakerFrequencyResponse FrequencyResponse) (Float64Slice, error) {
 	switch n.Shape {
 	case Sine:
 		period := rate.Period()
@@ -281,7 +376,15 @@ func (n NoisyFMSignal) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
 			// but not have a strong hiss.
 			fmT += period + Seconds((randI1-0.5)*0.00005)
 		}
-		result.AddLevel(FullScaleSinePower.DB() - pc.Power().DB() + n.Level)
+		frequencyResponseOffset := DB(0.0)
+		if speakerFrequencyResponse != nil {
+			var err error
+			frequencyResponseOffset, err = speakerFrequencyResponse(n.Frequency)
+			if err != nil {
+				return nil, err
+			}
+		}
+		result.AddLevel(FullScaleSinePower.DB() - pc.Power().DB() + n.Level - frequencyResponseOffset)
 		if err := n.Onset.Filter(result, ts); err != nil {
 			return nil, err
 		}
@@ -311,7 +414,8 @@ func (n *NoisyAMSignal) String() string {
 }
 
 // Sample samples this signal during the provided time stretch, at the provided rate.
-func (n NoisyAMSignal) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
+// Generates all samples at the level appropriate for the center frequency using the provided FrequencyResponse.
+func (n NoisyAMSignal) Sample(ts TimeStretch, rate Hz, speakerFrequencyResponse FrequencyResponse) (Float64Slice, error) {
 	switch n.Shape {
 	case Sine:
 		period := rate.Period()
@@ -339,7 +443,15 @@ func (n NoisyAMSignal) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
 			// but not have a strong hiss.
 			amT += period + Seconds((randI1-0.5)*0.0004)
 		}
-		result.AddLevel(FullScaleSinePower.DB() - pc.Power().DB() + n.Level)
+		frequencyResponseOffset := DB(0.0)
+		if speakerFrequencyResponse != nil {
+			var err error
+			frequencyResponseOffset, err = speakerFrequencyResponse(n.Frequency)
+			if err != nil {
+				return nil, err
+			}
+		}
+		result.AddLevel(FullScaleSinePower.DB() - pc.Power().DB() + n.Level - frequencyResponseOffset)
 		if err := n.Onset.Filter(result, ts); err != nil {
 			return nil, err
 		}
@@ -401,7 +513,8 @@ func (s *Signal) String() string {
 }
 
 // Sample samples this signal during the provided time stretch, at the provided rate.
-func (s Signal) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
+// Generates all samples at the level appropriate for the center frequency using the provided FrequencyResponse.
+func (s Signal) Sample(ts TimeStretch, rate Hz, speakerFrequencyResponse FrequencyResponse) (Float64Slice, error) {
 	switch s.Shape {
 	case Sine:
 		period := rate.Period()
@@ -412,7 +525,15 @@ func (s Signal) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
 			if s.FM.Width > 0 && s.FM.Frequency > 0 {
 				freqMod = float64(s.FM.Width/s.FM.Frequency) * math.Sin(2*math.Pi*float64(t)*float64(s.FM.Frequency))
 			}
-			result = append(result, float64(gain)*(1.0-s.AM.Fraction)*math.Sin(2*math.Pi*float64(t)*float64(s.Frequency)+freqMod)+float64(gain)*s.AM.Fraction*math.Sin(2*math.Pi*float64(t)*float64(s.AM.Frequency)))
+			frequencyResponseGainScale := 1.0
+			if speakerFrequencyResponse != nil {
+				frequencyResponseOffset, err := speakerFrequencyResponse(s.Frequency)
+				if err != nil {
+					return nil, err
+				}
+				frequencyResponseGainScale = math.Pow(10.0, float64(-frequencyResponseOffset)/20.0)
+			}
+			result = append(result, frequencyResponseGainScale*float64(gain)*(1.0-s.AM.Fraction)*math.Sin(2*math.Pi*float64(t)*float64(s.Frequency)+freqMod)+float64(gain)*s.AM.Fraction*math.Sin(2*math.Pi*float64(t)*float64(s.AM.Frequency)))
 		}
 		if err := s.Onset.Filter(result, ts); err != nil {
 			return nil, err
@@ -444,23 +565,7 @@ func (s Signal) EqTol(o Signal, tol float64) bool {
 // along with the parameters of the underlying sampler type.
 type SamplerWrapper struct {
 	Type   string
-	Params map[string]interface{}
-}
-
-// SamplerWrappers is a slice of sampler wrappers.
-type SamplerWrappers []SamplerWrapper
-
-// Superposition returns a superposition of the wrapped samplers.
-func (s SamplerWrappers) Superposition() (Superposition, error) {
-	rval := make(Superposition, len(s))
-	for idx := range s {
-		sampler, err := s[idx].Sampler()
-		if err != nil {
-			return nil, err
-		}
-		rval[idx] = sampler
-	}
-	return rval, nil
+	Params interface{}
 }
 
 var (
@@ -474,6 +579,25 @@ var (
 
 // Sampler returns the sampler wrapped in the SamplerWrapper.
 func (s *SamplerWrapper) Sampler() (Sampler, error) {
+	if s.Type == reflect.TypeOf(Superposition{}).Name() {
+		b, err := json.Marshal(s.Params)
+		if err != nil {
+			return nil, err
+		}
+		content := []SamplerWrapper{}
+		if err := json.Unmarshal(b, &content); err != nil {
+			return nil, fmt.Errorf("unable to decode %s as []SampleWrapper{}: %v", b, err)
+		}
+		super := Superposition{}
+		for _, wrapper := range content {
+			sampler, err := wrapper.Sampler()
+			if err != nil {
+				return nil, err
+			}
+			super = append(super, sampler)
+		}
+		return super, nil
+	}
 	template, found := typeMap[s.Type]
 	if !found {
 		return nil, fmt.Errorf("unknown sampler type %q", s.Type)
@@ -523,12 +647,12 @@ func (s Superposition) String() string {
 }
 
 // Sample samples the superposition of these signals at time t seconds.
-func (s Superposition) Sample(ts TimeStretch, rate Hz) (Float64Slice, error) {
+func (s Superposition) Sample(ts TimeStretch, rate Hz, speakerFrequencyResponse FrequencyResponse) (Float64Slice, error) {
 	period := rate.Period()
 	t := ts.FromInclusive
 	var result Float64Slice
 	for samplerIdx, sampler := range s {
-		sampled, err := sampler.Sample(ts, rate)
+		sampled, err := sampler.Sample(ts, rate, speakerFrequencyResponse)
 		if err != nil {
 			return nil, err
 		}

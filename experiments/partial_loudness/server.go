@@ -62,95 +62,84 @@ var (
 	experimentOutput = flag.String("experiment_output",
 		filepath.Join(os.Getenv("HOME"), "partial_loudness_output"),
 		"Path to store the experiment results to.")
-	listen           = flag.String("listen", "localhost:12000", "Interface and port to listen for connections on.")
-	erbWidth         = flag.Float64("erb_width", 0.0, "Preset ERB width for white noise in the experiment.")
-	maskFrequencies  = flag.String("mask_frequencies", "", "Preset mask frequencies for the experiment.")
-	maskLevels       = flag.String("mask_levels", "", "Preset mask levels for the experiment.")
-	probeLevel       = flag.Float64("probe_level", 0.0, "Preset probe level for the experiment.")
-	erbApart         = flag.Float64("erb_apart", 0.0, "Preset ERB apart for the experiment.")
-	exactFrequencies = flag.String("exact_frequencies", "", "Preset exact frequencies to present the probe at.")
-	signalType       = flag.String("signal_type", "", "Preset signal type for the experiment.")
-	hideControls     = flag.Bool("hide_controls", false, "Whether to hide the controls in the experiment.")
+	listen                         = flag.String("listen", "localhost:12000", "Interface and port to listen for connections on.")
+	erbWidth                       = flag.Float64("erb_width", 0.0, "Preset ERB width for white noise in the experiment.")
+	maskFrequencies                = flag.String("mask_frequencies", "", "Preset mask frequencies for the experiment.")
+	maskLevels                     = flag.String("mask_levels", "", "Preset mask levels for the experiment.")
+	probeLevel                     = flag.Float64("probe_level", 0.0, "Preset probe level for the experiment.")
+	erbApart                       = flag.Float64("erb_apart", 0.0, "Preset ERB apart for the experiment.")
+	exactFrequencies               = flag.String("exact_frequencies", "", "Preset exact frequencies to present the probe at.")
+	signalType                     = flag.String("signal_type", "", "Preset signal type for the experiment.")
+	hideControls                   = flag.Bool("hide_controls", false, "Whether to hide the controls in the experiment.")
+	headphoneFrequencyResponseFile = flag.String("headphone_frequency_response_file", "", "Frequency response file for headphones used, produced by the calibrate/calibrate.html tool.")
 )
 
-func renderIndex(w http.ResponseWriter, r *http.Request) {
+type server struct {
+	headphoneFrequencyResponse signals.FrequencyResponse
+}
+
+func (s *server) renderIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if err := indexTemplate.Execute(w, map[string]interface{}{
-		"ExperimentOutput": *experimentOutput,
-		"ERBWidth":         *erbWidth,
-		"MaskFrequencies":  *maskFrequencies,
-		"MaskLevels":       *maskLevels,
-		"ProbeLevel":       *probeLevel,
-		"ERBApart":         *erbApart,
-		"SignalType":       *signalType,
-		"HideControls":     *hideControls,
-		"ExactFrequencies": *exactFrequencies,
+		"ExperimentOutput":               *experimentOutput,
+		"ERBWidth":                       *erbWidth,
+		"MaskFrequencies":                *maskFrequencies,
+		"MaskLevels":                     *maskLevels,
+		"ProbeLevel":                     *probeLevel,
+		"ERBApart":                       *erbApart,
+		"SignalType":                     *signalType,
+		"HideControls":                   *hideControls,
+		"ExactFrequencies":               *exactFrequencies,
+		"HeadphoneFrequencyResponseFile": *headphoneFrequencyResponseFile,
 	}); err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 }
 
-func handleError(w http.ResponseWriter, err error) {
+func (s *server) handleError(w http.ResponseWriter, err error) {
 	log.Print(err)
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
-func renderSignal(w http.ResponseWriter, r *http.Request) {
+func (s *server) renderSignal(w http.ResponseWriter, r *http.Request) {
 	match := signalRequestReg.FindStringSubmatch(r.URL.Path)
 	if match == nil {
-		handleError(w, fmt.Errorf("missing signal spec in path %q", r.URL.Path))
+		s.handleError(w, fmt.Errorf("missing signal spec in path %q", r.URL.Path))
 		return
 	}
-	wantedPath := match[2]
 	escaped, err := url.QueryUnescape(match[1])
 	if err != nil {
-		handleError(w, fmt.Errorf("unable to unescape signal spec %q", match[1]))
+		s.handleError(w, fmt.Errorf("unable to unescape signal spec %q", match[1]))
 		return
 	}
-	samplers := signals.SamplerWrappers{}
-	if err := json.Unmarshal([]byte(escaped), &samplers); err != nil {
-		handleError(w, err)
+	wrapper := signals.SamplerWrapper{}
+	if err := json.Unmarshal([]byte(escaped), &wrapper); err != nil {
+		s.handleError(w, err)
 		return
 	}
-	super, err := samplers.Superposition()
+	signal, err := wrapper.Sampler()
 	if err != nil {
-		handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
-	samples, err := super.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 5}, rate)
+	samples, err := signal.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 5}, rate, s.headphoneFrequencyResponse)
 	if err != nil {
-		handleError(w, fmt.Errorf("Unable to sample %+v: %v", super, err))
-		return
-	}
-	outputPath := filepath.Join(*experimentOutput, "signal", wantedPath)
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
-		handleError(w, fmt.Errorf("Unable to create directory %q for signals: %v", filepath.Dir(outputPath), err))
-		return
-	}
-	outputFile, err := os.Create(outputPath)
-	if err != nil {
-		handleError(w, fmt.Errorf("Unable to create signal file %q: %v", outputPath, err))
-		return
-	}
-	defer outputFile.Close()
-	if err := samples.WriteWAV(outputFile, rate); err != nil {
-		handleError(w, fmt.Errorf("Unable to save WAV file: %v", err))
+		s.handleError(w, fmt.Errorf("Unable to sample %+v: %v", signal, err))
 		return
 	}
 	w.Header().Set("Content-Type", "audio/wav")
 	if err := samples.WriteWAV(w, rate); err != nil {
-		handleError(w, fmt.Errorf("Unable to render WAV response: %v", err))
+		s.handleError(w, fmt.Errorf("Unable to render WAV response: %v", err))
 		return
 	}
 	return
 }
 
 type equivalentLoudness struct {
+	EntryType                       string
 	RunID                           string
 	EvaluationID                    string
-	ProbePath                       string
-	CombinedPath                    string
 	FullScaleSineDBSPL              float64
 	ProbeGainForEquivalentLoudness  float64
 	ProbeDBSPLForEquivalentLoudness float64
@@ -163,39 +152,43 @@ type equivalentLoudness struct {
 	ERBApart                        float64
 }
 
-func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
+func (s *server) log(i interface{}) error {
+	filePath := filepath.Join(*experimentOutput, "evaluations.json")
+	if err := os.MkdirAll(*experimentOutput, 0755); err != nil {
+		return err
+	}
+	logFile, err := os.OpenFile(filePath,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	encoder := json.NewEncoder(logFile)
+	return encoder.Encode(i)
+}
+
+func (s *server) logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 	filePath := filepath.Join(*experimentOutput, "evaluations.json")
 	if r.Method == "POST" {
 		equiv := &equivalentLoudness{}
 		if err := json.NewDecoder(r.Body).Decode(equiv); err != nil {
-			handleError(w, err)
+			s.handleError(w, err)
 			return
 		}
+		equiv.EntryType = "EquivalentLoudnessMeasurement"
 		val := reflect.ValueOf(*equiv)
 		for fieldNo := 0; fieldNo < val.NumField(); fieldNo++ {
-			if val.Field(fieldNo).IsZero() {
-				handleError(w, fmt.Errorf("field %v of %+v is zero", val.Type().Field(fieldNo).Name, equiv))
+			if val.Type().Field(fieldNo).Name != "EntryType" && val.Field(fieldNo).IsZero() {
+				s.handleError(w, fmt.Errorf("field %v of %+v is zero", val.Type().Field(fieldNo).Name, equiv))
 				return
 			}
 		}
-		if equiv.ProbePath == "" || equiv.CombinedPath == "" || equiv.FullScaleSineDBSPL == 0 || equiv.ProbeGainForEquivalentLoudness == 0 || equiv.ProbeDBSPLForEquivalentLoudness == 0 {
-			handleError(w, fmt.Errorf("%+v isn't fully populated", equiv))
+		if equiv.FullScaleSineDBSPL == 0 || equiv.ProbeGainForEquivalentLoudness == 0 || equiv.ProbeDBSPLForEquivalentLoudness == 0 {
+			s.handleError(w, fmt.Errorf("%+v isn't fully populated", equiv))
 			return
 		}
-		if err := os.MkdirAll(*experimentOutput, 0755); err != nil {
-			handleError(w, err)
-			return
-		}
-		logFile, err := os.OpenFile(filePath,
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		defer logFile.Close()
-		encoder := json.NewEncoder(logFile)
-		if err := encoder.Encode(equiv); err != nil {
-			handleError(w, err)
+		if err := s.log(equiv); err != nil {
+			s.handleError(w, err)
 			return
 		}
 	} else if r.Method == "GET" {
@@ -205,18 +198,18 @@ func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 			if os.IsNotExist(err) {
 				return
 			}
-			handleError(w, err)
+			s.handleError(w, err)
 			return
 		}
 		defer logFile.Close()
 		if _, err := io.Copy(w, logFile); err != nil {
-			handleError(w, err)
+			s.handleError(w, err)
 			return
 		}
 	} else if r.Method == "DELETE" {
 		data, err := ioutil.ReadFile(filePath)
 		if err != nil {
-			handleError(w, err)
+			s.handleError(w, err)
 			return
 		}
 		lines := strings.Split(string(data), "\n")
@@ -225,22 +218,22 @@ func logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 		}
 		text := strings.Join(lines[:len(lines)-1], "\n") + "\n"
 		if err := ioutil.WriteFile(filePath, []byte(text), 0644); err != nil {
-			handleError(w, err)
+			s.handleError(w, err)
 			return
 		}
 	}
 }
 
-func createAssetFunc(dir string, contentType string) func(w http.ResponseWriter, r *http.Request) {
+func (s *server) createAssetFunc(dir string, contentType string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		b, err := bindata.Asset(filepath.Join(dir, filepath.Base(r.URL.Path)))
 		if err != nil {
-			handleError(w, fmt.Errorf("Unable to find asset for %q: %v", r.URL.Path, err))
+			s.handleError(w, fmt.Errorf("Unable to find asset for %q: %v", r.URL.Path, err))
 			return
 		}
 		w.Header().Set("Content-Type", contentType)
 		if _, err := io.Copy(w, bytes.NewBuffer(b)); err != nil {
-			handleError(w, err)
+			s.handleError(w, err)
 			return
 		}
 	}
@@ -248,12 +241,32 @@ func createAssetFunc(dir string, contentType string) func(w http.ResponseWriter,
 
 func main() {
 	flag.Parse()
+	s := &server{}
+	if *headphoneFrequencyResponseFile != "" {
+		blob, err := ioutil.ReadFile(*headphoneFrequencyResponseFile)
+		if err != nil {
+			panic(err)
+		}
+		measurements := []map[string]float64{}
+		if err := json.Unmarshal(blob, &measurements); err != nil {
+			panic(err)
+		}
+		freqResp, err := signals.LoadCalibrateFrequencyResponse(measurements)
+		if err != nil {
+			panic(err)
+		}
+		s.headphoneFrequencyResponse = freqResp
+		s.log(map[string]interface{}{
+			"EntryType":    "FrequencyResponseMeasurements",
+			"Measurements": measurements,
+		})
+	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/signal/", renderSignal)
-	mux.HandleFunc("/log", logEquivalentLoudness)
-	mux.HandleFunc("/images/", createAssetFunc("images", "image/png"))
-	mux.HandleFunc("/js/", createAssetFunc("js", "application/javascript"))
-	mux.HandleFunc("/", renderIndex)
+	mux.HandleFunc("/signal/", s.renderSignal)
+	mux.HandleFunc("/log", s.logEquivalentLoudness)
+	mux.HandleFunc("/images/", s.createAssetFunc("images", "image/png"))
+	mux.HandleFunc("/js/", s.createAssetFunc("js", "application/javascript"))
+	mux.HandleFunc("/", s.renderIndex)
 	log.Printf("Starting server. Browse to http://%v", *listen)
 	log.Fatal(http.ListenAndServe(*listen, mux))
 }

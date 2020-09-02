@@ -87,51 +87,53 @@ function documentLoaded() {
 		return "white-noise";
 	};
 	const createSignalSpec = signals => {
-		return escape(JSON.stringify(signals.map(signal => {
-			switch (signalType()) {
-				case "sine":
-					return {
-						Type: "Signal",
-						Params: {
-							Onset: {
-								Delay: signal.delay,
-								Duration: 0.1
-							},
-							Frequency: signal.frequency,
-							Level: signal.level - fullScaleSineLevel
-						}
-					};
-					break;
-				case "white-noise":
-					const erbWidth = Number.parseFloat(erbWidthInput.value);
-					const width = erb(signal.frequency) * erbWidth;
-					const lowLimit = signal.frequency - width * 0.5;
-					const highLimit = signal.frequency + width * 0.5;
-					return {
-						Type: "Noise",
-						Params: {
-							Onset: {
-								Delay: signal.delay,
-								Duration: 0.1
-							},
-							LowerLimit: lowLimit,
-							UpperLimit: highLimit,
-							Level: signal.level - fullScaleSineLevel
-						}
-					};
-					break;
-			}
-		})));
+		return escape(JSON.stringify({
+			Type: "Superposition",
+			Params: signals.map(signal => {
+				switch (signalType()) {
+					case "sine":
+						return {
+							Type: "Signal",
+							Params: {
+								Onset: {
+									Delay: signal.delay,
+									Duration: 0.1
+								},
+								Frequency: signal.frequency,
+								Level: signal.level - fullScaleSineLevel
+							}
+						};
+						break;
+					case "white-noise":
+						const erbWidth = Number.parseFloat(erbWidthInput.value);
+						const width = erb(signal.frequency) * erbWidth;
+						const lowLimit = signal.frequency - width * 0.5;
+						const highLimit = signal.frequency + width * 0.5;
+						return {
+							Type: "Noise",
+							Params: {
+								Onset: {
+									Delay: signal.delay,
+									Duration: 0.1
+								},
+								LowerLimit: lowLimit,
+								UpperLimit: highLimit,
+								Level: signal.level - fullScaleSineLevel
+							}
+						};
+						break;
+				}
+			})
+		}));
 	};
-	calibrationAudio.src = "/signal/" + escape(JSON.stringify([
+	calibrationAudio.src = "/signal/" + escape(JSON.stringify(
 		{
 			Type: "Signal",
 			Params: {
 				Frequency: 1000,
 				Level: 0
 			}
-		}
-	])) + ".calib.wav";
+		})) + ".calib.wav";
 
 
 	// The interesting frequency range, limited at the lower end
