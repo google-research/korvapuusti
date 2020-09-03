@@ -1,8 +1,16 @@
 "use strict";
 
 // See https://en.wikipedia.org/wiki/Equivalent_rectangular_bandwidth
-function erb(f) {
+function erbWidthAtHz(f) {
 	return 24.7 * (4.37 * f * 0.001 + 1);
+}
+function hZToERB(f) {
+	return 21.4 * Math.log10(1 + 0.00437 * f);
+
+}
+// Simply an inversion of HzToERB.
+function erbToHz(erb) {
+	return (Math.pow(10, erb / 21.4) - 1) / 0.00437;
 }
 
 // Default values, and stopping the key listening on focus.
@@ -120,7 +128,7 @@ function documentLoaded() {
 				const erbWidth = Number.parseFloat(
 					erbWidthInput.value
 				);
-				const width = erb(signal.frequency) * erbWidth;
+				const width = erbWidthAtHz(signal.frequency) * erbWidth;
 				const lowLimit = signal.frequency - width * 0.5;
 				const highLimit =
 					signal.frequency + width * 0.5;
@@ -171,7 +179,7 @@ function documentLoaded() {
 								erbWidthInput.value
 							);
 							const width =
-								erb(
+								erbWidthAtHz(
 									signal.frequency
 								) * erbWidth;
 							const lowLimit =
@@ -440,11 +448,11 @@ function documentLoaded() {
 				.map(Number.parseFloat)
 				.forEach(addEvaluationForFrequency);
 		} else {
+			let erb = 4;  // 123.08Hz
 			for (
-				let frequency = minFrequency;
+				let frequency = erbToHz(erb);
 				frequency < maxFrequency;
-				frequency +=
-					erb(frequency) * currEvaluation.erbApart
+				frequency += erbToHz(++erb)
 			) {
 				addEvaluationForFrequency(frequency);
 			}
@@ -475,7 +483,8 @@ function documentLoaded() {
 							if (
 								!runs[
 									measurement
-										.Run.ID
+										.Run
+										.ID
 								]
 							) {
 								runs[
@@ -486,7 +495,8 @@ function documentLoaded() {
 							} else {
 								runs[
 									measurement
-										.Run.ID
+										.Run
+										.ID
 								].push(
 									measurement
 								);
@@ -499,10 +509,12 @@ function documentLoaded() {
 					const y = [];
 					runs[runID].forEach((evaluation) => {
 						y.push(
-							evaluation.Results.ProbeDBSPLForEquivalentLoudness
+							evaluation.Results
+								.ProbeDBSPLForEquivalentLoudness
 						);
 						x.push(
-							evaluation.Evaluation.Frequency
+							evaluation.Evaluation
+								.Frequency
 						);
 					});
 					return {
