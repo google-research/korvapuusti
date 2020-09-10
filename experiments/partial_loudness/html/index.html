@@ -11,74 +11,47 @@
 				ERBApart: {{.ERBApart}},
 				SignalType: "{{.SignalType}}",
 				HideControls: {{.HideControls}},
-				ExactFrequencies: "{{.ExactFrequencies}}",
+				ExactMaskFrequencies: "{{.ExactMaskFrequencies}}",
+				ExtraMasks: "{{.ExtraMasks}}",
 				HeadphoneFrequencyResponseFile: "{{.HeadphoneFrequencyResponseFile}}"
 			};
 		</script>
 		<script src="/js/partial_loudness.js"></script>
 	</head>
 	<body>
-		<audio
-			loop
-			style="display: none"
-			src=""
-			id="probe-audio"
-		></audio>
-		<audio
-			loop
-			style="display: none"
-			src=""
-			id="combined-audio"
-		></audio>
-		<audio
-			loop
-			style="display: none"
-			src=""
-			id="calibration-audio"
-		></audio>
+		<audio loop style="display: none" src="" id="probe-audio"></audio>
+		<audio loop style="display: none" src="" id="combined-audio"></audio>
+		<audio loop style="display: none" src="" id="calibration-audio"></audio>
 		<div>
 			<ol>
 				<li>
-					This test needs to be done with
-					headphones, not regular speakers.
+					This test needs to be done with headphones, not regular
+					speakers.
 				</li>
 				<li>
-					At the start of every evaluating
-					session,
-					<b>take off your headphones</b> and put
-					the microphone of a Decibel Meter into
-					one of the headphone speakers while they
-					are covered by something soft to
-					calibrate the volume control of your
-					computer to play
-					<button id="play-calibration-90">
-						this
-					</button>
+					At the start of every evaluating session,
+					<b>take off your headphones</b> and put the microphone of a
+					Decibel Meter into one of the headphone speakers while they
+					are covered by something soft to calibrate the volume
+					control of your computer to play
+					<button id="play-calibration-90">this</button>
 					tone at 90dB, and then verify that
-					<button id="play-calibration-75">
-						this
-					</button>
+					<button id="play-calibration-75">this</button>
 					tone plays at 75dB, and
-					<button id="play-calibration-60">
-						this
-					</button>
+					<button id="play-calibration-60">this</button>
 					tone plays at 60dB.
 				</li>
 				<li>
-					Listen to the single (by clicking on the
-					left arrow) and combined (by clicking on
-					the right arrow) tones.
+					Listen to the single (by clicking on the left arrow) and
+					combined (by clicking on the right arrow) tones.
 				</li>
 				<li>
-					Adjust the volume of the single tone on
-					the left side until you hear it as
-					loudly as the same tone in the
-					combination.
+					Adjust the volume of the single tone on the left side until
+					you hear it as loudly as the same tone in the combination.
 				</li>
 				<li>
-					When you hear the single tone on the
-					left side as loudly as the same tone in
-					the combination, press the submit button
+					When you hear the single tone on the left side as loudly as
+					the same tone in the combination, press the submit button
 					that says they are equally loud.
 				</li>
 			</ol>
@@ -107,7 +80,10 @@
 		</div>
 		<div id="controls" style="margin-top: 2em">
 			<p>Saving results to {{.ExperimentOutput}}.</p>
-			<p>Using frequency response measurements from {{.HeadphoneFrequencyResponseFile}}.</p>
+			<p>
+				Using frequency response measurements from
+				{{.HeadphoneFrequencyResponseFile}}.
+			</p>
 			<div style="margin: 1em">
 				<div>
 					<input
@@ -117,9 +93,7 @@
 						value="white-noise-type"
 						id="white-noise-type"
 					/>
-					<label for="white-noise-type"
-						>White noise</label
-					>
+					<label for="white-noise-type">White noise</label>
 				</div>
 				<div>
 					<input
@@ -133,14 +107,9 @@
 			</div>
 			<div id="erb-width-container">
 				<label for="erb-width">ERB width</label>
-				<input
-					type="number"
-					name="erb-width"
-					id="erb-width"
-				/>
+				<input type="number" name="erb-width" id="erb-width" />
 				<p>
-					The width of the probe and masker noises
-					in
+					The width of the probe and masker noises in
 					<a
 						href="https://en.wikipedia.org/wiki/Equivalent_rectangular_bandwidth"
 						>ERB</a
@@ -149,54 +118,35 @@
 			</div>
 			<div>
 				<label for="mask-level">Mask level</label>
-				<input
-					type="text"
-					name="mask-level"
-					id="mask-level"
-				/>
+				<input type="text" name="mask-level" id="mask-level" />
 				<p>
-					The of the
-					masker, in dB SPL. Relies on the
-					calibration tone being 100dB SPL.
+					The of the masker, in dB SPL. Relies on the calibration tone
+					being 100dB SPL.
 				</p>
 			</div>
 			<div>
 				<label for="probe-level">Probe level</label>
-				<input
-					type="number"
-					name="probe-level"
-					id="probe-level"
-				/>
+				<input type="number" name="probe-level" id="probe-level" />
 				<p>
-					The energy of the probe, in dB SPL.
-					Relies on the calibration tone being
-					100dB SPL.
+					The energy of the probe, in dB SPL. Relies on the
+					calibration tone being 100dB SPL.
 				</p>
 			</div>
 			<div>
-				<label for="probe-frequency"
-					>Probe frequency</label
-				>
+				<label for="probe-frequency">Probe frequency</label>
 				<input
 					type="text"
 					name="probe-frequency"
 					id="probe-frequency"
 				/>
-				<p>
-					The center frequency
-					of the probe.
-				</p>
+				<p>The center frequency of the probe.</p>
 			</div>
 			<div>
 				<label for="erb-apart">ERB apart</label>
-				<input
-					type="number"
-					name="erb-apart"
-					id="erb-apart"
-				/>
+				<input type="number" name="erb-apart" id="erb-apart" />
 				<p>
-					The distance between center frequencies
-					for the generated probe tones, in
+					The distance between center frequencies for the generated
+					probe tones, in
 					<a
 						href="https://en.wikipedia.org/wiki/Equivalent_rectangular_bandwidth"
 						>ERB</a
@@ -213,37 +163,33 @@
 					id="exact-mask-frequencies"
 				/>
 				<p>
-					Comma separated exact center frequencies
-					for the generated mask tones to use
-					instead of the ERB apart scale.
+					Comma separated exact center frequencies for the generated
+					mask tones to use instead of the ERB apart scale.
+				</p>
+			</div>
+			<div>
+				<label for="extra-masks">Extra masks</label>
+				<input type="text" name="extra-masks" id="extra-masks" />
+				<p>
+					Comma separated list of slash separated frequency/level
+					pairs for extra masks to play in addition.
 				</p>
 			</div>
 		</div>
 		<div>
 			<button id="restart">Restart</button>
-			<p>
-				Restart the experiment from the lowest frequency
-				again.
-			</p>
+			<p>Restart the experiment from the lowest frequency again.</p>
 		</div>
 		<div style="margin-top: 5em">
 			<div id="currently"></div>
 			<div>
-				<button id="raise-probe">
-					Raise probe [&uarr;]
-				</button>
+				<button id="raise-probe">Raise probe [&uarr;]</button>
 			</div>
 			<div>
-				<button id="lower-probe">
-					Lower probe [&darr;]
-				</button>
+				<button id="lower-probe">Lower probe [&darr;]</button>
 			</div>
-			<button id="play-probe">
-				Play/pause probe [&larr;]
-			</button>
-			<button id="play-combined">
-				Play/pause combined [&rarr;]
-			</button>
+			<button id="play-probe">Play/pause probe [&larr;]</button>
+			<button id="play-combined">Play/pause combined [&rarr;]</button>
 		</div>
 		<div>
 			<button id="equivalent-loudness">

@@ -64,6 +64,7 @@ function documentLoaded() {
 	const exactMaskFrequenciesInput = document.getElementById(
 		"exact-mask-frequencies"
 	);
+	const extraMasksInput = document.getElementById("extra-masks");
 
 	configureInput(erbWidthInput, runtimeArguments.ERBWidth, 0.5);
 	configureInput(maskLevelInput, runtimeArguments.MaskLevels, 80.0);
@@ -79,6 +80,7 @@ function documentLoaded() {
 		runtimeArguments.ExactMaskFrequencies,
 		""
 	);
+	configureInput(extraMasksInput, runtimeArguments.ExtraMasks, "");
 	sineTypeInput.checked = false;
 	whiteNoiseTypeInput.checked = true;
 	if (runtimeArguments.SignalType) {
@@ -385,7 +387,7 @@ function documentLoaded() {
 					"_" +
 					Math.floor(Math.random() * 2 ** 32);
 				currEvaluation.Evaluation.Frequency = frequency;
-				currEvaluation.Evaluation.Combined = createSignalSpec([
+				const combinedSounds = [
 					{
 						id: "probe",
 						delay: 0.5,
@@ -398,7 +400,21 @@ function documentLoaded() {
 						frequency: frequency,
 						level: currEvaluation.maskLevel,
 					},
-				]);
+				];
+				extraMasksInput.value.split(",").forEach((extraMaskSpec) => {
+					if (extraMaskSpec != "") {
+						const splitExtraMask = extraMaskSpec.split("/");
+						combinedSounds.push({
+							id: "mask",
+							delay: 0.0,
+							frequency: Number.parseFloat(splitExtraMask[0]),
+							level: Number.parseFloat(splitExtraMask[1]),
+						});
+					}
+				});
+				currEvaluation.Evaluation.Combined = createSignalSpec(
+					combinedSounds
+				);
 				combinedAudio.src =
 					"/signal/" +
 					encodeSignalSpec(currEvaluation.Evaluation.Combined) +

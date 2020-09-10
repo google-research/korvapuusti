@@ -71,6 +71,7 @@ var (
 	probeFrequency                 = flag.Float64("probe_frequency", 0.0, "Preset probe freqency for the experiment.")
 	erbApart                       = flag.Float64("erb_apart", 0.0, "Preset ERB apart for the experiment.")
 	exactMaskFrequencies           = flag.String("exact_mask_frequencies", "", "Preset exact frequencies to present the masker at.")
+	extraMasks                     = flag.String("extra_masks", "", "Preset extra masks.")
 	signalType                     = flag.String("signal_type", "", "Preset signal type for the experiment.")
 	hideControls                   = flag.Bool("hide_controls", false, "Whether to hide the controls in the experiment.")
 	headphoneFrequencyResponseFile = flag.String("headphone_frequency_response_file", "", "Frequency response file for headphones used, produced by the calibrate/calibrate.html tool.")
@@ -93,6 +94,7 @@ func (s *server) renderIndex(w http.ResponseWriter, r *http.Request) {
 		"SignalType":                     *signalType,
 		"HideControls":                   *hideControls,
 		"ExactMaskFrequencies":           *exactMaskFrequencies,
+		"ExtraMasks":                     *extraMasks,
 		"HeadphoneFrequencyResponseFile": *headphoneFrequencyResponseFile,
 	}); err != nil {
 		s.handleError(w, err)
