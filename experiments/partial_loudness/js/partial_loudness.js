@@ -4,10 +4,10 @@
 function erbWidthAtHz(f) {
 	return 24.7 * (4.37 * f * 0.001 + 1);
 }
-function hZToERB(f) {
+function hzToERB(f) {
 	return 21.4 * Math.log10(1 + 0.00437 * f);
 }
-// Simply an inversion of HzToERB.
+// Simply an inversion of hzToERB.
 function erbToHz(erb) {
 	return (Math.pow(10, erb / 21.4) - 1) / 0.00437;
 }
@@ -459,7 +459,7 @@ function documentLoaded() {
 						y.push(
 							evaluation.Results.ProbeDBSPLForEquivalentLoudness
 						);
-						x.push(evaluation.Evaluation.Frequency);
+						x.push(hzToERB(evaluation.Evaluation.Frequency));
 					});
 					return {
 						x: x,
@@ -470,7 +470,7 @@ function documentLoaded() {
 				});
 				Plotly.react("plot", plots, {
 					xaxis: {
-						title: "Hz",
+						title: "Cams",
 					},
 					yaxis: {
 						title: "dB",
