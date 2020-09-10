@@ -6,7 +6,6 @@ function erbWidthAtHz(f) {
 }
 function hZToERB(f) {
 	return 21.4 * Math.log10(1 + 0.00437 * f);
-
 }
 // Simply an inversion of HzToERB.
 function erbToHz(erb) {
@@ -118,20 +117,15 @@ function documentLoaded() {
 							Duration: 0.1,
 						},
 						Frequency: signal.frequency,
-						Level:
-							signal.level -
-							fullScaleSineLevel,
+						Level: signal.level - fullScaleSineLevel,
 					},
 				};
 				break;
 			case "white-noise":
-				const erbWidth = Number.parseFloat(
-					erbWidthInput.value
-				);
+				const erbWidth = Number.parseFloat(erbWidthInput.value);
 				const width = erbWidthAtHz(signal.frequency) * erbWidth;
 				const lowLimit = signal.frequency - width * 0.5;
-				const highLimit =
-					signal.frequency + width * 0.5;
+				const highLimit = signal.frequency + width * 0.5;
 				return {
 					Type: "Noise",
 					Params: {
@@ -141,9 +135,7 @@ function documentLoaded() {
 						},
 						LowerLimit: lowLimit,
 						UpperLimit: highLimit,
-						Level:
-							signal.level -
-							fullScaleSineLevel,
+						Level: signal.level - fullScaleSineLevel,
 					},
 				};
 				break;
@@ -162,15 +154,11 @@ function documentLoaded() {
 								Type: "Signal",
 								Params: {
 									Onset: {
-										Delay:
-											signal.delay,
+										Delay: signal.delay,
 										Duration: 0.1,
 									},
-									Frequency:
-										signal.frequency,
-									Level:
-										signal.level -
-										fullScaleSineLevel,
+									Frequency: signal.frequency,
+									Level: signal.level - fullScaleSineLevel,
 								},
 							};
 							break;
@@ -179,28 +167,19 @@ function documentLoaded() {
 								erbWidthInput.value
 							);
 							const width =
-								erbWidthAtHz(
-									signal.frequency
-								) * erbWidth;
-							const lowLimit =
-								signal.frequency -
-								width * 0.5;
-							const highLimit =
-								signal.frequency +
-								width * 0.5;
+								erbWidthAtHz(signal.frequency) * erbWidth;
+							const lowLimit = signal.frequency - width * 0.5;
+							const highLimit = signal.frequency + width * 0.5;
 							return {
 								Type: "Noise",
 								Params: {
 									Onset: {
-										Delay:
-											signal.delay,
+										Delay: signal.delay,
 										Duration: 0.1,
 									},
 									LowerLimit: lowLimit,
 									UpperLimit: highLimit,
-									Level:
-										signal.level -
-										fullScaleSineLevel,
+									Level: signal.level - fullScaleSineLevel,
 								},
 							};
 							break;
@@ -376,21 +355,15 @@ function documentLoaded() {
 					{
 						id: "probe",
 						delay: 0.0,
-						frequency: Number.parseFloat(
-							probeFrequencyInput.value
-						),
-						level:
-							fullScaleSineLevel +
-							generatedProbeDBFS,
+						frequency: Number.parseFloat(probeFrequencyInput.value),
+						level: fullScaleSineLevel + generatedProbeDBFS,
 					},
 				]),
 			},
 			Results: {},
 			probeLevel: Number.parseFloat(probeLevelInput.value),
 			maskLevel: Number.parseFloat(maskLevelInput.value),
-			probeFrequency: Number.parseFloat(
-				probeFrequencyInput.value
-			),
+			probeFrequency: Number.parseFloat(probeFrequencyInput.value),
 			erbApart: Number.parseFloat(erbApartInput.value),
 		};
 		probeAudio.src =
@@ -412,31 +385,23 @@ function documentLoaded() {
 					"_" +
 					Math.floor(Math.random() * 2 ** 32);
 				currEvaluation.Evaluation.Frequency = frequency;
-				currEvaluation.Evaluation.Combined = createSignalSpec(
-					[
-						{
-							id: "probe",
-							delay: 0.5,
-							frequency:
-								currEvaluation.probeFrequency,
-							level:
-								currEvaluation.probeLevel,
-						},
-						{
-							id: "mask",
-							delay: 0.0,
-							frequency: frequency,
-							level:
-								currEvaluation.maskLevel,
-						},
-					]
-				);
+				currEvaluation.Evaluation.Combined = createSignalSpec([
+					{
+						id: "probe",
+						delay: 0.5,
+						frequency: currEvaluation.probeFrequency,
+						level: currEvaluation.probeLevel,
+					},
+					{
+						id: "mask",
+						delay: 0.0,
+						frequency: frequency,
+						level: currEvaluation.maskLevel,
+					},
+				]);
 				combinedAudio.src =
 					"/signal/" +
-					encodeSignalSpec(
-						currEvaluation.Evaluation
-							.Combined
-					) +
+					encodeSignalSpec(currEvaluation.Evaluation.Combined) +
 					".combined.wav";
 				document.getElementById("currently").innerText =
 					"Masker at " + frequency + "Hz";
@@ -448,13 +413,14 @@ function documentLoaded() {
 				.map(Number.parseFloat)
 				.forEach(addEvaluationForFrequency);
 		} else {
-			let erb = 4;  // 123.08Hz
+			let erb = 4; // 123.08Hz
 			for (
 				let frequency = erbToHz(erb);
 				frequency < maxFrequency;
-				frequency += erbToHz(++erb)
+				frequency = erbToHz(erb)
 			) {
 				addEvaluationForFrequency(frequency);
+				erb += currEvaluation.erbApart;
 			}
 		}
 		runNextEvaluation();
@@ -473,33 +439,15 @@ function documentLoaded() {
 				const runs = {};
 				body.split("\n").forEach((line) => {
 					if (line) {
-						const measurement = JSON.parse(
-							line
-						);
+						const measurement = JSON.parse(line);
 						if (
 							measurement.EntryType ==
 							"EquivalentLoudnessMeasurement"
 						) {
-							if (
-								!runs[
-									measurement
-										.Run
-										.ID
-								]
-							) {
-								runs[
-									measurement.Run.ID
-								] = [
-									measurement,
-								];
+							if (!runs[measurement.Run.ID]) {
+								runs[measurement.Run.ID] = [measurement];
 							} else {
-								runs[
-									measurement
-										.Run
-										.ID
-								].push(
-									measurement
-								);
+								runs[measurement.Run.ID].push(measurement);
 							}
 						}
 					}
@@ -509,13 +457,9 @@ function documentLoaded() {
 					const y = [];
 					runs[runID].forEach((evaluation) => {
 						y.push(
-							evaluation.Results
-								.ProbeDBSPLForEquivalentLoudness
+							evaluation.Results.ProbeDBSPLForEquivalentLoudness
 						);
-						x.push(
-							evaluation.Evaluation
-								.Frequency
-						);
+						x.push(evaluation.Evaluation.Frequency);
 					});
 					return {
 						x: x,
@@ -550,9 +494,7 @@ function documentLoaded() {
 			})
 		).then((resp) => {
 			if (resp.status != 200) {
-				alert(
-					"Unable to record evaluation, see JS console."
-				);
+				alert("Unable to record evaluation, see JS console.");
 				return;
 			}
 			plotLog();
@@ -560,10 +502,9 @@ function documentLoaded() {
 		});
 	};
 
-	document.getElementById("equivalent-loudness").addEventListener(
-		"click",
-		recordEquivalentLoudness
-	);
+	document
+		.getElementById("equivalent-loudness")
+		.addEventListener("click", recordEquivalentLoudness);
 
 	raiseProbe.addEventListener("click", raiseProbeFunc);
 	lowerProbe.addEventListener("click", lowerProbeFunc);
@@ -585,8 +526,7 @@ function documentLoaded() {
 				[90, 75, 60].forEach((otherLevel) => {
 					if (otherLevel != calibrationLevel) {
 						document.getElementById(
-							"play-calibration-" +
-								otherLevel
+							"play-calibration-" + otherLevel
 						).style.color = "black";
 					}
 				});
