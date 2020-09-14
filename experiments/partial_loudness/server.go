@@ -62,7 +62,7 @@ var (
 
 var (
 	experimentOutput = flag.String("experiment_output",
-		filepath.Join(os.Getenv("HOME"), "partial_loudness_output"),
+		filepath.Join(os.Getenv("HOME"), "partial_loudness_output/evaluations.json"),
 		"Path to store the experiment results to.")
 	listen                         = flag.String("listen", "localhost:12000", "Interface and port to listen for connections on.")
 	erbWidth                       = flag.Float64("erb_width", 0.0, "Preset ERB width for white noise in the experiment.")
@@ -163,11 +163,10 @@ type equivalentLoudness struct {
 }
 
 func (s *server) log(i interface{}) error {
-	filePath := filepath.Join(*experimentOutput, "evaluations.json")
-	if err := os.MkdirAll(*experimentOutput, 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(*experimentOutput), 0755); err != nil {
 		return err
 	}
-	logFile, err := os.OpenFile(filePath,
+	logFile, err := os.OpenFile(*experimentOutput,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -178,7 +177,6 @@ func (s *server) log(i interface{}) error {
 }
 
 func (s *server) logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
-	filePath := filepath.Join(*experimentOutput, "evaluations.json")
 	if r.Method == "POST" {
 		equiv := &equivalentLoudness{}
 		if err := json.NewDecoder(r.Body).Decode(equiv); err != nil {
@@ -193,7 +191,7 @@ func (s *server) logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if r.Method == "GET" {
 		w.Header().Set("Content-Type", "application/json")
-		logFile, err := os.Open(filePath)
+		logFile, err := os.Open(*experimentOutput)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return
@@ -207,7 +205,7 @@ func (s *server) logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if r.Method == "DELETE" {
-		data, err := ioutil.ReadFile(filePath)
+		data, err := ioutil.ReadFile(*experimentOutput)
 		if err != nil {
 			s.handleError(w, err)
 			return
@@ -217,7 +215,7 @@ func (s *server) logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 			lines = lines[:len(lines)-1]
 		}
 		text := strings.Join(lines[:len(lines)-1], "\n") + "\n"
-		if err := ioutil.WriteFile(filePath, []byte(text), 0644); err != nil {
+		if err := ioutil.WriteFile(*experimentOutput, []byte(text), 0644); err != nil {
 			s.handleError(w, err)
 			return
 		}
