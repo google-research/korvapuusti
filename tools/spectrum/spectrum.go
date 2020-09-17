@@ -25,7 +25,7 @@ import (
 )
 
 type S struct {
-	Coeffs      []complex128
+	Coeffs      []complex128 `json:"-"`
 	SignalPower []float64
 	NoisePower  []float64
 	BinWidth    signals.Hz
