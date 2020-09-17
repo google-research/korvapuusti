@@ -1,5 +1,5 @@
-/* partial_loudness is a package that lets you run a server presenting a web page
- * that plays sounds and lets you adjust levels.
+/* partial_loudness runs a server presenting a web page that plays sounds and lets
+ * you adjust levels to measure partial loudness.
  *
  * Run it and browse to http://localhost:12000.
  *
@@ -39,6 +39,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/bindata"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
 )
@@ -141,27 +142,6 @@ func (s *server) renderSignal(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-type equivalentLoudness struct {
-	EntryType   string
-	Calibration struct {
-		HeadphoneFrequencyResponseHash string
-		FullScaleSineDBSPL             float64
-	}
-	Run struct {
-		ID string
-	}
-	Evaluation struct {
-		ID        string
-		Frequency float64
-		Probe     signals.SamplerWrapper
-		Combined  signals.SamplerWrapper
-	}
-	Results struct {
-		ProbeGainForEquivalentLoudness  float64
-		ProbeDBSPLForEquivalentLoudness float64
-	}
-}
-
 func (s *server) log(i interface{}) error {
 	if err := os.MkdirAll(filepath.Dir(*experimentOutput), 0755); err != nil {
 		return err
@@ -178,7 +158,7 @@ func (s *server) log(i interface{}) error {
 
 func (s *server) logEquivalentLoudness(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		equiv := &equivalentLoudness{}
+		equiv := &analysis.EquivalentLoudness{}
 		if err := json.NewDecoder(r.Body).Decode(equiv); err != nil {
 			s.handleError(w, err)
 			return
