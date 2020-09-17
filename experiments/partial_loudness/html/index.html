@@ -197,6 +197,55 @@
 			</button>
 			<button id="undo">Undo last evaluation</button>
 		</div>
+		<div>
+			<div>
+				<input
+					type="radio"
+					name="x-axis-type"
+					value="x-axis-linear-hz"
+					id="x-axis-linear-hz"
+				/>
+				<label for="x-axis-linear-hz">X-axis linear Hz</label>
+			</div>
+			<div>
+				<input
+					type="radio"
+					name="x-axis-type"
+					value="x-axis-log-hz"
+					id="x-axis-log-hz"
+				/>
+				<label for="x-axis-log-hz">X-axis log Hz</label>
+			</div>
+			<div>
+				<input
+					type="radio"
+					checked="checked"
+					name="x-axis-type"
+					value="x-axis-cams"
+					id="x-axis-cams"
+				/>
+				<label for="x-axis-cams">X-axis Cams</label>
+			</div>
+			<div>
+				<input
+					type="radio"
+					name="y-axis-type"
+					value="y-axis-db-spl"
+					id="y-axis-db-spl"
+				/>
+				<label for="y-axis-db-spl">Y-axis dB SPL</label>
+			</div>
+			<div>
+				<input
+					type="radio"
+					checked="checked"
+					name="y-axis-type"
+					value="y-axis-phons"
+					id="y-axis-phons"
+				/>
+				<label for="y-axis-phons">Y-axis Phons</label>
+			</div>
+		</div>
 		<div id="plot" style="width: 100%; height: 600px"></div>
 		<script>
 			documentLoaded();
