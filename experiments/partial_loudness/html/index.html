@@ -125,6 +125,33 @@
 				</p>
 			</div>
 			<div>
+				<input
+					type="radio"
+					checked="checked"
+					name="mask-level-type"
+					value="mask-level-db-spl"
+					id="mask-level-db-spl"
+				/>
+				<label for="mask-level-db-spl">Mask in dB SPL</label>
+			</div>
+			<div>
+				<input
+					type="radio"
+					name="mask-level-type"
+					value="mask-level-phons"
+					id="mask-level-phons"
+				/>
+				<label for="mask-level-phons">Mask in Phons</label>
+			</div>
+			<div>
+				<label for="mask-level">Mask level</label>
+				<input type="text" name="mask-level" id="mask-level" />
+				<p>
+					The of the masker, in dB SPL. Relies on the calibration tone
+					being 100dB SPL.
+				</p>
+			</div>
+			<div>
 				<label for="probe-level">Probe level</label>
 				<input type="number" name="probe-level" id="probe-level" />
 				<p>
@@ -225,25 +252,6 @@
 					id="x-axis-cams"
 				/>
 				<label for="x-axis-cams">X-axis Cams</label>
-			</div>
-			<div>
-				<input
-					type="radio"
-					name="y-axis-type"
-					value="y-axis-db-spl"
-					id="y-axis-db-spl"
-				/>
-				<label for="y-axis-db-spl">Y-axis dB SPL</label>
-			</div>
-			<div>
-				<input
-					type="radio"
-					checked="checked"
-					name="y-axis-type"
-					value="y-axis-phons"
-					id="y-axis-phons"
-				/>
-				<label for="y-axis-phons">Y-axis Phons</label>
 			</div>
 		</div>
 		<div id="plot" style="width: 100%; height: 600px"></div>

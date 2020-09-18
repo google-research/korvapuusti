@@ -384,8 +384,8 @@ function documentLoaded() {
 	const xAxisLinearHzInput = document.getElementById("x-axis-linear-hz");
 	const xAxisLogHzInput = document.getElementById("x-axis-log-hz");
 	const xAxisCamsInput = document.getElementById("x-axis-cams");
-	const yAxisDBSPLInput = document.getElementById("y-axis-db-spl");
-	const yAxisPhonsInput = document.getElementById("y-axis-phons");
+	const maskLevelDBSPLInput = document.getElementById("mask-level-db-spl");
+	const maskLevelPhonsInput = document.getElementById("mask-level-phons");
 
 	configureInput(erbWidthInput, runtimeArguments.ERBWidth, 0.5);
 	configureInput(maskLevelInput, runtimeArguments.MaskLevels, 80.0);
@@ -686,6 +686,7 @@ function documentLoaded() {
 			Results: {},
 			probeLevel: Number.parseFloat(probeLevelInput.value),
 			maskLevel: Number.parseFloat(maskLevelInput.value),
+			maskLevelInPhons: maskLevelPhonsInput.checked,
 			probeFrequency: Number.parseFloat(probeFrequencyInput.value),
 			erbApart: Number.parseFloat(erbApartInput.value),
 		};
@@ -719,7 +720,12 @@ function documentLoaded() {
 						id: "mask",
 						delay: 0.0,
 						frequency: frequency,
-						level: currEvaluation.maskLevel,
+						level: currEvaluation.maskLevelInPhons
+							? Loudness.loud2spl(
+									currEvaluation.maskLevel,
+									frequency
+							  )
+							: currEvaluation.maskLevel,
 					},
 				];
 				extraMasksInput.value.split(",").forEach((extraMaskSpec) => {
@@ -793,20 +799,9 @@ function documentLoaded() {
 					const x = [];
 					const y = [];
 					runs[runID].forEach((evaluation) => {
-						if (yAxisDBSPLInput.checked) {
-							y.push(
-								evaluation.Results
-									.ProbeDBSPLForEquivalentLoudness
-							);
-						} else {
-							y.push(
-								Loudness.spl2loud(
-									evaluation.Results
-										.ProbeDBSPLForEquivalentLoudness,
-									evaluation.Evaluation.Frequency
-								)
-							);
-						}
+						y.push(
+							evaluation.Results.ProbeDBSPLForEquivalentLoudness
+						);
 						if (xAxisCamsInput.checked) {
 							x.push(hzToERB(evaluation.Evaluation.Frequency));
 						} else {
@@ -829,12 +824,7 @@ function documentLoaded() {
 				} else if (xAxisCamsInput.checked) {
 					xAxis.title = "Cams";
 				}
-				const yAxis = {};
-				if (yAxisDBSPLInput.checked) {
-					yAxis.title = "dB SPL";
-				} else if (yAxisPhonsInput.checked) {
-					yAxis.title = "Phons";
-				}
+				const yAxis = { title: "dB SPL" };
 				Plotly.react("plot", plots, {
 					xaxis: xAxis,
 					yaxis: yAxis,
@@ -847,8 +837,6 @@ function documentLoaded() {
 		xAxisLinearHzInput,
 		xAxisLogHzInput,
 		xAxisCamsInput,
-		yAxisDBSPLInput,
-		yAxisPhonsInput,
 	].forEach((inp) => {
 		inp.addEventListener("change", plotLog);
 	});
