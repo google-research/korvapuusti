@@ -29,6 +29,10 @@ import (
 	"github.com/google-research/korvapuusti/tools/carfac"
 	"github.com/google-research/korvapuusti/tools/spectrum"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
+	"github.com/ryszard/tfutils/go/tfrecord"
+	"google.golang.org/protobuf/proto"
+
+	proto1 "github.com/golang/protobuf/proto"
 )
 
 const (
@@ -60,7 +64,6 @@ func main() {
 		log.Panic(err)
 	}
 	defer snrFile.Close()
-	snrEncoder := json.NewEncoder(snrFile)
 	evaluationLines := bufio.NewReader(evaluationFile)
 	for line, err := evaluationLines.ReadString('\n'); err == nil; line, err = evaluationLines.ReadString('\n') {
 		evaluation := &analysis.EquivalentLoudness{}
@@ -93,7 +96,15 @@ func main() {
 				evaluation.Analysis.Channels = append(evaluation.Analysis.Channels, channel)
 				evaluation.Analysis.ChannelSpectrums = append(evaluation.Analysis.ChannelSpectrums, spectrum.Compute(channel, rate))
 			}
-			if err := snrEncoder.Encode(evaluation); err != nil {
+			example, err := evaluation.ToTFExample()
+			if err != nil {
+				log.Panic(err)
+			}
+			encoded, err := proto.Marshal(proto1.MessageV2(example))
+			if err != nil {
+				log.Panic(err)
+			}
+			if err := tfrecord.Write(snrFile, encoded); err != nil {
 				log.Panic(err)
 			}
 		}

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/google-research/korvapuusti/tools/spectrum"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
 
 	tf "github.com/ryszard/tfutils/proto/tensorflow/core/example"
@@ -66,14 +67,8 @@ type Results struct {
 type Analysis struct {
 	// Channels[channelIDX][sampleStep] is the time domain output of the CARFAC channels.
 	Channels [][]float64
-	// Rate is the sample rate used when feeding the synthesized sound to CARFAC.
-	Rate signals.Hz
-	// BinWidth is the width of each frequency domain bin after running FFT on the CARFAC channel outputs.
-	BinWidth signals.Hz
-	// SignalLevel[channelIDX][binIDX] is the signal level for the frequency of binIDX in the CARFAC channel, in dB FS.
-	SignalLevel [][]float64
-	// NoiseLevel[channelIDX][binIDX] is the noise level for the frequency of binIDX in the CARFAC channel, in dB FS.
-	NoiseLevel [][]float64
+	// ChannelSpectrums is the results of FFT of the Channels.
+	ChannelSpectrums []spectrum.S
 }
 
 // EquivalentLoudness describes an evaluation and its results.
@@ -102,6 +97,8 @@ func (e *EquivalentLoudness) toTFExample(val reflect.Value, namePrefix string, e
 	case reflect.Slice:
 		elemTyp := typ.Elem()
 		switch elemTyp.Kind() {
+		case reflect.Struct:
+			fallthrough
 		case reflect.Slice:
 			for elemIdx := 0; elemIdx < val.Len(); elemIdx++ {
 				if err := e.toTFExample(val.Index(elemIdx), fmt.Sprintf("%v[%v]", namePrefix, elemIdx), ex); err != nil {
@@ -114,8 +111,14 @@ func (e *EquivalentLoudness) toTFExample(val reflect.Value, namePrefix string, e
 				floats[idx] = float32(val.Index(idx).Float())
 			}
 			ex.Features.Feature[namePrefix] = &tf.Feature{&tf.Feature_FloatList{&tf.FloatList{floats}}}
+		case reflect.Interface:
+			for elemIdx := 0; elemIdx < val.Len(); elemIdx++ {
+				if err := e.toTFExample(val.Index(elemIdx).Elem(), fmt.Sprintf("%v[%v]", namePrefix, elemIdx), ex); err != nil {
+					return err
+				}
+			}
 		default:
-			return fmt.Errorf("%v is of an invalid slice type", val.Interface())
+			return fmt.Errorf("%v %v is of an invalid slice type %v", namePrefix, val.Interface(), typ)
 		}
 	case reflect.Map:
 		iter := val.MapRange()
@@ -127,9 +130,11 @@ func (e *EquivalentLoudness) toTFExample(val reflect.Value, namePrefix string, e
 	case reflect.Struct:
 		for fieldIdx := 0; fieldIdx < typ.NumField(); fieldIdx++ {
 			fieldTyp := typ.Field(fieldIdx)
-			fieldVal := val.Field(fieldIdx)
-			if err := e.toTFExample(fieldVal, namePrefix+"."+fieldTyp.Name, ex); err != nil {
-				return err
+			if fieldTyp.Tag.Get("proto") != "-" {
+				fieldVal := val.Field(fieldIdx)
+				if err := e.toTFExample(fieldVal, namePrefix+"."+fieldTyp.Name, ex); err != nil {
+					return err
+				}
 			}
 		}
 	case reflect.Interface:
