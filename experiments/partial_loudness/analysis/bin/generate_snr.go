@@ -95,6 +95,7 @@ func main() {
 				}
 				evaluation.Analysis.Channels = append(evaluation.Analysis.Channels, channel)
 				evaluation.Analysis.ChannelSpectrums = append(evaluation.Analysis.ChannelSpectrums, spectrum.Compute(channel, rate))
+				evaluation.Analysis.ChannelPoles = append(evaluation.Analysis.ChannelPoles, float64(cf.Poles()[chanIdx]))
 			}
 			example, err := evaluation.ToTFExample()
 			if err != nil {

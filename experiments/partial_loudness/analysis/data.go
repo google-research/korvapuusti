@@ -67,6 +67,8 @@ type Results struct {
 type Analysis struct {
 	// Channels[channelIDX][sampleStep] is the time domain output of the CARFAC channels.
 	Channels [][]float64
+	// ChannelPoles[channelIDX is the pole frequency for each channel.
+	ChannelPoles []float64
 	// ChannelSpectrums is the results of FFT of the Channels.
 	ChannelSpectrums []spectrum.S
 }
