@@ -36,13 +36,15 @@ import (
 )
 
 const (
-	rate          = 48000
-	fftWindowSize = 2048
+	rate                         = 48000
+	fftWindowSize                = 2048
+	evaluationFullScaleSineLevel = 100
 )
 
 var (
-	evaluationJSON = flag.String("evaluation_json", "", "Path to the file containing evaluations.")
-	snrOutput      = flag.String("snr_output", "", "Path to the file the SNR JSON will be written to.")
+	evaluationJSON     = flag.String("evaluation_json", "", "Path to the file containing evaluations.")
+	snrOutput          = flag.String("snr_output", "", "Path to the file the SNR JSON will be written to.")
+	fullScaleSineLevel = flag.Float64("full_scale_sine_level", 100, "dB SPL of a full scale sine.")
 )
 
 func main() {
@@ -79,6 +81,7 @@ func main() {
 			if err != nil {
 				log.Panic(err)
 			}
+			signal.AddLevel(evaluationFullScaleSineLevel - signals.DB(*fullScaleSineLevel))
 			carfacInput := make([]float32, cf.NumSamples())
 			for idx := range carfacInput {
 				carfacInput[idx] = float32(signal[len(signal)-len(carfacInput)+idx])
