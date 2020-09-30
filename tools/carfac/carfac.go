@@ -91,15 +91,25 @@ func (c *carfac) Poles() []float32 {
 	return c.poles
 }
 
-func New(sampleRate int) CF {
-	cf := C.create_carfac(C.int(sampleRate))
+type CARFACParams struct {
+	SampleRate int
+	VOffset    *float64
+}
+
+func New(carfacParams CARFACParams) CF {
+	var vOffset *C.float
+	if carfacParams.VOffset != nil {
+		cVOffset := C.float(*carfacParams.VOffset)
+		vOffset = &cVOffset
+	}
+	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset)
 	runtime.SetFinalizer(&cf, func(i interface{}) {
 		C.delete_carfac(&cf)
 	})
 	return &carfac{
 		numChannels: int(cf.num_channels),
 		numSamples:  int(cf.num_samples),
-		sampleRate:  sampleRate,
+		sampleRate:  carfacParams.SampleRate,
 		poles:       floatAryToFloats(cf.poles),
 		cf:          &cf,
 	}

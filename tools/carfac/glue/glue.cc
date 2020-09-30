@@ -5,10 +5,13 @@
 
 #include "../carfac/cpp/carfac.h"
 
-carfac create_carfac(int sample_rate) {
+carfac create_carfac(int sample_rate, float *v_offset) {
   CARParams car_params;
   IHCParams ihc_params;
   AGCParams agc_params;
+  if (v_offset != NULL) {
+	  car_params.v_offset = *v_offset;
+  }
   auto c = new CARFAC(1, static_cast<float>(sample_rate), car_params,
                       ihc_params, agc_params);
   return carfac{
