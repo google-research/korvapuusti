@@ -72,6 +72,7 @@ type carfac struct {
 	numSamples  int
 	sampleRate  int
 	poles       []float32
+	openLoop    bool
 	cf          *C.carfac
 }
 
@@ -94,6 +95,7 @@ func (c *carfac) Poles() []float32 {
 type CARFACParams struct {
 	SampleRate int
 	VOffset    *float64
+	OpenLoop   bool
 }
 
 func New(carfacParams CARFACParams) CF {
@@ -111,12 +113,19 @@ func New(carfacParams CARFACParams) CF {
 		numSamples:  int(cf.num_samples),
 		sampleRate:  carfacParams.SampleRate,
 		poles:       floatAryToFloats(cf.poles),
+		openLoop:    carfacParams.OpenLoop,
 		cf:          &cf,
 	}
 }
 
 func (c *carfac) Run(buffer []float32) {
-	C.carfac_run(c.cf, floatsToFloatAry(buffer))
+	var open_loop C.int
+	if c.openLoop {
+		open_loop = 1
+	} else {
+		open_loop = 0
+	}
+	C.carfac_run(c.cf, floatsToFloatAry(buffer), open_loop)
 }
 
 func (c *carfac) NAP() (result []float32, err error) {

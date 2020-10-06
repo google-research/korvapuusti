@@ -30,7 +30,7 @@ carfac create_carfac(int sample_rate, float *v_offset);
 
 void delete_carfac(carfac *cf);
 
-void carfac_run(carfac *cf, float_ary buffer);
+void carfac_run(carfac *cf, float_ary buffer, int open_loop);
 
 int carfac_bm(carfac *cf, float_ary result);
 

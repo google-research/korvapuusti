@@ -30,13 +30,13 @@ carfac create_carfac(int sample_rate, float *v_offset) {
 
 void delete_carfac(carfac *cf) { delete static_cast<CARFAC *>(cf->cf); }
 
-void carfac_run(carfac *cf, float_ary buffer) {
+void carfac_run(carfac *cf, float_ary buffer, int open_loop) {
   auto real_cf = static_cast<CARFAC *>(cf->cf);
   real_cf->Reset();
   auto input_map = ArrayXX::Map(reinterpret_cast<const float *>(buffer.data), 1,
                                 cf->num_samples);
   auto real_output = static_cast<CARFACOutput *>(cf->latest_output);
-  real_cf->RunSegment(input_map, false, real_output);
+  real_cf->RunSegment(input_map, open_loop, real_output);
 }
 
 int carfac_bm(carfac *cf, float_ary result) {
