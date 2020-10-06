@@ -56,6 +56,29 @@ func TestOpenLoopMakesADifference(t *testing.T) {
 	}
 }
 
+func TestERBPerStepMakesADifference(t *testing.T) {
+	regularCF := New(CARFACParams{SampleRate: 48000, ERBPerStep: nil})
+	one := 1.0
+	oneERBPerStepCF := New(CARFACParams{SampleRate: 48000, ERBPerStep: &one})
+	buf := makeSignal(regularCF.NumSamples())
+	regularCF.Run(buf)
+	oneERBPerStepCF.Run(buf)
+	regularBM, err := regularCF.BM()
+	if err != nil {
+		t.Fatal(err)
+	}
+	oneERBPerStepBM, err := oneERBPerStepCF.BM()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reflect.DeepEqual(regularBM, oneERBPerStepBM) {
+		t.Errorf("The BM output of a default CARFAC instance and one with ERBPerStep set to 1.0 are the same?")
+	}
+	if len(regularBM) < len(oneERBPerStepBM) {
+		t.Errorf("The BM output of a default CARFAC instance (with 0.5 ERB per step) is shorter than the BM output of a CARFAC instance with ERBPerStep set to 1.0?")
+	}
+}
+
 func TestVOffsetMakesADifference(t *testing.T) {
 	regularCF := New(CARFACParams{SampleRate: 48000, VOffset: nil})
 	zero := 0.0
@@ -78,6 +101,7 @@ func TestVOffsetMakesADifference(t *testing.T) {
 
 func TestCarfac(t *testing.T) {
 	zero := 0.0
+	one := 1.0
 	for _, params := range []CARFACParams{
 		{
 			SampleRate: 48000,
@@ -86,6 +110,10 @@ func TestCarfac(t *testing.T) {
 		{
 			SampleRate: 24000,
 			VOffset:    &zero,
+		},
+		{
+			SampleRate: 24000,
+			ERBPerStep: &one,
 		},
 	} {
 		cf := New(params)

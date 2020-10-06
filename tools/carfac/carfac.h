@@ -26,7 +26,7 @@ typedef struct carfac {
   const_float_ary poles;
 } carfac;
 
-carfac create_carfac(int sample_rate, float *v_offset);
+carfac create_carfac(int sample_rate, float *v_offset, float *erb_per_step);
 
 void delete_carfac(carfac *cf);
 

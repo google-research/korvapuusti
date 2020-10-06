@@ -96,6 +96,7 @@ type CARFACParams struct {
 	SampleRate int
 	VOffset    *float64
 	OpenLoop   bool
+	ERBPerStep *float64
 }
 
 func New(carfacParams CARFACParams) CF {
@@ -104,7 +105,12 @@ func New(carfacParams CARFACParams) CF {
 		cVOffset := C.float(*carfacParams.VOffset)
 		vOffset = &cVOffset
 	}
-	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset)
+	var erbPerStep *C.float
+	if carfacParams.ERBPerStep != nil {
+		cERBPerStep := C.float(*carfacParams.ERBPerStep)
+		erbPerStep = &cERBPerStep
+	}
+	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset, erbPerStep)
 	runtime.SetFinalizer(&cf, func(i interface{}) {
 		C.delete_carfac(&cf)
 	})
