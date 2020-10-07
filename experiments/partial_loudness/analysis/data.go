@@ -93,6 +93,8 @@ type Analysis struct {
 type Samples struct {
 	// FullScaleSineLevel is the assumed level for a full scale sine when generating samples.
 	FullScaleSineLevel signals.DB
+	// WindowSize is the number of samples in the window.
+	WindowSize int64
 	// Rate is the sample rate of the signal fed to the FFT.
 	Rate signals.Hz
 	// Values are the sample values.
@@ -130,6 +132,8 @@ func (e *EquivalentLoudness) toTFExample(val reflect.Value, namePrefix string, e
 		ex.Features.Feature[namePrefix] = &tf.Feature{&tf.Feature_BytesList{&tf.BytesList{[][]byte{[]byte(val.String())}}}}
 	case reflect.Float64:
 		ex.Features.Feature[namePrefix] = &tf.Feature{&tf.Feature_FloatList{&tf.FloatList{[]float32{float32(val.Float())}}}}
+	case reflect.Int64:
+		ex.Features.Feature[namePrefix] = &tf.Feature{&tf.Feature_Int64List{&tf.Int64List{[]int64{val.Int()}}}}
 	case reflect.Slice:
 		elemTyp := typ.Elem()
 		switch elemTyp.Kind() {

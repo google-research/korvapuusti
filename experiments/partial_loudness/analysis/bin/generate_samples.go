@@ -68,6 +68,7 @@ func main() {
 		}
 		if evaluation.EntryType == "EquivalentLoudnessMeasurement" {
 			evaluation.Samples.FullScaleSineLevel = signals.DB(*sampleFullScaleSineLevel)
+			evaluation.Samples.WindowSize = int64(*windowSize)
 			evaluation.Samples.Rate = signals.Hz(*sampleRate)
 			sampler, err := evaluation.Evaluation.Combined.Sampler()
 			if err != nil {
