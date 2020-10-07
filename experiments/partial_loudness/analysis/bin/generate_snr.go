@@ -1,5 +1,5 @@
 /* generate_snr runs CARFAC on the audio used in evaluations, calculate the SNR
- * of the CARFAC output, and stores the results in JSON files.
+ * of the CARFAC output, and stores the results in TFRecord files.
  *
  * Copyright 2020 Google LLC
  *
@@ -36,15 +36,18 @@ import (
 )
 
 const (
-	rate                         = 48000
-	fftWindowSize                = 2048
-	evaluationFullScaleSineLevel = 100
+	rate          = 48000
+	fftWindowSize = 2048
 )
 
 var (
-	evaluationJSON     = flag.String("evaluation_json", "", "Path to the file containing evaluations.")
-	snrOutput          = flag.String("snr_output", "", "Path to the file the SNR JSON will be written to.")
-	fullScaleSineLevel = flag.Float64("full_scale_sine_level", 100, "dB SPL of a full scale sine.")
+	evaluationJSON               = flag.String("evaluation_json", "", "Path to the file containing evaluations.")
+	snrOutput                    = flag.String("snr_output", "", "Path to the file the SNR JSON will be written to.")
+	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100, "dB SPL calibrated to a full scale sine in the evaluations.")
+	carfacFullScaleSineLevel     = flag.Float64("carfac_full_scale_sine_level", 100, "dB SPL for a full scale sine in the generated signal for CARFAC input.")
+	carfacZeroVOffset            = flag.Bool("carfac_zero_v_offset", false, "Whether to zero the v_offset CARFAC parameter as mentioned in https://asa.scitation.org/doi/10.1121/1.5038595.")
+	carfacOpenLoop               = flag.Bool("carfac_open_loop", false, "Whether to run CARFAC in an open loop.")
+	carfacERBPerStep             = flag.Float64("carfac_erb_per_step", 0.0, "Custom erb_per_step when running CARFAC. 0.0 means use default value.")
 )
 
 func main() {
@@ -54,7 +57,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	cf := carfac.New(rate)
+	var vOffset *float64
+	if *carfacZeroVOffset {
+		zero := 0.0
+		vOffset = &zero
+	}
+	var erbPerStep *float64
+	if *carfacERBPerStep != 0.0 {
+		erbPerStep = carfacERBPerStep
+	}
+	cf := carfac.New(carfac.CARFACParams{SampleRate: rate, VOffset: vOffset, OpenLoop: *carfacOpenLoop, ERBPerStep: erbPerStep})
 
 	evaluationFile, err := os.Open(*evaluationJSON)
 	if err != nil {
@@ -73,6 +85,13 @@ func main() {
 			log.Panic(err)
 		}
 		if evaluation.EntryType == "EquivalentLoudnessMeasurement" {
+			evaluation.Analysis.CARFACFullScaleSineLevel = signals.DB(*carfacFullScaleSineLevel)
+			evaluation.Analysis.OpenLoop = *carfacOpenLoop
+			evaluation.Analysis.VOffsetProvided = *carfacZeroVOffset
+			evaluation.Analysis.ERBPerStep = *carfacERBPerStep
+			if *carfacZeroVOffset {
+				evaluation.Analysis.VOffset = *vOffset
+			}
 			sampler, err := evaluation.Evaluation.Combined.Sampler()
 			if err != nil {
 				log.Panic(err)
@@ -81,12 +100,13 @@ func main() {
 			if err != nil {
 				log.Panic(err)
 			}
-			signal.AddLevel(evaluationFullScaleSineLevel - signals.DB(*fullScaleSineLevel))
+			signal.AddLevel(signals.DB(*evaluationFullScaleSineLevel - *carfacFullScaleSineLevel))
 			carfacInput := make([]float32, cf.NumSamples())
 			for idx := range carfacInput {
 				carfacInput[idx] = float32(signal[len(signal)-len(carfacInput)+idx])
 			}
 			cf.Run(carfacInput)
+
 			nap, err := cf.NAP()
 			if err != nil {
 				log.Panic(err)
@@ -96,10 +116,25 @@ func main() {
 				for sampleIdx := range channel {
 					channel[sampleIdx] = float64(nap[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
 				}
-				evaluation.Analysis.Channels = append(evaluation.Analysis.Channels, channel)
-				evaluation.Analysis.ChannelSpectrums = append(evaluation.Analysis.ChannelSpectrums, spectrum.Compute(channel, rate))
+				evaluation.Analysis.NAPChannels = append(evaluation.Analysis.NAPChannels, channel)
+				evaluation.Analysis.NAPChannelSpectrums = append(evaluation.Analysis.NAPChannelSpectrums, spectrum.Compute(channel, rate))
+
 				evaluation.Analysis.ChannelPoles = append(evaluation.Analysis.ChannelPoles, float64(cf.Poles()[chanIdx]))
 			}
+
+			bm, err := cf.BM()
+			if err != nil {
+				log.Panic(err)
+			}
+			for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
+				channel := make([]float64, fftWindowSize)
+				for sampleIdx := range channel {
+					channel[sampleIdx] = float64(bm[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
+				}
+				evaluation.Analysis.BMChannels = append(evaluation.Analysis.BMChannels, channel)
+				evaluation.Analysis.BMChannelSpectrums = append(evaluation.Analysis.BMChannelSpectrums, spectrum.Compute(channel, rate))
+			}
+
 			example, err := evaluation.ToTFExample()
 			if err != nil {
 				log.Panic(err)

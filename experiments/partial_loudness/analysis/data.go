@@ -65,12 +65,38 @@ type Results struct {
 // Analysis contains the CARFAC analysis of the sound played to the evaluator, without using the headphone frequency response calibration
 // (since CARFAC gets the raw audio, and doesn't need to be calibrated for headphones).
 type Analysis struct {
-	// Channels[channelIDX][sampleStep] is the time domain output of the CARFAC channels.
-	Channels [][]float64
-	// ChannelPoles[channelIDX is the pole frequency for each channel.
+	// FullScaleSineLevel is the assumed level for a full scale sine when generating the CARFAC input signals.
+	CARFACFullScaleSineLevel signals.DB
+	// VOffsetProvided is whether a custom v_offset was provided when running CARFAC.
+	VOffsetProvided bool
+	// VOffset is the custom v_offset used when running CARFAC, if any.
+	VOffset float64
+	// OpenLoop is whether CARFAC was run with an open loop.
+	OpenLoop bool
+	// ChannelPoles[channelIDX] is the pole frequency for each channel.
 	ChannelPoles []float64
-	// ChannelSpectrums is the results of FFT of the Channels.
-	ChannelSpectrums []spectrum.S
+	// ERBPerStep is the custom erb_per_step used when running CARFAC, if any.
+	ERBPerStep float64
+
+	// NAPChannels[channelIDX][sampleStep] is the time domain output of the CARFAC NAP channels.
+	NAPChannels [][]float64
+	// NAPChannelSpectrums is the results of FFT of the NAPChannels.
+	NAPChannelSpectrums []spectrum.S
+
+	// BMChannels[channelIDX][sampleStep] is the time domain output of the CARFAC BM channels.
+	BMChannels [][]float64
+	// BMChannelSpectrums is the results of FFT of the BMChannels.
+	BMChannelSpectrums []spectrum.S
+}
+
+// Samples contains the generated raw sound played out to the evaluator, without the compensation for the headphone frequency response file.
+type Samples struct {
+	// FullScaleSineLevel is the assumed level for a full scale sine when generating samples.
+	FullScaleSineLevel signals.DB
+	// Rate is the sample rate of the signal fed to the FFT.
+	Rate signals.Hz
+	// Values are the sample values.
+	Values []float64
 }
 
 // EquivalentLoudness describes an evaluation and its results.
@@ -85,13 +111,21 @@ type EquivalentLoudness struct {
 	Evaluation Evaluation
 	// Results defines the results of the human evaluation.
 	Results Results
-	// Analysis contains automatied analysis of the sounds evaluated.
+	// Analysis contains CARFAC analysis of the sounds evaluated.
 	Analysis Analysis
+	// Samples contains a window of the samples played out to the evaluator, without the compensation for the headphone frequency response.
+	Samples Samples
 }
 
 func (e *EquivalentLoudness) toTFExample(val reflect.Value, namePrefix string, ex *tf.Example) error {
 	typ := val.Type()
 	switch typ.Kind() {
+	case reflect.Bool:
+		i := int64(0)
+		if val.Bool() {
+			i = 1
+		}
+		ex.Features.Feature[namePrefix] = &tf.Feature{&tf.Feature_Int64List{&tf.Int64List{[]int64{i}}}}
 	case reflect.String:
 		ex.Features.Feature[namePrefix] = &tf.Feature{&tf.Feature_BytesList{&tf.BytesList{[][]byte{[]byte(val.String())}}}}
 	case reflect.Float64:
