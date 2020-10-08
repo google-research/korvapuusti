@@ -46,8 +46,10 @@ var (
 	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100, "dB SPL calibrated to a full scale sine in the evaluations.")
 	carfacFullScaleSineLevel     = flag.Float64("carfac_full_scale_sine_level", 100, "dB SPL for a full scale sine in the generated signal for CARFAC input.")
 	carfacZeroVOffset            = flag.Bool("carfac_zero_v_offset", false, "Whether to zero the v_offset CARFAC parameter as mentioned in https://asa.scitation.org/doi/10.1121/1.5038595.")
-	carfacOpenLoop               = flag.Bool("carfac_open_loop", false, "Whether to run CARFAC in an open loop.")
+	carfacOpenLoop               = flag.Bool("carfac_open_loop", false, "Whether to run CARFAC on the generated samples an extra time with an open loop before analysing the results.")
 	carfacERBPerStep             = flag.Float64("carfac_erb_per_step", 0.0, "Custom erb_per_step when running CARFAC. 0.0 means use default value.")
+	carfacMaxZeta                = flag.Float64("carfac_max_zeta", 0.0, "Custom max_zeta when running CARFAC. 0.0 means use default value.")
+	noiseFloor                   = flag.Float64("noise_floor", 35, "dB SPL of noise where evaluations were made.")
 )
 
 func main() {
@@ -66,7 +68,11 @@ func main() {
 	if *carfacERBPerStep != 0.0 {
 		erbPerStep = carfacERBPerStep
 	}
-	cf := carfac.New(carfac.CARFACParams{SampleRate: rate, VOffset: vOffset, OpenLoop: *carfacOpenLoop, ERBPerStep: erbPerStep})
+	var maxZeta *float64
+	if *carfacMaxZeta != 0.0 {
+		maxZeta = carfacMaxZeta
+	}
+	cf := carfac.New(carfac.CARFACParams{SampleRate: rate, VOffset: vOffset, ERBPerStep: erbPerStep, MaxZeta: maxZeta})
 
 	evaluationFile, err := os.Open(*evaluationJSON)
 	if err != nil {
@@ -96,7 +102,8 @@ func main() {
 			if err != nil {
 				log.Panic(err)
 			}
-			signal, err := sampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
+			noisySampler := signals.Superposition{sampler, &signals.Noise{Color: signals.White, LowerLimit: 20, UpperLimit: 20000, Level: signals.DB(*noiseFloor - *evaluationFullScaleSineLevel)}}
+			signal, err := noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
 			if err != nil {
 				log.Panic(err)
 			}
@@ -106,6 +113,9 @@ func main() {
 				carfacInput[idx] = float32(signal[len(signal)-len(carfacInput)+idx])
 			}
 			cf.Run(carfacInput)
+			if *carfacOpenLoop {
+				cf.RunOpen(carfacInput)
+			}
 
 			nap, err := cf.NAP()
 			if err != nil {
