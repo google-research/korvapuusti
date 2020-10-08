@@ -59,6 +59,7 @@ func floatsToFloatAry(floats []float32) C.float_ary {
 
 type CF interface {
 	Run(buffer []float32)
+	RunOpen(buffer []float32)
 	NAP() ([]float32, error)
 	BM() ([]float32, error)
 	NumChannels() int
@@ -95,7 +96,6 @@ func (c *carfac) Poles() []float32 {
 type CARFACParams struct {
 	SampleRate int
 	VOffset    *float64
-	OpenLoop   bool
 	ERBPerStep *float64
 }
 
@@ -119,19 +119,16 @@ func New(carfacParams CARFACParams) CF {
 		numSamples:  int(cf.num_samples),
 		sampleRate:  carfacParams.SampleRate,
 		poles:       floatAryToFloats(cf.poles),
-		openLoop:    carfacParams.OpenLoop,
 		cf:          &cf,
 	}
 }
 
+func (c *carfac) RunOpen(buffer []float32) {
+	C.carfac_run(c.cf, floatsToFloatAry(buffer), 1)
+}
+
 func (c *carfac) Run(buffer []float32) {
-	var open_loop C.int
-	if c.openLoop {
-		open_loop = 1
-	} else {
-		open_loop = 0
-	}
-	C.carfac_run(c.cf, floatsToFloatAry(buffer), open_loop)
+	C.carfac_run(c.cf, floatsToFloatAry(buffer), 0)
 }
 
 func (c *carfac) NAP() (result []float32, err error) {

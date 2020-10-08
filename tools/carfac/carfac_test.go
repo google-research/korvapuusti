@@ -38,11 +38,11 @@ func TestDeterminism(t *testing.T) {
 }
 
 func TestOpenLoopMakesADifference(t *testing.T) {
-	regularCF := New(CARFACParams{SampleRate: 48000, OpenLoop: false})
-	openLoopCF := New(CARFACParams{SampleRate: 48000, OpenLoop: true})
+	regularCF := New(CARFACParams{SampleRate: 48000})
+	openLoopCF := New(CARFACParams{SampleRate: 48000})
 	buf := makeSignal(regularCF.NumSamples())
 	regularCF.Run(buf)
-	openLoopCF.Run(buf)
+	openLoopCF.RunOpen(buf)
 	regularBM, err := regularCF.BM()
 	if err != nil {
 		t.Fatal(err)
