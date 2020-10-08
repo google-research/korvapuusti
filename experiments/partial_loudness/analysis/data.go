@@ -77,6 +77,10 @@ type Analysis struct {
 	ChannelPoles []float64
 	// ERBPerStep is the custom erb_per_step used when running CARFAC, if any.
 	ERBPerStep float64
+	// NoiseFloor is the noise floor level added to the samples before running CARFAC.
+	NoiseFloor signals.DB
+	// MaxZeta is the custom max_zeta used when running CARFAC, if any.
+	MaxZeta float64
 
 	// NAPChannels[channelIDX][sampleStep] is the time domain output of the CARFAC NAP channels.
 	NAPChannels [][]float64

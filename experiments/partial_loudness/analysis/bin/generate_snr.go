@@ -95,6 +95,8 @@ func main() {
 			evaluation.Analysis.OpenLoop = *carfacOpenLoop
 			evaluation.Analysis.VOffsetProvided = *carfacZeroVOffset
 			evaluation.Analysis.ERBPerStep = *carfacERBPerStep
+			evaluation.Analysis.NoiseFloor = signals.DB(*noiseFloor)
+			evaluation.Analysis.MaxZeta = *maxZeta
 			if *carfacZeroVOffset {
 				evaluation.Analysis.VOffset = *vOffset
 			}
