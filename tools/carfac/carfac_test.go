@@ -18,120 +18,95 @@ func makeSignal(l int) []float32 {
 	return buf
 }
 
-func TestDeterminism(t *testing.T) {
-	cf1 := New(CARFACParams{SampleRate: 48000, VOffset: nil})
-	cf2 := New(CARFACParams{SampleRate: 48000, VOffset: nil})
-	buf := makeSignal(cf1.NumSamples())
-	cf1.Run(buf)
-	cf2.Run(buf)
-	bm1, err := cf1.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	bm2, err := cf2.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(bm1, bm2) {
-		t.Errorf("The BM output of two default CARFAC instances are not the same?")
-	}
-}
-
-func TestOpenLoopMakesADifference(t *testing.T) {
-	regularCF := New(CARFACParams{SampleRate: 48000})
-	openLoopCF := New(CARFACParams{SampleRate: 48000})
-	buf := makeSignal(regularCF.NumSamples())
-	regularCF.Run(buf)
-	openLoopCF.RunOpen(buf)
-	regularBM, err := regularCF.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	openLoopBM, err := openLoopCF.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if reflect.DeepEqual(regularBM, openLoopBM) {
-		t.Errorf("The BM output of a default CARFAC instance and one with open loop are the same?")
-	}
-}
-
-func TestERBPerStepMakesADifference(t *testing.T) {
-	regularCF := New(CARFACParams{SampleRate: 48000, ERBPerStep: nil})
-	one := 1.0
-	oneERBPerStepCF := New(CARFACParams{SampleRate: 48000, ERBPerStep: &one})
-	buf := makeSignal(regularCF.NumSamples())
-	regularCF.Run(buf)
-	oneERBPerStepCF.Run(buf)
-	regularBM, err := regularCF.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	oneERBPerStepBM, err := oneERBPerStepCF.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if reflect.DeepEqual(regularBM, oneERBPerStepBM) {
-		t.Errorf("The BM output of a default CARFAC instance and one with ERBPerStep set to 1.0 are the same?")
-	}
-	if len(regularBM) < len(oneERBPerStepBM) {
-		t.Errorf("The BM output of a default CARFAC instance (with 0.5 ERB per step) is shorter than the BM output of a CARFAC instance with ERBPerStep set to 1.0?")
-	}
-}
-
-func TestVOffsetMakesADifference(t *testing.T) {
-	regularCF := New(CARFACParams{SampleRate: 48000, VOffset: nil})
-	zero := 0.0
-	zeroVOffsetCF := New(CARFACParams{SampleRate: 48000, VOffset: &zero})
-	buf := makeSignal(regularCF.NumSamples())
-	regularCF.Run(buf)
-	zeroVOffsetCF.Run(buf)
-	regularBM, err := regularCF.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	zeroVOffsetBM, err := zeroVOffsetCF.BM()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if reflect.DeepEqual(regularBM, zeroVOffsetBM) {
-		t.Errorf("The BM output of a default CARFAC instance and one with v_offset set to 0.0 are the same?")
-	}
-}
-
-func TestCarfac(t *testing.T) {
-	zero := 0.0
-	one := 1.0
-	for _, params := range []CARFACParams{
+func TestCARFAC(t *testing.T) {
+	for _, tc := range []struct {
+		f1        func() ([]float32, error)
+		f2        func() ([]float32, error)
+		wantEqual bool
+		desc      string
+	}{
 		{
-			SampleRate: 48000,
-			VOffset:    nil,
+			desc: "Deterministic",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			wantEqual: true,
 		},
 		{
-			SampleRate: 24000,
-			VOffset:    &zero,
+			desc: "OpenLoopDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.RunOpen(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
 		},
 		{
-			SampleRate: 24000,
-			ERBPerStep: &one,
+			desc: "ERBPerStepDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				one := 1.0
+				cf := New(CARFACParams{SampleRate: 48000, ERBPerStep: &one})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "VOffsetDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				zero := 0.0
+				cf := New(CARFACParams{SampleRate: 48000, VOffset: &zero})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "MaxZetaDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				half := 0.5
+				cf := New(CARFACParams{SampleRate: 48000, MaxZeta: &half})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
 		},
 	} {
-		cf := New(params)
-		buf := make([]float32, cf.NumSamples())
-		cf.Run(buf)
-		nap, err := cf.NAP()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(nap) != cf.NumChannels()*cf.NumSamples() {
-			t.Errorf("Wanted %v samples, got %v", cf.NumChannels()*cf.NumSamples(), len(nap))
-		}
-		bm, err := cf.BM()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(bm) != cf.NumChannels()*cf.NumSamples() {
-			t.Errorf("Wanted %v samples, got %v", cf.NumChannels()*cf.NumSamples(), len(nap))
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			res1, err := tc.f1()
+			if err != nil {
+				t.Fatal(err)
+			}
+			res2, err := tc.f2()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if wasEqual := reflect.DeepEqual(res1, res2); tc.wantEqual != wasEqual {
+				t.Errorf("Wanted equal to be %v, was %v", tc.wantEqual, wasEqual)
+			}
+		})
 	}
 }

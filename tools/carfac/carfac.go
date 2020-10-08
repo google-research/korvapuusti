@@ -97,6 +97,7 @@ type CARFACParams struct {
 	SampleRate int
 	VOffset    *float64
 	ERBPerStep *float64
+	MaxZeta    *float64
 }
 
 func New(carfacParams CARFACParams) CF {
@@ -110,7 +111,12 @@ func New(carfacParams CARFACParams) CF {
 		cERBPerStep := C.float(*carfacParams.ERBPerStep)
 		erbPerStep = &cERBPerStep
 	}
-	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset, erbPerStep)
+	var maxZeta *C.float
+	if carfacParams.MaxZeta != nil {
+		cMaxZeta := C.float(*carfacParams.MaxZeta)
+		maxZeta = &cMaxZeta
+	}
+	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset, erbPerStep, maxZeta)
 	runtime.SetFinalizer(&cf, func(i interface{}) {
 		C.delete_carfac(&cf)
 	})
