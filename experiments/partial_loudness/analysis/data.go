@@ -81,6 +81,8 @@ type Analysis struct {
 	NoiseFloor signals.DB
 	// MaxZeta is the custom max_zeta used when running CARFAC, if any.
 	MaxZeta float64
+	// ZeroRatio is the custom zero_ratio used when running CARFAC, if any.
+	ZeroRatio float64
 
 	// NAPChannels[channelIDX][sampleStep] is the time domain output of the CARFAC NAP channels.
 	NAPChannels [][]float64
