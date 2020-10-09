@@ -5,7 +5,7 @@
 
 #include "../carfac/cpp/carfac.h"
 
-carfac create_carfac(int sample_rate, float *v_offset, float *erb_per_step, float *max_zeta) {
+carfac create_carfac(int sample_rate, float *v_offset, float *erb_per_step, float *max_zeta, float *zero_ratio) {
   CARParams car_params;
   IHCParams ihc_params;
   AGCParams agc_params;
@@ -17,6 +17,9 @@ carfac create_carfac(int sample_rate, float *v_offset, float *erb_per_step, floa
   }
   if (max_zeta != NULL) {
 	  car_params.max_zeta = *max_zeta;
+  }
+  if (zero_ratio != NULL) {
+	  car_params.zero_ratio = *zero_ratio;
   }
   auto c = new CARFAC(1, static_cast<float>(sample_rate), car_params,
                       ihc_params, agc_params);
