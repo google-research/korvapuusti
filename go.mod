@@ -3,7 +3,8 @@ module github.com/google-research/korvapuusti
 go 1.14
 
 require (
-	github.com/faiface/beep v1.0.2
+	github.com/cheggaaa/pb v1.0.29
+	github.com/faiface/beep v1.0.2 // indirect
 	github.com/gen2brain/malgo v0.10.15 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.5.0

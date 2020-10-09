@@ -25,6 +25,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/cheggaaa/pb"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
 	"github.com/google-research/korvapuusti/tools/carfac"
 	"github.com/google-research/korvapuusti/tools/spectrum"
@@ -79,88 +80,98 @@ func main() {
 		log.Panic(err)
 	}
 	defer evaluationFile.Close()
+
 	snrFile, err := os.Create(*snrOutput)
 	if err != nil {
 		log.Panic(err)
 	}
 	defer snrFile.Close()
-	evaluationLines := bufio.NewReader(evaluationFile)
-	for line, err := evaluationLines.ReadString('\n'); err == nil; line, err = evaluationLines.ReadString('\n') {
+
+	lineReader := bufio.NewReader(evaluationFile)
+	evaluations := []*analysis.EquivalentLoudness{}
+	for line, err := lineReader.ReadString('\n'); err == nil; line, err = lineReader.ReadString('\n') {
 		evaluation := &analysis.EquivalentLoudness{}
 		if err := json.Unmarshal([]byte(line), evaluation); err != nil {
 			log.Panic(err)
 		}
 		if evaluation.EntryType == "EquivalentLoudnessMeasurement" {
-			evaluation.Analysis.CARFACFullScaleSineLevel = signals.DB(*carfacFullScaleSineLevel)
-			evaluation.Analysis.OpenLoop = *carfacOpenLoop
-			evaluation.Analysis.VOffsetProvided = *carfacZeroVOffset
-			evaluation.Analysis.ERBPerStep = *carfacERBPerStep
-			evaluation.Analysis.NoiseFloor = signals.DB(*noiseFloor)
-			evaluation.Analysis.MaxZeta = *maxZeta
-			if *carfacZeroVOffset {
-				evaluation.Analysis.VOffset = *vOffset
-			}
-			sampler, err := evaluation.Evaluation.Combined.Sampler()
-			if err != nil {
-				log.Panic(err)
-			}
-			noisySampler := signals.Superposition{sampler, &signals.Noise{Color: signals.White, LowerLimit: 20, UpperLimit: 20000, Level: signals.DB(*noiseFloor - *evaluationFullScaleSineLevel)}}
-			signal, err := noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
-			if err != nil {
-				log.Panic(err)
-			}
-			signal.AddLevel(signals.DB(*evaluationFullScaleSineLevel - *carfacFullScaleSineLevel))
-			carfacInput := make([]float32, cf.NumSamples())
-			for idx := range carfacInput {
-				carfacInput[idx] = float32(signal[len(signal)-len(carfacInput)+idx])
-			}
-			cf.Run(carfacInput)
-			if *carfacOpenLoop {
-				cf.RunOpen(carfacInput)
-			}
-
-			nap, err := cf.NAP()
-			if err != nil {
-				log.Panic(err)
-			}
-			for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
-				channel := make([]float64, fftWindowSize)
-				for sampleIdx := range channel {
-					channel[sampleIdx] = float64(nap[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
-				}
-				evaluation.Analysis.NAPChannels = append(evaluation.Analysis.NAPChannels, channel)
-				evaluation.Analysis.NAPChannelSpectrums = append(evaluation.Analysis.NAPChannelSpectrums, spectrum.Compute(channel, rate))
-
-				evaluation.Analysis.ChannelPoles = append(evaluation.Analysis.ChannelPoles, float64(cf.Poles()[chanIdx]))
-			}
-
-			bm, err := cf.BM()
-			if err != nil {
-				log.Panic(err)
-			}
-			for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
-				channel := make([]float64, fftWindowSize)
-				for sampleIdx := range channel {
-					channel[sampleIdx] = float64(bm[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
-				}
-				evaluation.Analysis.BMChannels = append(evaluation.Analysis.BMChannels, channel)
-				evaluation.Analysis.BMChannelSpectrums = append(evaluation.Analysis.BMChannelSpectrums, spectrum.Compute(channel, rate))
-			}
-
-			example, err := evaluation.ToTFExample()
-			if err != nil {
-				log.Panic(err)
-			}
-			encoded, err := proto.Marshal(proto1.MessageV2(example))
-			if err != nil {
-				log.Panic(err)
-			}
-			if err := tfrecord.Write(snrFile, encoded); err != nil {
-				log.Panic(err)
-			}
+			evaluations = append(evaluations, evaluation)
 		}
 	}
 	if err != nil && err != io.EOF {
 		log.Panic(err)
 	}
+
+	bar := pb.StartNew(len(evaluations))
+	for _, evaluation := range evaluations {
+		evaluation.Analysis.CARFACFullScaleSineLevel = signals.DB(*carfacFullScaleSineLevel)
+		evaluation.Analysis.OpenLoop = *carfacOpenLoop
+		evaluation.Analysis.VOffsetProvided = *carfacZeroVOffset
+		evaluation.Analysis.ERBPerStep = *carfacERBPerStep
+		evaluation.Analysis.NoiseFloor = signals.DB(*noiseFloor)
+		evaluation.Analysis.MaxZeta = *carfacMaxZeta
+		if *carfacZeroVOffset {
+			evaluation.Analysis.VOffset = *vOffset
+		}
+		sampler, err := evaluation.Evaluation.Combined.Sampler()
+		if err != nil {
+			log.Panic(err)
+		}
+		noisySampler := signals.Superposition{sampler, &signals.Noise{Color: signals.White, LowerLimit: 20, UpperLimit: 20000, Level: signals.DB(*noiseFloor - *evaluationFullScaleSineLevel)}}
+		signal, err := noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
+		if err != nil {
+			log.Panic(err)
+		}
+		signal.AddLevel(signals.DB(*evaluationFullScaleSineLevel - *carfacFullScaleSineLevel))
+		carfacInput := make([]float32, cf.NumSamples())
+		for idx := range carfacInput {
+			carfacInput[idx] = float32(signal[len(signal)-len(carfacInput)+idx])
+		}
+		cf.Run(carfacInput)
+		if *carfacOpenLoop {
+			cf.RunOpen(carfacInput)
+		}
+
+		nap, err := cf.NAP()
+		if err != nil {
+			log.Panic(err)
+		}
+		for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
+			channel := make([]float64, fftWindowSize)
+			for sampleIdx := range channel {
+				channel[sampleIdx] = float64(nap[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
+			}
+			evaluation.Analysis.NAPChannels = append(evaluation.Analysis.NAPChannels, channel)
+			evaluation.Analysis.NAPChannelSpectrums = append(evaluation.Analysis.NAPChannelSpectrums, spectrum.Compute(channel, rate))
+
+			evaluation.Analysis.ChannelPoles = append(evaluation.Analysis.ChannelPoles, float64(cf.Poles()[chanIdx]))
+		}
+
+		bm, err := cf.BM()
+		if err != nil {
+			log.Panic(err)
+		}
+		for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
+			channel := make([]float64, fftWindowSize)
+			for sampleIdx := range channel {
+				channel[sampleIdx] = float64(bm[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
+			}
+			evaluation.Analysis.BMChannels = append(evaluation.Analysis.BMChannels, channel)
+			evaluation.Analysis.BMChannelSpectrums = append(evaluation.Analysis.BMChannelSpectrums, spectrum.Compute(channel, rate))
+		}
+
+		example, err := evaluation.ToTFExample()
+		if err != nil {
+			log.Panic(err)
+		}
+		encoded, err := proto.Marshal(proto1.MessageV2(example))
+		if err != nil {
+			log.Panic(err)
+		}
+		if err := tfrecord.Write(snrFile, encoded); err != nil {
+			log.Panic(err)
+		}
+		bar.Increment()
+	}
+	bar.Finish()
 }
