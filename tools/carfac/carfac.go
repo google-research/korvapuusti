@@ -99,6 +99,7 @@ type CARFACParams struct {
 	ERBPerStep *float64
 	MaxZeta    *float64
 	ZeroRatio  *float64
+	StageGain  *float64
 }
 
 func New(carfacParams CARFACParams) CF {
@@ -122,7 +123,12 @@ func New(carfacParams CARFACParams) CF {
 		cZeroRatio := C.float(*carfacParams.ZeroRatio)
 		zeroRatio = &cZeroRatio
 	}
-	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset, erbPerStep, maxZeta, zeroRatio)
+	var stageGain *C.float
+	if carfacParams.StageGain != nil {
+		cStageGain := C.float(*carfacParams.StageGain)
+		stageGain = &cStageGain
+	}
+	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset, erbPerStep, maxZeta, zeroRatio, stageGain)
 	runtime.SetFinalizer(&cf, func(i interface{}) {
 		C.delete_carfac(&cf)
 	})
