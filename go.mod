@@ -3,6 +3,7 @@ module github.com/google-research/korvapuusti
 go 1.14
 
 require (
+	github.com/bmatcuk/doublestar/v2 v2.0.1 // indirect
 	github.com/cheggaaa/pb v1.0.29
 	github.com/faiface/beep v1.0.2 // indirect
 	github.com/gen2brain/malgo v0.10.15 // indirect

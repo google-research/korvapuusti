@@ -57,7 +57,7 @@ func (s *S) F32NoisePower() []float32 {
 	return s.toFloat32(s.NoisePower)
 }
 
-func Compute(buffer []float64, rate signals.Hz) S {
+func ComputeSignalPower(buffer []float64, rate signals.Hz) S {
 	spec := S{
 		BinWidth: rate / signals.Hz(len(buffer)),
 		Rate:     rate,
@@ -75,6 +75,14 @@ func Compute(buffer []float64, rate signals.Hz) S {
 		power := 0.5 * gain * gain
 		spec.SignalPower[bin] = 10 * math.Log10(power)
 	}
+	return spec
+}
+
+func Compute(buffer []float64, rate signals.Hz) S {
+	spec := ComputeSignalPower(buffer, rate)
+
+	halfCoefficients := len(spec.Coeffs) / 2
+	invBuffer := 1.0 / float64(len(buffer))
 	totalMean := (cmplx.Abs(spec.Coeffs[0]) + cmplx.Abs(spec.Coeffs[halfCoefficients])) * invBuffer
 
 	spec.NoisePower = make([]float64, halfCoefficients)
