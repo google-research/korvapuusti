@@ -16,5 +16,6 @@ require (
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/youpy/go-riff v0.0.0-20131220112943-557d78c11efb // indirect
 	github.com/youpy/go-wav v0.0.0-20160223082350-b63a9887d320
+	gonum.org/v1/gonum v0.8.1
 	google.golang.org/protobuf v1.23.0
 )
