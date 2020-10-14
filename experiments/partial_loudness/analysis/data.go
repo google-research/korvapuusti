@@ -83,6 +83,8 @@ type Analysis struct {
 	MaxZeta float64
 	// ZeroRatio is the custom zero_ratio used when running CARFAC, if any.
 	ZeroRatio float64
+	// StageGain is the custom agc_stage_gain used when running CARFAC, if any.
+	StageGain float64
 
 	// NAPChannels[channelIDX][sampleStep] is the time domain output of the CARFAC NAP channels.
 	NAPChannels [][]float64

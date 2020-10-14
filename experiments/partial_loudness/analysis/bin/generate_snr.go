@@ -51,6 +51,7 @@ var (
 	carfacERBPerStep             = flag.Float64("carfac_erb_per_step", 0.0, "Custom erb_per_step when running CARFAC. 0.0 means use default value.")
 	carfacMaxZeta                = flag.Float64("carfac_max_zeta", 0.0, "Custom max_zeta when running CARFAC. 0.0 means use default value.")
 	carfacZeroRatio              = flag.Float64("carfac_zero_ratio", 0.0, "Custom zero_ratio when running CARFAC. 0.0 means use default value.")
+	carfacStageGain              = flag.Float64("carfac_stage_gain", 0.0, "Custom agc_stage_gain when running CARFAC. 0.0 means use default value.")
 	noiseFloor                   = flag.Float64("noise_floor", 35, "dB SPL of noise where evaluations were made.")
 )
 
@@ -78,7 +79,11 @@ func main() {
 	if *carfacZeroRatio != 0.0 {
 		zeroRatio = carfacZeroRatio
 	}
-	cf := carfac.New(carfac.CARFACParams{SampleRate: rate, VOffset: vOffset, ERBPerStep: erbPerStep, MaxZeta: maxZeta, ZeroRatio: zeroRatio})
+	var stageGain *float64
+	if *carfacStageGain != 0.0 {
+		stageGain = carfacStageGain
+	}
+	cf := carfac.New(carfac.CARFACParams{SampleRate: rate, VOffset: vOffset, ERBPerStep: erbPerStep, MaxZeta: maxZeta, ZeroRatio: zeroRatio, StageGain: stageGain})
 
 	evaluationFile, err := os.Open(*evaluationJSON)
 	if err != nil {
@@ -116,6 +121,7 @@ func main() {
 		evaluation.Analysis.NoiseFloor = signals.DB(*noiseFloor)
 		evaluation.Analysis.MaxZeta = *carfacMaxZeta
 		evaluation.Analysis.ZeroRatio = *carfacZeroRatio
+		evaluation.Analysis.StageGain = *carfacStageGain
 		if *carfacZeroVOffset {
 			evaluation.Analysis.VOffset = *vOffset
 		}
