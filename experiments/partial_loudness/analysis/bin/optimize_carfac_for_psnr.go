@@ -52,7 +52,8 @@ const (
 var (
 	// Optimize-time outputs.
 
-	outputDir = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
+	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
+	lossCalculationOutputRatio = flag.Int("loss_calculation_output_ratio", 100, "How seldom to output data about the best/worst results of a calculation run.")
 
 	// Definition of evaluations.
 
@@ -223,9 +224,12 @@ func (p psnrs) Swap(i, j int) {
 }
 
 type lossCalculator struct {
-	evaluations []evaluation
-	err         error
-	outDir      string
+	evaluations                  []evaluation
+	err                          error
+	outDir                       string
+	lossCalculations             int
+	lossCalculationOutputRatio   int
+	evaluationFullScaleSineLevel signals.DB
 }
 
 func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) error {
@@ -347,6 +351,7 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 }
 
 func (l *lossCalculator) loss(x []float64) float64 {
+	l.lossCalculations++
 	xValues := xValuesFromNormalizedFloat64Slice(x)
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
@@ -371,7 +376,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 			ticketJobs <- func() error {
 				cf := <-carfacs
 				defer func() { carfacs <- cf }()
-				scaledSignal := evaluation.signal.ToFloat32AddLevel(signals.DB(*evaluationFullScaleSineLevel - xValues.CarfacFullScaleSineLevel))
+				scaledSignal := evaluation.signal.ToFloat32AddLevel(l.evaluationFullScaleSineLevel - signals.DB(xValues.CarfacFullScaleSineLevel))
 				cf.Run(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
 				bm, err := cf.BM()
 				if err != nil {
@@ -424,24 +429,22 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		}
 		sumOfSquares += square
 	}
-	if err := l.logPSNRs(psnrByRunID[worstEval.evaluation.runID]); err != nil {
-		l.err = err
-		return 0.0
+	if l.lossCalculations%l.lossCalculationOutputRatio == 0 {
+		if err := l.logPSNRs(psnrByRunID[worstEval.evaluation.runID], "worst_evaluation_run"); err != nil {
+			l.err = err
+			return 0.0
+		}
 	}
 	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 0.5)
 	fmt.Println("Got loss", loss)
 	return loss
 }
 
-func (l *lossCalculator) logPSNRs(p psnrs) error {
+func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
 	if err := os.MkdirAll(l.outDir, 0777); err != nil {
 		return err
 	}
-	logFiles, err := filepath.Glob(filepath.Join(l.outDir, "worst_eval_run_for_optimization_run_*.py"))
-	if err != nil {
-		return err
-	}
-	logFile := filepath.Join(l.outDir, fmt.Sprintf("worst_eval_run_for_optimization_run_%v.py", len(logFiles)))
+	logFile := filepath.Join(l.outDir, fmt.Sprintf("%v_for_optimization_run_%v.py", name, l.lossCalculations))
 	xValues := []float64{}
 	evaluatedYValues := []float64{}
 	predictedYValues := []float64{}
@@ -477,7 +480,7 @@ ax.plot(%s, %s, label='Evaluated')
 ax.plot(%s, %s, label='Predicted')
 plt.legend()
 plt.show()
-`, len(logFiles), p[0].evaluation.runID, marshalledXValues, marshalledEvaluatedYValues, marshalledXValues, marshalledPredictedYValues)), 0777)
+`, l.lossCalculations, p[0].evaluation.runID, marshalledXValues, marshalledEvaluatedYValues, marshalledXValues, marshalledPredictedYValues)), 0777)
 }
 
 func main() {
@@ -487,7 +490,9 @@ func main() {
 		os.Exit(1)
 	}
 	lc := &lossCalculator{
-		outDir: *outputDir,
+		outDir:                       *outputDir,
+		evaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
+		lossCalculationOutputRatio:   *lossCalculationOutputRatio,
 	}
 	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
 		log.Fatal(err)
