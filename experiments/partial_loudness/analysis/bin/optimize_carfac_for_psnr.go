@@ -83,8 +83,8 @@ type xValues struct {
 	MaxZeta                  float64 `scale:"0.1,0.5"`
 	ZeroRatio                float64 `scale:"0.5,3.0"`
 	StageGain                float64 `scale:"1.0,4.0"`
-	LoudnessConstant         float64 `scale:"-20.0,40.0"`
-	LoudnessScale            float64 `scale:"1.0,50.0"`
+	LoudnessConstant         float64 `scale:"0.0,80.0"`
+	LoudnessScale            float64 `scale:"0.1,10.0"`
 }
 
 func (x xValues) scaleForField(fieldIdx int) [2]float64 {
