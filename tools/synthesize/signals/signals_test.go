@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"gonum.org/v1/gonum/stat"
 )
 
 const (
@@ -38,6 +39,25 @@ func makeSignal(frequency Hz, gain float64, rate Hz, len int) Float64Slice {
 		result = append(result, gain*math.Sin(2*math.Pi*float64(i)*float64(period)*float64(frequency)))
 	}
 	return result
+}
+
+func dBFS(f Float64Slice) DB {
+	samples := make([]float64, len(f))
+	for idx := range f {
+		samples[idx] = f[idx]
+	}
+	return DB(10 * math.Log10(2*stat.Variance(samples, nil)))
+}
+
+func TestAddLevel(t *testing.T) {
+	signal := makeSignal(1000, 1, 48000, 4800)
+	if l := dBFS(signal); math.Abs(float64(l)-0) > tolerance {
+		t.Errorf("Got level %v, wanted 0", l)
+	}
+	signal.AddLevel(5)
+	if l := dBFS(signal); math.Abs(float64(l)-5) > tolerance {
+		t.Errorf("Got energy %v, wanted 5", l)
+	}
 }
 
 func TestLoadCalibrateFrequencyResponse(t *testing.T) {
