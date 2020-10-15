@@ -24,12 +24,14 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -40,7 +42,6 @@ import (
 	"github.com/google-research/korvapuusti/tools/spectrum"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
 	"gonum.org/v1/gonum/optimize"
-	"gonum.org/v1/gonum/stat"
 )
 
 const (
@@ -49,6 +50,10 @@ const (
 )
 
 var (
+	// Optimize-time outputs.
+
+	outputDir = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
+
 	// Definition of evaluations.
 
 	evaluationJSONGlob = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
@@ -61,8 +66,8 @@ var (
 	maxZetaStart                  = flag.Float64("max_zeta_start", 0.35, "max_zeta starting point.")
 	zeroRatioStart                = flag.Float64("zero_ratio_start", math.Sqrt(2.0), "zero_ratio starting point.")
 	stageGainStart                = flag.Float64("stage_gain_start", 2.0, "stage_gain starting point.")
-	loudnessConstantStart         = flag.Float64("loudness_constant_start", 10.0, "Loudness constant starting point.")
-	loudnessScaleStart            = flag.Float64("loudness_scale_start", 9.0, "Loudness scale starting point.")
+	loudnessConstantStart         = flag.Float64("loudness_constant_start", 40.0, "Loudness constant starting point.")
+	loudnessScaleStart            = flag.Float64("loudness_scale_start", 2, "Loudness scale starting point.")
 )
 
 func normalize(x float64, scale [2]float64) float64 {
@@ -181,18 +186,46 @@ func startWorkerPool() (prioJobs chan func() error, ticketJobs chan func() error
 
 type evaluation struct {
 	signal            signals.Float64Slice
+	evaluationID      string
+	runID             string
 	probeSampler      signals.Noise
 	evaluatedLoudness signals.DB
 }
 
 type psnr struct {
-	evaluation evaluation
-	psnr       float64
+	evaluation        evaluation
+	psnr              float64
+	predictedLoudness signals.DB
+}
+
+type psnrs []psnr
+
+func (p psnrs) Len() int {
+	return len(p)
+}
+
+func (p psnrs) Less(i, j int) bool {
+	iParts := strings.Split(p[i].evaluation.evaluationID, "_")
+	jParts := strings.Split(p[j].evaluation.evaluationID, "_")
+	iTime, err := strconv.ParseInt(iParts[0], 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	jTime, err := strconv.ParseInt(jParts[0], 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return iTime < jTime
+}
+
+func (p psnrs) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
 }
 
 type lossCalculator struct {
 	evaluations []evaluation
 	err         error
+	outDir      string
 }
 
 func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) error {
@@ -248,19 +281,43 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 						if equivalentLoudness.EntryType == "EquivalentLoudnessMeasurement" {
 							eval := evaluation{
 								evaluatedLoudness: signals.DB(equivalentLoudness.Results.ProbeDBSPLForEquivalentLoudness),
+								evaluationID:      equivalentLoudness.Evaluation.ID,
+								runID:             equivalentLoudness.Run.ID,
 							}
 							probeSampler, err := equivalentLoudness.Evaluation.Probe.Sampler()
 							if err != nil {
 								return err
 							}
-							if noise, ok := probeSampler.(*signals.Noise); ok {
-								eval.probeSampler = *noise
-							} else {
+							probeNoise, ok := probeSampler.(*signals.Noise)
+							if !ok {
 								return fmt.Errorf("Probe sampler %+v isn't a Noise sampler?", probeSampler)
 							}
+							eval.probeSampler = *probeNoise
 							combinedSampler, err := equivalentLoudness.Evaluation.Combined.Sampler()
 							if err != nil {
 								return err
+							}
+							superpos, ok := combinedSampler.(signals.Superposition)
+							if !ok {
+								return fmt.Errorf("Combined sampler %+v isn't a Superposition sampler?", combinedSampler)
+							}
+							for _, sampler := range superpos {
+								noise, ok := sampler.(*signals.Noise)
+								if !ok {
+									return fmt.Errorf("Combined part sampler %+v isn't a Noise sampler?", sampler)
+								}
+								if noise.LowerLimit == probeNoise.LowerLimit && noise.UpperLimit == probeNoise.UpperLimit {
+									continue
+								}
+								if noise.LowerLimit <= probeNoise.LowerLimit && noise.UpperLimit >= probeNoise.UpperLimit {
+									return nil
+								}
+								if noise.LowerLimit >= probeNoise.LowerLimit && noise.LowerLimit <= probeNoise.UpperLimit {
+									return nil
+								}
+								if noise.UpperLimit >= probeNoise.LowerLimit && noise.UpperLimit <= probeNoise.UpperLimit {
+									return nil
+								}
 							}
 							noisySampler := signals.Superposition{combinedSampler, &signals.Noise{Color: signals.White, LowerLimit: 20, UpperLimit: 20000, Level: noiseFloor}}
 							eval.signal, err = noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
@@ -297,7 +354,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		ZeroRatio:  &xValues.ZeroRatio,
 		StageGain:  &xValues.StageGain,
 	}
-	fmt.Printf("Evaluating with %+v (%+v)\n", xValues, x)
+	fmt.Printf("Evaluating with %+v\n", xValues)
 
 	carfacs := make(chan carfac.CF, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -306,7 +363,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 
 	bar := pb.StartNew(len(l.evaluations)).Prefix("Evaluating")
 
-	psnrs := make(chan psnr, len(l.evaluations))
+	psnrChan := make(chan psnr, len(l.evaluations))
 	prioJobs, ticketJobs, errorPromise := startWorkerPool()
 	prioJobs <- func() error {
 		for _, evaluationVar := range l.evaluations {
@@ -322,22 +379,23 @@ func (l *lossCalculator) loss(x []float64) float64 {
 				}
 				evalPSNR := psnr{
 					evaluation: evaluation,
-					psnr:       -1,
+					psnr:       -10000,
 				}
 				for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
 					channel := make([]float64, fftWindowSize)
 					for sampleIdx := range channel {
 						channel[sampleIdx] = float64(bm[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
 					}
-					spec := spectrum.ComputeSignalPower(channel, rate)
-					energy := stat.Variance(channel, nil)
+					spec := spectrum.Compute(channel, rate)
 					for binIdx := int(math.Floor(float64(evaluation.probeSampler.LowerLimit / spec.BinWidth))); binIdx <= int(math.Ceil(float64(evaluation.probeSampler.UpperLimit/spec.BinWidth))); binIdx++ {
-						if snr := 10*math.Log10(spec.SignalPower[binIdx]) - 10*math.Log10(energy); snr > evalPSNR.psnr {
+						snr := spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
+						if snr > evalPSNR.psnr {
 							evalPSNR.psnr = snr
 						}
 					}
 				}
-				psnrs <- evalPSNR
+				evalPSNR.predictedLoudness = signals.DB(xValues.LoudnessConstant + xValues.LoudnessScale*evalPSNR.psnr)
+				psnrChan <- evalPSNR
 				bar.Increment()
 				return nil
 			}
@@ -350,17 +408,76 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		l.err = err
 		return 0.0
 	}
-	close(psnrs)
+	close(psnrChan)
 	bar.Finish()
 	sumOfSquares := 0.0
-	for evalPSNR := range psnrs {
-		predictedLoudness := signals.DB(xValues.LoudnessConstant + xValues.LoudnessScale*evalPSNR.psnr)
-		predictedLoudnessError := predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
-		sumOfSquares += float64(predictedLoudnessError * predictedLoudnessError)
+	var worstEval *psnr
+	worstSquare := 0.0
+	psnrByRunID := map[string]psnrs{}
+	for evalPSNR := range psnrChan {
+		psnrByRunID[evalPSNR.evaluation.runID] = append(psnrByRunID[evalPSNR.evaluation.runID], evalPSNR)
+		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
+		square := float64(predictedLoudnessError * predictedLoudnessError)
+		if square > worstSquare {
+			worstSquare = square
+			worstEval = &evalPSNR
+		}
+		sumOfSquares += square
+	}
+	if err := l.logPSNRs(psnrByRunID[worstEval.evaluation.runID]); err != nil {
+		l.err = err
+		return 0.0
 	}
 	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 0.5)
 	fmt.Println("Got loss", loss)
 	return loss
+}
+
+func (l *lossCalculator) logPSNRs(p psnrs) error {
+	if err := os.MkdirAll(l.outDir, 0777); err != nil {
+		return err
+	}
+	logFiles, err := filepath.Glob(filepath.Join(l.outDir, "worst_eval_run_for_optimization_run_*.py"))
+	if err != nil {
+		return err
+	}
+	logFile := filepath.Join(l.outDir, fmt.Sprintf("worst_eval_run_for_optimization_run_%v.py", len(logFiles)))
+	xValues := []float64{}
+	evaluatedYValues := []float64{}
+	predictedYValues := []float64{}
+	sort.Sort(p)
+	for idx := range p {
+		xValues = append(xValues, float64(idx))
+		evaluatedYValues = append(evaluatedYValues, float64(p[idx].evaluation.evaluatedLoudness))
+		predictedYValues = append(predictedYValues, float64(p[idx].predictedLoudness))
+	}
+	marshalledXValues, err := json.Marshal(xValues)
+	if err != nil {
+		return err
+	}
+	marshalledEvaluatedYValues, err := json.Marshal(evaluatedYValues)
+	if err != nil {
+		return err
+	}
+	marshalledPredictedYValues, err := json.Marshal(predictedYValues)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(logFile, []byte(fmt.Sprintf(`#!/usr/bin/python3
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig = plt.figure(figsize=(8,4))
+ax = fig.add_subplot()
+ax.set_title('Optimization run %v/Evaluation run %v')
+ax.set_xlabel('Evaluation index')
+ax.set_ylabel('Loudness')
+ax.plot(%s, %s, label='Evaluated')
+ax.plot(%s, %s, label='Predicted')
+plt.legend()
+plt.show()
+`, len(logFiles), p[0].evaluation.runID, marshalledXValues, marshalledEvaluatedYValues, marshalledXValues, marshalledPredictedYValues)), 0777)
 }
 
 func main() {
@@ -369,7 +486,9 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	lc := &lossCalculator{}
+	lc := &lossCalculator{
+		outDir: *outputDir,
+	}
 	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
 		log.Fatal(err)
 	}
