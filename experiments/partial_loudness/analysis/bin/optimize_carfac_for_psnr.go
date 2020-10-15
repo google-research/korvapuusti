@@ -28,7 +28,10 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/cheggaaa/pb"
@@ -46,10 +49,80 @@ const (
 )
 
 var (
-	evaluationJSONGlob           = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
-	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100, "dB SPL calibrated to a full scale sine in the evaluations.")
-	noiseFloor                   = flag.Float64("noise_floor", 35, "dB SPL of noise where evaluations were made.")
+	// Definition of evaluations.
+
+	evaluationJSONGlob = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
+	noiseFloor         = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
+
+	// Start values for optimization.
+
+	evaluationFullScaleSineLevel  = flag.Float64("evaluation_full_scale_sine_level", 100, "dB SPL calibrated to a full scale sine in the evaluations.")
+	carfacFullScaleSineLevelStart = flag.Float64("carfac_full_scale_sine_level_start", 100, "carfac_full_scale_sine_level starting point.")
+	maxZetaStart                  = flag.Float64("max_zeta_start", 0.35, "max_zeta starting point.")
+	zeroRatioStart                = flag.Float64("zero_ratio_start", math.Sqrt(2.0), "zero_ratio starting point.")
+	stageGainStart                = flag.Float64("stage_gain_start", 2.0, "stage_gain starting point.")
+	loudnessConstantStart         = flag.Float64("loudness_constant_start", 10.0, "Loudness constant starting point.")
+	loudnessScaleStart            = flag.Float64("loudness_scale_start", 9.0, "Loudness scale starting point.")
 )
+
+func normalize(x float64, scale [2]float64) float64 {
+	return (x - scale[0]) / (scale[1] - scale[0])
+}
+
+func denormalize(x float64, scale [2]float64) float64 {
+	return x*(scale[1]-scale[0]) + scale[0]
+}
+
+type xValues struct {
+	CarfacFullScaleSineLevel float64 `scale:"70.0,130.0"`
+	MaxZeta                  float64 `scale:"0.1,0.5"`
+	ZeroRatio                float64 `scale:"0.5,3.0"`
+	StageGain                float64 `scale:"1.0,4.0"`
+	LoudnessConstant         float64 `scale:"-20.0,40.0"`
+	LoudnessScale            float64 `scale:"1.0,50.0"`
+}
+
+func (x xValues) scaleForField(fieldIdx int) [2]float64 {
+	parts := strings.Split(reflect.TypeOf(x).Field(fieldIdx).Tag.Get("scale"), ",")
+	min, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		panic(err)
+	}
+	max, err := strconv.ParseFloat(parts[1], 64)
+	if err != nil {
+		panic(err)
+	}
+	return [2]float64{min, max}
+}
+
+func initXValues() xValues {
+	return xValues{
+		CarfacFullScaleSineLevel: *carfacFullScaleSineLevelStart,
+		MaxZeta:                  *maxZetaStart,
+		ZeroRatio:                *zeroRatioStart,
+		StageGain:                *stageGainStart,
+		LoudnessConstant:         *loudnessConstantStart,
+		LoudnessScale:            *loudnessScaleStart,
+	}
+}
+
+func (x xValues) toNormalizedFloat64Slice() []float64 {
+	val := reflect.ValueOf(x)
+	result := make([]float64, val.NumField())
+	for idx := range result {
+		result[idx] = normalize(val.Field(idx).Float(), x.scaleForField(idx))
+	}
+	return result
+}
+
+func xValuesFromNormalizedFloat64Slice(x []float64) xValues {
+	result := &xValues{}
+	val := reflect.ValueOf(result)
+	for idx := range x {
+		val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(x[idx], result.scaleForField(idx))))
+	}
+	return *result
+}
 
 type multiErr []error
 
@@ -107,7 +180,7 @@ func startWorkerPool() (prioJobs chan func() error, ticketJobs chan func() error
 }
 
 type evaluation struct {
-	signal            []float32
+	signal            signals.Float64Slice
 	probeSampler      signals.Noise
 	evaluatedLoudness signals.DB
 }
@@ -190,13 +263,9 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 								return err
 							}
 							noisySampler := signals.Superposition{combinedSampler, &signals.Noise{Color: signals.White, LowerLimit: 20, UpperLimit: 20000, Level: noiseFloor}}
-							signal, err := noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
+							eval.signal, err = noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
 							if err != nil {
 								return err
-							}
-							eval.signal = make([]float32, len(signal))
-							for idx := range signal {
-								eval.signal[idx] = float32(signal[idx])
 							}
 							evaluationChannel <- eval
 						}
@@ -221,18 +290,14 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 }
 
 func (l *lossCalculator) loss(x []float64) float64 {
-	mz := x[0]
-	zr := x[1]
-	sg := x[2]
+	xValues := xValuesFromNormalizedFloat64Slice(x)
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
-		MaxZeta:    &mz,
-		ZeroRatio:  &zr,
-		StageGain:  &sg,
+		MaxZeta:    &xValues.MaxZeta,
+		ZeroRatio:  &xValues.ZeroRatio,
+		StageGain:  &xValues.StageGain,
 	}
-	loudnessConstant := x[3]
-	loudnessScale := x[4]
-	fmt.Printf("Evaluating with x %+v\n", x)
+	fmt.Printf("Evaluating with %+v (%+v)\n", xValues, x)
 
 	carfacs := make(chan carfac.CF, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -249,7 +314,8 @@ func (l *lossCalculator) loss(x []float64) float64 {
 			ticketJobs <- func() error {
 				cf := <-carfacs
 				defer func() { carfacs <- cf }()
-				cf.Run(evaluation.signal[len(evaluation.signal)-cf.NumSamples():])
+				scaledSignal := evaluation.signal.ToFloat32AddLevel(signals.DB(*evaluationFullScaleSineLevel - xValues.CarfacFullScaleSineLevel))
+				cf.Run(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
 				bm, err := cf.BM()
 				if err != nil {
 					return err
@@ -288,7 +354,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	bar.Finish()
 	sumOfSquares := 0.0
 	for evalPSNR := range psnrs {
-		predictedLoudness := signals.DB(loudnessConstant + loudnessScale*evalPSNR.psnr)
+		predictedLoudness := signals.DB(xValues.LoudnessConstant + xValues.LoudnessScale*evalPSNR.psnr)
 		predictedLoudnessError := predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
 		sumOfSquares += float64(predictedLoudnessError * predictedLoudnessError)
 	}
@@ -313,7 +379,7 @@ func main() {
 			return optimize.NotTerminated, lc.err
 		},
 	}
-	initX := []float64{0.35, math.Sqrt(2.0), 2.0, 10.0, 9.0}
+	initX := initXValues().toNormalizedFloat64Slice()
 	res, err := optimize.Minimize(problem, initX, nil, nil)
 	fmt.Println(res, err)
 
