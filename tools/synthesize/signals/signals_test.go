@@ -41,11 +41,26 @@ func makeSignal(frequency Hz, gain float64, rate Hz, len int) Float64Slice {
 	return result
 }
 
+func TestToFloat32AddLevel(t *testing.T) {
+	signal := makeSignal(1000, 1, 48000, 4800)
+	if l := dBFS(signal); math.Abs(float64(l)-0) > tolerance {
+		t.Errorf("Got level %v, wanted 0", l)
+	}
+	f32signal := signal.ToFloat32AddLevel(10)
+	for idx := range f32signal {
+		signal[idx] = float64(f32signal[idx])
+	}
+	if l := dBFS(signal); math.Abs(float64(l)-10) > tolerance {
+		t.Errorf("Got level %v, wanted 10", l)
+	}
+}
+
 func dBFS(f Float64Slice) DB {
 	samples := make([]float64, len(f))
 	for idx := range f {
 		samples[idx] = f[idx]
 	}
+	// The 2 is to shift the energy to full scale sine scale.
 	return DB(10 * math.Log10(2*stat.Variance(samples, nil)))
 }
 
@@ -56,7 +71,7 @@ func TestAddLevel(t *testing.T) {
 	}
 	signal.AddLevel(5)
 	if l := dBFS(signal); math.Abs(float64(l)-5) > tolerance {
-		t.Errorf("Got energy %v, wanted 5", l)
+		t.Errorf("Got level %v, wanted 5", l)
 	}
 }
 

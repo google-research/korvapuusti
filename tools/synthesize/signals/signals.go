@@ -786,8 +786,18 @@ func (f Float64Slice) SetDBFS(d DB) {
 
 // AddLevel adds a number of Decibel to the signal.
 func (f Float64Slice) AddLevel(d DB) {
-	scale := math.Pow(10, float64(d)/20)
+	scale := math.Pow(10, float64(d)/20.0)
 	for idx := range f {
 		f[idx] *= scale
 	}
+}
+
+// ToFloat32AddLevel returns a signal of float32's with the provided level added.
+func (f Float64Slice) ToFloat32AddLevel(d DB) []float32 {
+	scale := math.Pow(10, float64(d)/20.0)
+	f32slice := make([]float32, len(f))
+	for idx := range f {
+		f32slice[idx] = float32(scale) * float32(f[idx])
+	}
+	return f32slice
 }
