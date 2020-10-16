@@ -50,6 +50,8 @@ const (
 )
 
 var (
+	sqrt2 = math.Sqrt(2.0)
+
 	// Optimize-time outputs.
 
 	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
@@ -65,12 +67,26 @@ var (
 
 	evaluationFullScaleSineLevel  = flag.Float64("evaluation_full_scale_sine_level", 100, "dB SPL calibrated to a full scale sine in the evaluations.")
 	carfacFullScaleSineLevelStart = flag.Float64("carfac_full_scale_sine_level_start", 100, "carfac_full_scale_sine_level starting point.")
-	maxZetaStart                  = flag.Float64("max_zeta_start", 0.35, "max_zeta starting point.")
-	zeroRatioStart                = flag.Float64("zero_ratio_start", math.Sqrt(2.0), "zero_ratio starting point.")
-	stageGainStart                = flag.Float64("stage_gain_start", 2.0, "stage_gain starting point.")
-	vOffsetStart                  = flag.Float64("v_offset_start", 0.04, "v_offset starting point.")
-	loudnessConstantStart         = flag.Float64("loudness_constant_start", 40.0, "Loudness constant starting point.")
-	loudnessScaleStart            = flag.Float64("loudness_scale_start", 2, "Loudness scale starting point.")
+
+	velocityScaleStart           = flag.Float64("velocity_scale_start", 0.1, "velocity_scale starting point.")
+	vOffsetStart                 = flag.Float64("v_offset_start", 0.04, "v_offset starting point.")
+	minZetaStart                 = flag.Float64("min_zeta_start", 0.1, "min_zeta starting point.")
+	maxZetaStart                 = flag.Float64("max_zeta_start", 0.35, "max_zeta starting point.")
+	zeroRatioStart               = flag.Float64("zero_ratio_start", math.Sqrt(2.0), "zero_ratio starting point.")
+	highFDampingCompressionStart = flag.Float64("high_f_damping_compression_start", 0.5, "high_f_damping_compression_starting point.")
+
+	stageGainStart   = flag.Float64("stage_gain_start", 2.0, "stage_gain starting point.")
+	agc1Scales0Start = flag.Float64("agc1_scales_0_start", 1.0, "agc1_scales[0] starting point.")
+	agc1Scales1Start = flag.Float64("agc1_scales_1_start", 1.0*sqrt2, "agc1_scales[1] starting point.")
+	agc1Scales2Start = flag.Float64("agc1_scales_2_start", 1.0*sqrt2*sqrt2, "agc1_scales[2] starting point.")
+	agc1Scales3Start = flag.Float64("agc1_scales_3_start", 1.0*sqrt2*sqrt2*sqrt2, "agc1_scales[3] starting point.")
+	agc2Scales0Start = flag.Float64("agc2_scales_0_start", 1.65, "agc1_scales[0] starting point.")
+	agc2Scales1Start = flag.Float64("agc2_scales_1_start", 1.65*sqrt2, "agc2_scales[1] starting point.")
+	agc2Scales2Start = flag.Float64("agc2_scales_2_start", 1.65*sqrt2*sqrt2, "agc2_scales[2] starting point.")
+	agc2Scales3Start = flag.Float64("agc2_scales_3_start", 1.65*sqrt2*sqrt2*sqrt2, "agc2_scales[3] starting point.")
+
+	loudnessConstantStart = flag.Float64("loudness_constant_start", 40.0, "Loudness constant starting point.")
+	loudnessScaleStart    = flag.Float64("loudness_scale_start", 2, "Loudness scale starting point.")
 )
 
 func normalize(x float64, scale [2]float64) float64 {
@@ -83,12 +99,26 @@ func denormalize(x float64, scale [2]float64) float64 {
 
 type xValues struct {
 	CarfacFullScaleSineLevel float64 `scale:"70.0,130.0"`
-	MaxZeta                  float64 `scale:"0.1,0.5"`
-	ZeroRatio                float64 `scale:"0.5,3.0"`
-	StageGain                float64 `scale:"1.0,4.0"`
-	VOffset                  float64 `scale:"0.01,0.1"`
-	LoudnessConstant         float64 `scale:"0.0,80.0"`
-	LoudnessScale            float64 `scale:"0.1,10.0"`
+
+	VelocityScale           float64 `scale:"0.02,0.5"`
+	VOffset                 float64 `scale:"0.0,0.5"`
+	MinZeta                 float64 `scale:"0.01,0.05"`
+	MaxZeta                 float64 `scale:"0.1,0.5"`
+	ZeroRatio               float64 `scale:"0.5,3.0"`
+	HighFDampingCompression float64 `scale:"0.5,3.0"`
+
+	StageGain   float64 `scale:"1.0,4.0"`
+	AGC1Scales0 float64 `scale:"0.5,2.0"`
+	AGC1Scales1 float64 `scale:"1.0,4.0"`
+	AGC1Scales2 float64 `scale:"2.0,8.0"`
+	AGC1Scales3 float64 `scale:"4.0,16.0"`
+	AGC2Scales0 float64 `scale:"1.0,3.0"`
+	AGC2Scales1 float64 `scale:"2.0,6.0"`
+	AGC2Scales2 float64 `scale:"4.0,12.0"`
+	AGC2Scales3 float64 `scale:"8.0,24.0"`
+
+	LoudnessConstant float64 `scale:"0.0,80.0"`
+	LoudnessScale    float64 `scale:"0.1,10.0"`
 }
 
 func (x xValues) scaleForField(fieldIdx int) [2]float64 {
@@ -107,12 +137,26 @@ func (x xValues) scaleForField(fieldIdx int) [2]float64 {
 func initXValues() xValues {
 	return xValues{
 		CarfacFullScaleSineLevel: *carfacFullScaleSineLevelStart,
-		MaxZeta:                  *maxZetaStart,
-		ZeroRatio:                *zeroRatioStart,
-		StageGain:                *stageGainStart,
-		VOffset:                  *vOffsetStart,
-		LoudnessConstant:         *loudnessConstantStart,
-		LoudnessScale:            *loudnessScaleStart,
+
+		VelocityScale:           *velocityScaleStart,
+		VOffset:                 *vOffsetStart,
+		MinZeta:                 *minZetaStart,
+		MaxZeta:                 *maxZetaStart,
+		ZeroRatio:               *zeroRatioStart,
+		HighFDampingCompression: *highFDampingCompressionStart,
+
+		StageGain:   *stageGainStart,
+		AGC1Scales0: *agc1Scales0Start,
+		AGC1Scales1: *agc1Scales1Start,
+		AGC1Scales2: *agc1Scales2Start,
+		AGC1Scales3: *agc1Scales3Start,
+		AGC2Scales0: *agc2Scales0Start,
+		AGC2Scales1: *agc2Scales1Start,
+		AGC2Scales2: *agc2Scales2Start,
+		AGC2Scales3: *agc2Scales3Start,
+
+		LoudnessConstant: *loudnessConstantStart,
+		LoudnessScale:    *loudnessScaleStart,
 	}
 }
 
