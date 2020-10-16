@@ -499,6 +499,7 @@ func main() {
 		outDir:                       *outputDir,
 		evaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 		lossCalculationOutputRatio:   *lossCalculationOutputRatio,
+		pNorm:                        *pNorm,
 	}
 	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
 		log.Fatal(err)
