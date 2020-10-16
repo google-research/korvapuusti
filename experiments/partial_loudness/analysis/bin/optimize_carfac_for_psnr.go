@@ -422,21 +422,26 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	close(psnrChan)
 	bar.Finish()
 	sumOfSquares := 0.0
-	var worstEval *psnr
-	worstSquare := 0.0
 	psnrByRunID := map[string]psnrs{}
+	lossByRunID := map[string]float64{}
 	for evalPSNR := range psnrChan {
 		psnrByRunID[evalPSNR.evaluation.runID] = append(psnrByRunID[evalPSNR.evaluation.runID], evalPSNR)
 		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
 		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.pNorm)
-		if square > worstSquare {
-			worstSquare = square
-			worstEval = &evalPSNR
-		}
 		sumOfSquares += square
+		lossByRunID[evalPSNR.evaluation.runID] += square
+	}
+	worstRun := psnrs{}
+	worstAvgLoss := 0.0
+	for runID := range lossByRunID {
+		lossByRunID[runID] = math.Pow(lossByRunID[runID]/float64(len(psnrByRunID[runID])), 1.0/l.pNorm)
+		if lossByRunID[runID] > worstAvgLoss {
+			worstAvgLoss = lossByRunID[runID]
+			worstRun = psnrByRunID[runID]
+		}
 	}
 	if l.lossCalculations%l.lossCalculationOutputRatio == 0 {
-		if err := l.logPSNRs(psnrByRunID[worstEval.evaluation.runID], "worst_evaluation_run"); err != nil {
+		if err := l.logPSNRs(worstRun, "worst_evaluation_run"); err != nil {
 			l.err = err
 			return 0.0
 		}
