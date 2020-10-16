@@ -5,25 +5,48 @@
 
 #include "../carfac/cpp/carfac.h"
 
-carfac create_carfac(int sample_rate, float *v_offset, float *erb_per_step, float *max_zeta, float *zero_ratio, float *stage_gain) {
+carfac create_carfac(
+		int sample_rate,
+		
+		float *velocity_scale,
+		float *v_offset,
+		float *min_zeta,
+		float *max_zeta,
+		float *zero_ratio,
+		float *high_f_damping_compression,
+		float *erb_per_step,
+		
+		float *stage_gain,
+		float *agc1_scales_0,
+		float *agc1_scales_1,
+		float *agc1_scales_2,
+		float *agc1_scales_3,
+		float *agc2_scales_0,
+		float *agc2_scales_1,
+		float *agc2_scales_2,
+		float *agc2_scales_3) {
   CARParams car_params;
   IHCParams ihc_params;
   AGCParams agc_params;
-  if (v_offset != NULL) {
-	  car_params.v_offset = *v_offset;
-  }
-  if (erb_per_step != NULL) {
-	  car_params.erb_per_step = *erb_per_step;
-  }
-  if (max_zeta != NULL) {
-	  car_params.max_zeta = *max_zeta;
-  }
-  if (zero_ratio != NULL) {
-	  car_params.zero_ratio = *zero_ratio;
-  }
-  if (stage_gain != NULL) {
-	  agc_params.agc_stage_gain = *stage_gain;
-  }
+
+  if (velocity_scale != NULL) car_params.velocity_scale = *velocity_scale;
+  if (v_offset != NULL) car_params.v_offset = *v_offset;
+  if (min_zeta != NULL) car_params.min_zeta = *min_zeta;
+  if (max_zeta != NULL) car_params.max_zeta = *max_zeta;
+  if (zero_ratio != NULL) car_params.zero_ratio = *zero_ratio;
+  if (high_f_damping_compression != NULL) car_params.high_f_damping_compression = *high_f_damping_compression;
+  if (erb_per_step != NULL) car_params.erb_per_step = *erb_per_step;
+
+  if (stage_gain != NULL) agc_params.agc_stage_gain = *stage_gain;
+  if (agc1_scales_0 != NULL) agc_params.agc1_scales[0] = *agc1_scales_0;
+  if (agc1_scales_1 != NULL) agc_params.agc1_scales[1] = *agc1_scales_1;
+  if (agc1_scales_2 != NULL) agc_params.agc1_scales[2] = *agc1_scales_2;
+  if (agc1_scales_3 != NULL) agc_params.agc1_scales[3] = *agc1_scales_3;
+  if (agc2_scales_0 != NULL) agc_params.agc2_scales[0] = *agc2_scales_0;
+  if (agc2_scales_1 != NULL) agc_params.agc2_scales[1] = *agc2_scales_1;
+  if (agc2_scales_2 != NULL) agc_params.agc2_scales[2] = *agc2_scales_2;
+  if (agc2_scales_3 != NULL) agc_params.agc2_scales[3] = *agc2_scales_3;
+
   auto c = new CARFAC(1, static_cast<float>(sample_rate), car_params,
                       ihc_params, agc_params);
   return carfac{

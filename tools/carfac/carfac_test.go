@@ -122,6 +122,34 @@ func TestCARFAC(t *testing.T) {
 				return cf.BM()
 			},
 		},
+		{
+			desc: "VelocityScaleDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				point2 := 0.2
+				cf := New(CARFACParams{SampleRate: 48000, VelocityScale: &point2})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "HighFDampingCompressionDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				point6 := 0.6
+				cf := New(CARFACParams{SampleRate: 48000, HighFDampingCompression: &point6})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			res1, err := tc.f1()

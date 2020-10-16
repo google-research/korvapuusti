@@ -95,47 +95,65 @@ func (c *carfac) Poles() []float32 {
 
 type CARFACParams struct {
 	SampleRate int
-	VOffset    *float64
-	ERBPerStep *float64
-	MaxZeta    *float64
-	ZeroRatio  *float64
+
+	VelocityScale           *float64
+	VOffset                 *float64
+	MinZeta                 *float64
+	MaxZeta                 *float64
+	ZeroRatio               *float64
+	HighFDampingCompression *float64
+	ERBPerStep              *float64
+
 	StageGain  *float64
+	AGC1Scales []float64
+	AGC2Scales []float64
 }
 
-func New(carfacParams CARFACParams) CF {
-	var vOffset *C.float
-	if carfacParams.VOffset != nil {
-		cVOffset := C.float(*carfacParams.VOffset)
-		vOffset = &cVOffset
+func (c CARFACParams) cFloat(f *float64) *C.float {
+	if f == nil {
+		return nil
 	}
-	var erbPerStep *C.float
-	if carfacParams.ERBPerStep != nil {
-		cERBPerStep := C.float(*carfacParams.ERBPerStep)
-		erbPerStep = &cERBPerStep
+	cFloat := C.float(*f)
+	return &cFloat
+}
+
+func (c CARFACParams) cFloatFromSlice(slice []float64, idx int) *C.float {
+	if slice == nil {
+		return nil
 	}
-	var maxZeta *C.float
-	if carfacParams.MaxZeta != nil {
-		cMaxZeta := C.float(*carfacParams.MaxZeta)
-		maxZeta = &cMaxZeta
-	}
-	var zeroRatio *C.float
-	if carfacParams.ZeroRatio != nil {
-		cZeroRatio := C.float(*carfacParams.ZeroRatio)
-		zeroRatio = &cZeroRatio
-	}
-	var stageGain *C.float
-	if carfacParams.StageGain != nil {
-		cStageGain := C.float(*carfacParams.StageGain)
-		stageGain = &cStageGain
-	}
-	cf := C.create_carfac(C.int(carfacParams.SampleRate), vOffset, erbPerStep, maxZeta, zeroRatio, stageGain)
+	cFloat := C.float(slice[idx])
+	return &cFloat
+}
+
+func New(cfp CARFACParams) CF {
+	cf := C.create_carfac(
+		C.int(cfp.SampleRate),
+
+		cfp.cFloat(cfp.VelocityScale),
+		cfp.cFloat(cfp.VOffset),
+		cfp.cFloat(cfp.MinZeta),
+		cfp.cFloat(cfp.MaxZeta),
+		cfp.cFloat(cfp.ZeroRatio),
+		cfp.cFloat(cfp.HighFDampingCompression),
+		cfp.cFloat(cfp.ERBPerStep),
+
+		cfp.cFloat(cfp.StageGain),
+		cfp.cFloatFromSlice(cfp.AGC1Scales, 0),
+		cfp.cFloatFromSlice(cfp.AGC1Scales, 1),
+		cfp.cFloatFromSlice(cfp.AGC1Scales, 2),
+		cfp.cFloatFromSlice(cfp.AGC1Scales, 3),
+		cfp.cFloatFromSlice(cfp.AGC2Scales, 0),
+		cfp.cFloatFromSlice(cfp.AGC2Scales, 1),
+		cfp.cFloatFromSlice(cfp.AGC2Scales, 2),
+		cfp.cFloatFromSlice(cfp.AGC2Scales, 3),
+	)
 	runtime.SetFinalizer(&cf, func(i interface{}) {
 		C.delete_carfac(&cf)
 	})
 	return &carfac{
 		numChannels: int(cf.num_channels),
 		numSamples:  int(cf.num_samples),
-		sampleRate:  carfacParams.SampleRate,
+		sampleRate:  cfp.SampleRate,
 		poles:       floatAryToFloats(cf.poles),
 		cf:          &cf,
 	}

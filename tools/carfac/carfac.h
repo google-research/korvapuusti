@@ -26,7 +26,26 @@ typedef struct carfac {
   const_float_ary poles;
 } carfac;
 
-carfac create_carfac(int sample_rate, float *v_offset, float *erb_per_step, float *max_zeta, float *zero_ratio, float *stage_gain);
+carfac create_carfac(
+		int sample_rate,
+		
+		float *velocity_scale,
+		float *v_offset,
+		float *min_zeta,
+		float *max_zeta,
+		float *zero_ratio,
+		float *high_f_damping_compression,
+		float *erb_per_step,
+		
+		float *stage_gain,
+		float *agc1_scales_0,
+		float *agc1_scales_1,
+		float *agc1_scales_2,
+		float *agc1_scales_3,
+		float *agc2_scales_0,
+		float *agc2_scales_1,
+		float *agc2_scales_2,
+		float *agc2_scales_3);
 
 void delete_carfac(carfac *cf);
 
