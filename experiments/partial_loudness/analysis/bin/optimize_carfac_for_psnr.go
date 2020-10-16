@@ -59,6 +59,7 @@ var (
 
 	evaluationJSONGlob = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
 	noiseFloor         = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
+	pNorm              = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
 
 	// Start values for optimization.
 
@@ -67,6 +68,7 @@ var (
 	maxZetaStart                  = flag.Float64("max_zeta_start", 0.35, "max_zeta starting point.")
 	zeroRatioStart                = flag.Float64("zero_ratio_start", math.Sqrt(2.0), "zero_ratio starting point.")
 	stageGainStart                = flag.Float64("stage_gain_start", 2.0, "stage_gain starting point.")
+	vOffsetStart                  = flag.Float64("v_offset_start", 0.04, "v_offset starting point.")
 	loudnessConstantStart         = flag.Float64("loudness_constant_start", 40.0, "Loudness constant starting point.")
 	loudnessScaleStart            = flag.Float64("loudness_scale_start", 2, "Loudness scale starting point.")
 )
@@ -84,6 +86,7 @@ type xValues struct {
 	MaxZeta                  float64 `scale:"0.1,0.5"`
 	ZeroRatio                float64 `scale:"0.5,3.0"`
 	StageGain                float64 `scale:"1.0,4.0"`
+	VOffset                  float64 `scale:"0.01,0.1"`
 	LoudnessConstant         float64 `scale:"0.0,80.0"`
 	LoudnessScale            float64 `scale:"0.1,10.0"`
 }
@@ -107,6 +110,7 @@ func initXValues() xValues {
 		MaxZeta:                  *maxZetaStart,
 		ZeroRatio:                *zeroRatioStart,
 		StageGain:                *stageGainStart,
+		VOffset:                  *vOffsetStart,
 		LoudnessConstant:         *loudnessConstantStart,
 		LoudnessScale:            *loudnessScaleStart,
 	}
@@ -229,6 +233,7 @@ type lossCalculator struct {
 	outDir                       string
 	lossCalculations             int
 	lossCalculationOutputRatio   int
+	pNorm                        float64
 	evaluationFullScaleSineLevel signals.DB
 }
 
@@ -358,6 +363,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		MaxZeta:    &xValues.MaxZeta,
 		ZeroRatio:  &xValues.ZeroRatio,
 		StageGain:  &xValues.StageGain,
+		VOffset:    &xValues.VOffset,
 	}
 	fmt.Printf("Evaluating with %+v\n", xValues)
 
@@ -422,7 +428,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	for evalPSNR := range psnrChan {
 		psnrByRunID[evalPSNR.evaluation.runID] = append(psnrByRunID[evalPSNR.evaluation.runID], evalPSNR)
 		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
-		square := float64(predictedLoudnessError * predictedLoudnessError)
+		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.pNorm)
 		if square > worstSquare {
 			worstSquare = square
 			worstEval = &evalPSNR
@@ -435,7 +441,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 			return 0.0
 		}
 	}
-	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 0.5)
+	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.pNorm)
 	fmt.Println("Got loss", loss)
 	return loss
 }
