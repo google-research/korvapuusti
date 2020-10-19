@@ -426,10 +426,17 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	l.lossCalculations++
 	xValues := xValuesFromNormalizedFloat64Slice(x)
 	carfacParams := carfac.CARFACParams{
-		SampleRate: rate,
-		MaxZeta:    &xValues.MaxZeta,
-		ZeroRatio:  &xValues.ZeroRatio,
-		StageGain:  &xValues.StageGain,
+		SampleRate:              rate,
+		VelocityScale:           &xValues.VelocityScale,
+		VOffset:                 &xValues.VOffset,
+		MinZeta:                 &xValues.MinZeta,
+		MaxZeta:                 &xValues.MaxZeta,
+		ZeroRatio:               &xValues.ZeroRatio,
+		HighFDampingCompression: &xValues.HighFDampingCompression,
+		DhDgRatio:               &xValues.DhDgRatio,
+		StageGain:               &xValues.StageGain,
+		AGC1Scales:              []float64{xValues.AGC1Scales0, xValues.AGC1Scales1, xValues.AGC1Scales2, xValues.AGC1Scales3},
+		AGC2Scales:              []float64{xValues.AGC2Scales0, xValues.AGC2Scales1, xValues.AGC2Scales2, xValues.AGC2Scales3},
 	}
 	fmt.Printf("Evaluating with %+v\n", xValues.optimizedFields())
 
