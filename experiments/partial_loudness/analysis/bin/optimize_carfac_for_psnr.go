@@ -74,6 +74,7 @@ var (
 	maxZetaStart                 = flag.Float64("max_zeta_start", 0.35, "max_zeta starting point.")
 	zeroRatioStart               = flag.Float64("zero_ratio_start", math.Sqrt(2.0), "zero_ratio starting point.")
 	highFDampingCompressionStart = flag.Float64("high_f_damping_compression_start", 0.5, "high_f_damping_compression_starting point.")
+	dHdGRatioStart               = flag.Float64("dh_dg_ratio_start", 0.0, "dh_dg_ratio starting point.")
 
 	stageGainStart   = flag.Float64("stage_gain_start", 2.0, "stage_gain starting point.")
 	agc1Scales0Start = flag.Float64("agc1_scales_0_start", 1.0, "agc1_scales[0] starting point.")
@@ -106,6 +107,7 @@ type xValues struct {
 	MaxZeta                 float64 `scale:"0.1,0.5"`
 	ZeroRatio               float64 `scale:"0.5,3.0"`
 	HighFDampingCompression float64 `scale:"0.5,3.0"`
+	DhDgRatio               float64 `scale:"-1.0,1.0"`
 
 	StageGain   float64 `scale:"1.0,4.0"`
 	AGC1Scales0 float64 `scale:"0.5,2.0"`
@@ -144,6 +146,7 @@ func initXValues() xValues {
 		MaxZeta:                 *maxZetaStart,
 		ZeroRatio:               *zeroRatioStart,
 		HighFDampingCompression: *highFDampingCompressionStart,
+		DhDgRatio:               *dHdGRatioStart,
 
 		StageGain:   *stageGainStart,
 		AGC1Scales0: *agc1Scales0Start,
@@ -408,6 +411,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		ZeroRatio:  &xValues.ZeroRatio,
 		StageGain:  &xValues.StageGain,
 		VOffset:    &xValues.VOffset,
+		DhDgRatio:  &xValues.DhDgRatio,
 	}
 	fmt.Printf("Evaluating with %+v\n", xValues)
 
