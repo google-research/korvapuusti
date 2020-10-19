@@ -101,26 +101,38 @@ func denormalize(x float64, scale [2]float64) float64 {
 type xValues struct {
 	CarfacFullScaleSineLevel float64 `scale:"70.0,130.0"`
 
-	VelocityScale           float64 `scale:"0.02,0.5"`
-	VOffset                 float64 `scale:"0.0,0.5"`
-	MinZeta                 float64 `scale:"0.01,0.05"`
+	VelocityScale           float64 `scale:"0.02,0.5" disabled:"true"`
+	VOffset                 float64 `scale:"0.0,0.5" disabled:"true"`
+	MinZeta                 float64 `scale:"0.01,0.05" disabled:"true"`
 	MaxZeta                 float64 `scale:"0.1,0.5"`
 	ZeroRatio               float64 `scale:"0.5,3.0"`
-	HighFDampingCompression float64 `scale:"0.5,3.0"`
-	DhDgRatio               float64 `scale:"-1.0,1.0"`
+	HighFDampingCompression float64 `scale:"0.5,3.0" disabled:"true"`
+	DhDgRatio               float64 `scale:"-1.0,1.0" disabled:"true"`
 
 	StageGain   float64 `scale:"1.0,4.0"`
-	AGC1Scales0 float64 `scale:"0.5,2.0"`
-	AGC1Scales1 float64 `scale:"1.0,4.0"`
-	AGC1Scales2 float64 `scale:"2.0,8.0"`
-	AGC1Scales3 float64 `scale:"4.0,16.0"`
-	AGC2Scales0 float64 `scale:"1.0,3.0"`
-	AGC2Scales1 float64 `scale:"2.0,6.0"`
-	AGC2Scales2 float64 `scale:"4.0,12.0"`
-	AGC2Scales3 float64 `scale:"8.0,24.0"`
+	AGC1Scales0 float64 `scale:"0.5,2.0" disabled:"true"`
+	AGC1Scales1 float64 `scale:"1.0,4.0" disabled:"true"`
+	AGC1Scales2 float64 `scale:"2.0,8.0" disabled:"true"`
+	AGC1Scales3 float64 `scale:"4.0,16.0" disabled:"true"`
+	AGC2Scales0 float64 `scale:"1.0,3.0" disabled:"true"`
+	AGC2Scales1 float64 `scale:"2.0,6.0" disabled:"true"`
+	AGC2Scales2 float64 `scale:"4.0,12.0" disabled:"true"`
+	AGC2Scales3 float64 `scale:"8.0,24.0" disabled:"true"`
 
 	LoudnessConstant float64 `scale:"0.0,80.0"`
 	LoudnessScale    float64 `scale:"0.1,10.0"`
+}
+
+func (x xValues) optimizedFields() map[string]float64 {
+	val := reflect.ValueOf(x)
+	typ := reflect.TypeOf(x)
+	result := map[string]float64{}
+	for idx := 0; idx < val.NumField(); idx++ {
+		if typ.Field(idx).Tag.Get("disabled") != "true" {
+			result[typ.Field(idx).Name] = val.Field(idx).Float()
+		}
+	}
+	return result
 }
 
 func (x xValues) scaleForField(fieldIdx int) [2]float64 {
@@ -136,8 +148,8 @@ func (x xValues) scaleForField(fieldIdx int) [2]float64 {
 	return [2]float64{min, max}
 }
 
-func initXValues() xValues {
-	return xValues{
+func initXValues() *xValues {
+	return &xValues{
 		CarfacFullScaleSineLevel: *carfacFullScaleSineLevelStart,
 
 		VelocityScale:           *velocityScaleStart,
@@ -165,18 +177,25 @@ func initXValues() xValues {
 
 func (x xValues) toNormalizedFloat64Slice() []float64 {
 	val := reflect.ValueOf(x)
-	result := make([]float64, val.NumField())
-	for idx := range result {
-		result[idx] = normalize(val.Field(idx).Float(), x.scaleForField(idx))
+	typ := reflect.TypeOf(x)
+	result := []float64{}
+	for idx := 0; idx < val.NumField(); idx++ {
+		if typ.Field(idx).Tag.Get("disabled") != "true" {
+			result = append(result, normalize(val.Field(idx).Float(), x.scaleForField(idx)))
+		}
 	}
 	return result
 }
 
 func xValuesFromNormalizedFloat64Slice(x []float64) xValues {
-	result := &xValues{}
+	result := initXValues()
 	val := reflect.ValueOf(result)
-	for idx := range x {
-		val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(x[idx], result.scaleForField(idx))))
+	typ := reflect.TypeOf(*result)
+	for idx := 0; idx < typ.NumField(); idx++ {
+		if typ.Field(idx).Tag.Get("disabled") != "true" {
+			val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(x[0], result.scaleForField(idx))))
+			x = x[1:]
+		}
 	}
 	return *result
 }
@@ -275,13 +294,14 @@ func (p psnrs) Swap(i, j int) {
 }
 
 type lossCalculator struct {
-	evaluations                  []evaluation
-	err                          error
 	outDir                       string
-	lossCalculations             int
+	evaluationFullScaleSineLevel signals.DB
 	lossCalculationOutputRatio   int
 	pNorm                        float64
-	evaluationFullScaleSineLevel signals.DB
+
+	evaluations      []evaluation
+	err              error
+	lossCalculations int
 }
 
 func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) error {
@@ -410,10 +430,8 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		MaxZeta:    &xValues.MaxZeta,
 		ZeroRatio:  &xValues.ZeroRatio,
 		StageGain:  &xValues.StageGain,
-		VOffset:    &xValues.VOffset,
-		DhDgRatio:  &xValues.DhDgRatio,
 	}
-	fmt.Printf("Evaluating with %+v\n", xValues)
+	fmt.Printf("Evaluating with %+v\n", xValues.optimizedFields())
 
 	carfacs := make(chan carfac.CF, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -542,7 +560,23 @@ plt.show()
 `, l.lossCalculations, p[0].evaluation.runID, marshalledXValues, marshalledEvaluatedYValues, marshalledXValues, marshalledPredictedYValues)), 0777)
 }
 
+func test() {
+	testXValues := xValues{}
+	xSlice := testXValues.toNormalizedFloat64Slice()
+	for idx := range xSlice {
+		xSlice[idx] = float64(idx)
+	}
+	if roundTrip := xValuesFromNormalizedFloat64Slice(xSlice).toNormalizedFloat64Slice(); !reflect.DeepEqual(xSlice, roundTrip) {
+		log.Panicf("Converting back and forth between xValues doesn't provide the same result! Got %+v, wanted %+v", roundTrip, xSlice)
+	}
+
+	if len(testXValues.optimizedFields()) != len(testXValues.toNormalizedFloat64Slice()) {
+		log.Panicf("Displaying optimized fields for xValues doesn't provide the same number of fields as when converting to normalized float64 slice!")
+	}
+}
+
 func main() {
+
 	flag.Parse()
 	if *evaluationJSONGlob == "" {
 		flag.Usage()
