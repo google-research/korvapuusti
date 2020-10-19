@@ -59,35 +59,10 @@ var (
 
 	// Definition of evaluations.
 
-	evaluationJSONGlob = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
-	noiseFloor         = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
-	pNorm              = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
-
-	// Start values for optimization.
-
-	evaluationFullScaleSineLevel  = flag.Float64("evaluation_full_scale_sine_level", 100, "dB SPL calibrated to a full scale sine in the evaluations.")
-	carfacFullScaleSineLevelStart = flag.Float64("carfac_full_scale_sine_level_start", 100, "carfac_full_scale_sine_level starting point.")
-
-	velocityScaleStart           = flag.Float64("velocity_scale_start", 0.1, "velocity_scale starting point.")
-	vOffsetStart                 = flag.Float64("v_offset_start", 0.04, "v_offset starting point.")
-	minZetaStart                 = flag.Float64("min_zeta_start", 0.1, "min_zeta starting point.")
-	maxZetaStart                 = flag.Float64("max_zeta_start", 0.35, "max_zeta starting point.")
-	zeroRatioStart               = flag.Float64("zero_ratio_start", math.Sqrt(2.0), "zero_ratio starting point.")
-	highFDampingCompressionStart = flag.Float64("high_f_damping_compression_start", 0.5, "high_f_damping_compression_starting point.")
-	dHdGRatioStart               = flag.Float64("dh_dg_ratio_start", 0.0, "dh_dg_ratio starting point.")
-
-	stageGainStart   = flag.Float64("stage_gain_start", 2.0, "stage_gain starting point.")
-	agc1Scales0Start = flag.Float64("agc1_scales_0_start", 1.0, "agc1_scales[0] starting point.")
-	agc1Scales1Start = flag.Float64("agc1_scales_1_start", 1.0*sqrt2, "agc1_scales[1] starting point.")
-	agc1Scales2Start = flag.Float64("agc1_scales_2_start", 1.0*sqrt2*sqrt2, "agc1_scales[2] starting point.")
-	agc1Scales3Start = flag.Float64("agc1_scales_3_start", 1.0*sqrt2*sqrt2*sqrt2, "agc1_scales[3] starting point.")
-	agc2Scales0Start = flag.Float64("agc2_scales_0_start", 1.65, "agc1_scales[0] starting point.")
-	agc2Scales1Start = flag.Float64("agc2_scales_1_start", 1.65*sqrt2, "agc2_scales[1] starting point.")
-	agc2Scales2Start = flag.Float64("agc2_scales_2_start", 1.65*sqrt2*sqrt2, "agc2_scales[2] starting point.")
-	agc2Scales3Start = flag.Float64("agc2_scales_3_start", 1.65*sqrt2*sqrt2*sqrt2, "agc2_scales[3] starting point.")
-
-	loudnessConstantStart = flag.Float64("loudness_constant_start", 40.0, "Loudness constant starting point.")
-	loudnessScaleStart    = flag.Float64("loudness_scale_start", 2, "Loudness scale starting point.")
+	evaluationJSONGlob           = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
+	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100.0, "The calibration for a full scale sine during evaluation.")
+	noiseFloor                   = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
+	pNorm                        = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
 )
 
 func normalize(x float64, scale [2]float64) float64 {
@@ -99,28 +74,28 @@ func denormalize(x float64, scale [2]float64) float64 {
 }
 
 type xValues struct {
-	CarfacFullScaleSineLevel float64 `scale:"70.0,130.0"`
+	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0"`
 
-	VelocityScale           float64 `scale:"0.02,0.5" disabled:"true"`
-	VOffset                 float64 `scale:"0.0,0.5" disabled:"true"`
-	MinZeta                 float64 `scale:"0.01,0.05" disabled:"true"`
-	MaxZeta                 float64 `scale:"0.1,0.5"`
-	ZeroRatio               float64 `scale:"0.5,3.0"`
-	HighFDampingCompression float64 `scale:"0.5,3.0" disabled:"true"`
-	DhDgRatio               float64 `scale:"-1.0,1.0" disabled:"true"`
+	VelocityScale           float64 `start:"0.1" scale:"0.02,0.5" disabled:"true"`
+	VOffset                 float64 `start:"0.04" scale:"0.0,0.5" disabled:"true"`
+	MinZeta                 float64 `start:"0.1" scale:"0.01,0.05" disabled:"true"`
+	MaxZeta                 float64 `start:"0.35" scale:"0.1,0.5"`
+	ZeroRatio               float64 `start:"1.4142135623730951" scale:"0.5,3.0"`
+	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0" disabled:"true"`
+	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0" disabled:"true"`
 
-	StageGain   float64 `scale:"1.0,4.0"`
-	AGC1Scales0 float64 `scale:"0.5,2.0" disabled:"true"`
-	AGC1Scales1 float64 `scale:"1.0,4.0" disabled:"true"`
-	AGC1Scales2 float64 `scale:"2.0,8.0" disabled:"true"`
-	AGC1Scales3 float64 `scale:"4.0,16.0" disabled:"true"`
-	AGC2Scales0 float64 `scale:"1.0,3.0" disabled:"true"`
-	AGC2Scales1 float64 `scale:"2.0,6.0" disabled:"true"`
-	AGC2Scales2 float64 `scale:"4.0,12.0" disabled:"true"`
-	AGC2Scales3 float64 `scale:"8.0,24.0" disabled:"true"`
+	StageGain   float64 `start:"2.0" scale:"1.0,4.0"`
+	AGC1Scales0 float64 `start:"1.0" scale:"0.5,2.0" disabled:"true"`
+	AGC1Scales1 float64 `start:"1.4142135623730951" scale:"1.0,4.0" disabled:"true"`
+	AGC1Scales2 float64 `start:"2.0" scale:"2.0,8.0" disabled:"true"`
+	AGC1Scales3 float64 `start:"2.8284271247461907" scale:"4.0,16.0" disabled:"true"`
+	AGC2Scales0 float64 `start:"1.65" scale:"1.0,3.0" disabled:"true"`
+	AGC2Scales1 float64 `start:"2.3334523779156067" scale:"2.0,6.0" disabled:"true"`
+	AGC2Scales2 float64 `start:"3.3" scale:"4.0,12.0" disabled:"true"`
+	AGC2Scales3 float64 `start:"4.666904755831214" scale:"8.0,24.0" disabled:"true"`
 
-	LoudnessConstant float64 `scale:"0.0,80.0"`
-	LoudnessScale    float64 `scale:"0.1,10.0"`
+	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0"`
+	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0"`
 }
 
 func (x xValues) optimizedFields() map[string]float64 {
@@ -148,30 +123,15 @@ func (x xValues) scaleForField(fieldIdx int) [2]float64 {
 	return [2]float64{min, max}
 }
 
-func initXValues() *xValues {
-	return &xValues{
-		CarfacFullScaleSineLevel: *carfacFullScaleSineLevelStart,
-
-		VelocityScale:           *velocityScaleStart,
-		VOffset:                 *vOffsetStart,
-		MinZeta:                 *minZetaStart,
-		MaxZeta:                 *maxZetaStart,
-		ZeroRatio:               *zeroRatioStart,
-		HighFDampingCompression: *highFDampingCompressionStart,
-		DhDgRatio:               *dHdGRatioStart,
-
-		StageGain:   *stageGainStart,
-		AGC1Scales0: *agc1Scales0Start,
-		AGC1Scales1: *agc1Scales1Start,
-		AGC1Scales2: *agc1Scales2Start,
-		AGC1Scales3: *agc1Scales3Start,
-		AGC2Scales0: *agc2Scales0Start,
-		AGC2Scales1: *agc2Scales1Start,
-		AGC2Scales2: *agc2Scales2Start,
-		AGC2Scales3: *agc2Scales3Start,
-
-		LoudnessConstant: *loudnessConstantStart,
-		LoudnessScale:    *loudnessScaleStart,
+func (x *xValues) init() {
+	val := reflect.ValueOf(x)
+	typ := reflect.TypeOf(*x)
+	for idx := 0; idx < typ.NumField(); idx++ {
+		start, err := strconv.ParseFloat(typ.Field(idx).Tag.Get("start"), 64)
+		if err != nil {
+			log.Panicf("Field %+v doesn't have a start tag!", typ.Field(idx))
+		}
+		val.Elem().Field(idx).Set(reflect.ValueOf(start))
 	}
 }
 
@@ -187,17 +147,15 @@ func (x xValues) toNormalizedFloat64Slice() []float64 {
 	return result
 }
 
-func xValuesFromNormalizedFloat64Slice(x []float64) xValues {
-	result := initXValues()
-	val := reflect.ValueOf(result)
-	typ := reflect.TypeOf(*result)
+func (x *xValues) setFromNormalizedFloat64Slice(xSlice []float64) {
+	val := reflect.ValueOf(x)
+	typ := reflect.TypeOf(*x)
 	for idx := 0; idx < typ.NumField(); idx++ {
 		if typ.Field(idx).Tag.Get("disabled") != "true" {
-			val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(x[0], result.scaleForField(idx))))
-			x = x[1:]
+			val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(xSlice[0], x.scaleForField(idx))))
+			xSlice = xSlice[1:]
 		}
 	}
-	return *result
 }
 
 type multiErr []error
@@ -424,7 +382,8 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 
 func (l *lossCalculator) loss(x []float64) float64 {
 	l.lossCalculations++
-	xValues := xValuesFromNormalizedFloat64Slice(x)
+	xValues := &xValues{}
+	xValues.setFromNormalizedFloat64Slice(x)
 	carfacParams := carfac.CARFACParams{
 		SampleRate:              rate,
 		VelocityScale:           &xValues.VelocityScale,
@@ -573,7 +532,9 @@ func test() {
 	for idx := range xSlice {
 		xSlice[idx] = float64(idx)
 	}
-	if roundTrip := xValuesFromNormalizedFloat64Slice(xSlice).toNormalizedFloat64Slice(); !reflect.DeepEqual(xSlice, roundTrip) {
+	roundTripValues := &xValues{}
+	roundTripValues.setFromNormalizedFloat64Slice(xSlice)
+	if roundTrip := roundTripValues.toNormalizedFloat64Slice(); !reflect.DeepEqual(xSlice, roundTrip) {
 		log.Panicf("Converting back and forth between xValues doesn't provide the same result! Got %+v, wanted %+v", roundTrip, xSlice)
 	}
 
@@ -604,8 +565,9 @@ func main() {
 			return optimize.NotTerminated, lc.err
 		},
 	}
-	initX := initXValues().toNormalizedFloat64Slice()
-	res, err := optimize.Minimize(problem, initX, nil, nil)
+	initX := &xValues{}
+	initX.init()
+	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(), nil, nil)
 	fmt.Println(res, err)
 
 }
