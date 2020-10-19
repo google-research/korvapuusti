@@ -150,6 +150,20 @@ func TestCARFAC(t *testing.T) {
 				return cf.BM()
 			},
 		},
+		{
+			desc: "DhDgRatioDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				dHdGRatio := 0.1
+				cf := New(CARFACParams{SampleRate: 48000, DhDgRatio: &dHdGRatio})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			res1, err := tc.f1()
