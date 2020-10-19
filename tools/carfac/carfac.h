@@ -36,6 +36,7 @@ carfac create_carfac(
 		float *zero_ratio,
 		float *high_f_damping_compression,
 		float *erb_per_step,
+		float *dh_dg_ratio,
 		
 		float *stage_gain,
 		float *agc1_scales_0,

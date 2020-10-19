@@ -103,6 +103,7 @@ type CARFACParams struct {
 	ZeroRatio               *float64
 	HighFDampingCompression *float64
 	ERBPerStep              *float64
+	DhDgRatio               *float64
 
 	StageGain  *float64
 	AGC1Scales []float64
@@ -136,6 +137,7 @@ func New(cfp CARFACParams) CF {
 		cfp.cFloat(cfp.ZeroRatio),
 		cfp.cFloat(cfp.HighFDampingCompression),
 		cfp.cFloat(cfp.ERBPerStep),
+		cfp.cFloat(cfp.DhDgRatio),
 
 		cfp.cFloat(cfp.StageGain),
 		cfp.cFloatFromSlice(cfp.AGC1Scales, 0),
