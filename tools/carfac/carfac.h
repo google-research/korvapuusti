@@ -39,14 +39,12 @@ carfac create_carfac(
 		float *dh_dg_ratio,
 		
 		float *stage_gain,
-		float *agc1_scales_0,
-		float *agc1_scales_1,
-		float *agc1_scales_2,
-		float *agc1_scales_3,
-		float *agc2_scales_0,
-		float *agc2_scales_1,
-		float *agc2_scales_2,
-		float *agc2_scales_3);
+		float *agc1_scale0,
+		float *agc1_scale_mul,
+		float *agc2_scale0,
+		float *agc2_scale_mul,
+		float *time_constant0,
+		float *time_constant_mul);
 
 void delete_carfac(carfac *cf);
 

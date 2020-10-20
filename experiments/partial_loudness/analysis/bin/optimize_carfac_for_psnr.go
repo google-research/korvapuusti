@@ -76,23 +76,23 @@ func denormalize(x float64, scale [2]float64) float64 {
 type xValues struct {
 	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0"`
 
-	VelocityScale           float64 `start:"0.1" scale:"0.02,0.5" disabled:"true"`
-	VOffset                 float64 `start:"0.04" scale:"0.0,0.5" disabled:"true"`
-	MinZeta                 float64 `start:"0.1" scale:"0.01,0.05" disabled:"true"`
+	VelocityScale           float64 `start:"0.1" scale:"0.02,0.5"`
+	VOffset                 float64 `start:"0.04" scale:"0.0,0.5"`
+	MinZeta                 float64 `start:"0.1" scale:"0.01,0.05"`
 	MaxZeta                 float64 `start:"0.35" scale:"0.1,0.5"`
 	ZeroRatio               float64 `start:"1.4142135623730951" scale:"0.5,3.0"`
-	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0" disabled:"true"`
-	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0" disabled:"true"`
+	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0"`
+	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0"`
 
 	StageGain   float64 `start:"2.0" scale:"1.0,4.0"`
-	AGC1Scales0 float64 `start:"1.0" scale:"0.5,2.0" disabled:"true"`
-	AGC1Scales1 float64 `start:"1.4142135623730951" scale:"1.0,4.0" disabled:"true"`
-	AGC1Scales2 float64 `start:"2.0" scale:"2.0,8.0" disabled:"true"`
-	AGC1Scales3 float64 `start:"2.8284271247461907" scale:"4.0,16.0" disabled:"true"`
-	AGC2Scales0 float64 `start:"1.65" scale:"1.0,3.0" disabled:"true"`
-	AGC2Scales1 float64 `start:"2.3334523779156067" scale:"2.0,6.0" disabled:"true"`
-	AGC2Scales2 float64 `start:"3.3" scale:"4.0,12.0" disabled:"true"`
-	AGC2Scales3 float64 `start:"4.666904755831214" scale:"8.0,24.0" disabled:"true"`
+	AGC1Scales0 float64 `start:"1.0" scale:"0.5,2.0"`
+	AGC1Scales1 float64 `start:"1.4142135623730951" scale:"1.0,4.0"`
+	AGC1Scales2 float64 `start:"2.0" scale:"2.0,8.0"`
+	AGC1Scales3 float64 `start:"2.8284271247461907" scale:"4.0,16.0"`
+	AGC2Scales0 float64 `start:"1.65" scale:"1.0,3.0"`
+	AGC2Scales1 float64 `start:"2.3334523779156067" scale:"2.0,6.0"`
+	AGC2Scales2 float64 `start:"3.3" scale:"4.0,12.0"`
+	AGC2Scales3 float64 `start:"4.666904755831214" scale:"8.0,24.0"`
 
 	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0"`
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0"`

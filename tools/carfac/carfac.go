@@ -105,9 +105,13 @@ type CARFACParams struct {
 	ERBPerStep              *float64
 	DhDgRatio               *float64
 
-	StageGain  *float64
-	AGC1Scales []float64
-	AGC2Scales []float64
+	StageGain       *float64
+	AGC1Scale0      *float64
+	AGC1ScaleMul    *float64
+	AGC2Scale0      *float64
+	AGC2ScaleMul    *float64
+	TimeConstant0   *float64
+	TimeConstantMul *float64
 }
 
 func (c CARFACParams) cFloat(f *float64) *C.float {
@@ -115,14 +119,6 @@ func (c CARFACParams) cFloat(f *float64) *C.float {
 		return nil
 	}
 	cFloat := C.float(*f)
-	return &cFloat
-}
-
-func (c CARFACParams) cFloatFromSlice(slice []float64, idx int) *C.float {
-	if slice == nil {
-		return nil
-	}
-	cFloat := C.float(slice[idx])
 	return &cFloat
 }
 
@@ -140,14 +136,12 @@ func New(cfp CARFACParams) CF {
 		cfp.cFloat(cfp.DhDgRatio),
 
 		cfp.cFloat(cfp.StageGain),
-		cfp.cFloatFromSlice(cfp.AGC1Scales, 0),
-		cfp.cFloatFromSlice(cfp.AGC1Scales, 1),
-		cfp.cFloatFromSlice(cfp.AGC1Scales, 2),
-		cfp.cFloatFromSlice(cfp.AGC1Scales, 3),
-		cfp.cFloatFromSlice(cfp.AGC2Scales, 0),
-		cfp.cFloatFromSlice(cfp.AGC2Scales, 1),
-		cfp.cFloatFromSlice(cfp.AGC2Scales, 2),
-		cfp.cFloatFromSlice(cfp.AGC2Scales, 3),
+		cfp.cFloat(cfp.AGC1Scale0),
+		cfp.cFloat(cfp.AGC1ScaleMul),
+		cfp.cFloat(cfp.AGC2Scale0),
+		cfp.cFloat(cfp.AGC2ScaleMul),
+		cfp.cFloat(cfp.TimeConstant0),
+		cfp.cFloat(cfp.TimeConstantMul),
 	)
 	runtime.SetFinalizer(&cf, func(i interface{}) {
 		C.delete_carfac(&cf)

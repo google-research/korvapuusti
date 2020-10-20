@@ -18,14 +18,12 @@ carfac create_carfac(
 		float *dh_dg_ratio,
 		
 		float *stage_gain,
-		float *agc1_scales_0,
-		float *agc1_scales_1,
-		float *agc1_scales_2,
-		float *agc1_scales_3,
-		float *agc2_scales_0,
-		float *agc2_scales_1,
-		float *agc2_scales_2,
-		float *agc2_scales_3) {
+		float *agc1_scale0,
+		float *agc1_scale_mul,
+		float *agc2_scale0,
+		float *agc2_scale_mul,
+		float *time_constant0,
+		float *time_constant_mul) {
   CARParams car_params;
   IHCParams ihc_params;
   AGCParams agc_params;
@@ -40,14 +38,12 @@ carfac create_carfac(
   if (dh_dg_ratio != NULL) car_params.dh_dg_ratio = *dh_dg_ratio;
 
   if (stage_gain != NULL) agc_params.agc_stage_gain = *stage_gain;
-  if (agc1_scales_0 != NULL) agc_params.agc1_scales[0] = *agc1_scales_0;
-  if (agc1_scales_1 != NULL) agc_params.agc1_scales[1] = *agc1_scales_1;
-  if (agc1_scales_2 != NULL) agc_params.agc1_scales[2] = *agc1_scales_2;
-  if (agc1_scales_3 != NULL) agc_params.agc1_scales[3] = *agc1_scales_3;
-  if (agc2_scales_0 != NULL) agc_params.agc2_scales[0] = *agc2_scales_0;
-  if (agc2_scales_1 != NULL) agc_params.agc2_scales[1] = *agc2_scales_1;
-  if (agc2_scales_2 != NULL) agc_params.agc2_scales[2] = *agc2_scales_2;
-  if (agc2_scales_3 != NULL) agc_params.agc2_scales[3] = *agc2_scales_3;
+  if (agc1_scale0 != NULL) agc_params.agc1_scale0 = *agc1_scale0;
+  if (agc1_scale_mul != NULL) agc_params.agc1_scale_mul = *agc1_scale_mul;
+  if (agc2_scale0 != NULL) agc_params.agc2_scale0 = *agc2_scale0;
+  if (agc2_scale_mul != NULL) agc_params.agc2_scale_mul = *agc2_scale_mul;
+  if (time_constant0 != NULL) agc_params.time_constant0 = *time_constant0;
+  if (time_constant_mul != NULL) agc_params.time_constant_mul = *time_constant_mul;
 
   auto c = new CARFAC(1, static_cast<float>(sample_rate), car_params,
                       ihc_params, agc_params);

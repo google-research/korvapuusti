@@ -164,6 +164,90 @@ func TestCARFAC(t *testing.T) {
 				return cf.BM()
 			},
 		},
+		{
+			desc: "AGC1Scale0Different",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				two := 2.0
+				cf := New(CARFACParams{SampleRate: 48000, AGC1Scale0: &two})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "AGC1ScaleMulDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				two := 2.0
+				cf := New(CARFACParams{SampleRate: 48000, AGC1ScaleMul: &two})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "AGC2Scale0Different",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				two := 2.0
+				cf := New(CARFACParams{SampleRate: 48000, AGC2Scale0: &two})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "AGC2ScaleMulDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				two := 2.0
+				cf := New(CARFACParams{SampleRate: 48000, AGC2ScaleMul: &two})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "TimeConstant0Different",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				two := 2.0
+				cf := New(CARFACParams{SampleRate: 48000, TimeConstant0: &two})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "TimeConstantMulDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				two := 2.0
+				cf := New(CARFACParams{SampleRate: 48000, TimeConstantMul: &two})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			res1, err := tc.f1()
