@@ -83,6 +83,8 @@ type xValues struct {
 	MaxZeta                 float64 `start:"0.35" scale:"0.1,0.5"`
 	ZeroRatio               float64 `start:"1.4142135623730951" scale:"0.5,3.0"`
 	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0"`
+	ERBBreakFreq            float64 `start:"165.3" scale:"150.0,180.0"`
+	ERBQ                    float64 `start:"9.264491981582191" scale:"7.0,11.5"`
 	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0"`
 
 	StageGain       float64 `start:"2.0" scale:"1.0,4.0"`
@@ -403,6 +405,8 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		MaxZeta:                 &xValues.MaxZeta,
 		ZeroRatio:               &xValues.ZeroRatio,
 		HighFDampingCompression: &xValues.HighFDampingCompression,
+		ERBBreakFreq:            &xValues.ERBBreakFreq,
+		ERBQ:                    &xValues.ERBQ,
 		DhDgRatio:               &xValues.DhDgRatio,
 
 		StageGain:       &xValues.StageGain,
