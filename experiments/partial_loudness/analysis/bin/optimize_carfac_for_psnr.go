@@ -84,15 +84,13 @@ type xValues struct {
 	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0"`
 	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0"`
 
-	StageGain   float64 `start:"2.0" scale:"1.0,4.0"`
-	AGC1Scales0 float64 `start:"1.0" scale:"0.5,2.0"`
-	AGC1Scales1 float64 `start:"1.4142135623730951" scale:"1.0,4.0"`
-	AGC1Scales2 float64 `start:"2.0" scale:"2.0,8.0"`
-	AGC1Scales3 float64 `start:"2.8284271247461907" scale:"4.0,16.0"`
-	AGC2Scales0 float64 `start:"1.65" scale:"1.0,3.0"`
-	AGC2Scales1 float64 `start:"2.3334523779156067" scale:"2.0,6.0"`
-	AGC2Scales2 float64 `start:"3.3" scale:"4.0,12.0"`
-	AGC2Scales3 float64 `start:"4.666904755831214" scale:"8.0,24.0"`
+	StageGain       float64 `start:"2.0" scale:"1.0,4.0"`
+	AGC1Scale0      float64 `start:"1.0" scale:"0.5,2.0"`
+	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0"`
+	AGC2Scale0      float64 `start:"1.65" scale:"0.5,2.0"`
+	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0"`
+	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.004"`
+	TimeConstantMul float64 `start:"4" scale:"2.0,8.0"`
 
 	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0"`
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0"`
@@ -385,7 +383,8 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	xValues := &xValues{}
 	xValues.setFromNormalizedFloat64Slice(x)
 	carfacParams := carfac.CARFACParams{
-		SampleRate:              rate,
+		SampleRate: rate,
+
 		VelocityScale:           &xValues.VelocityScale,
 		VOffset:                 &xValues.VOffset,
 		MinZeta:                 &xValues.MinZeta,
@@ -393,11 +392,16 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		ZeroRatio:               &xValues.ZeroRatio,
 		HighFDampingCompression: &xValues.HighFDampingCompression,
 		DhDgRatio:               &xValues.DhDgRatio,
-		StageGain:               &xValues.StageGain,
-		AGC1Scales:              []float64{xValues.AGC1Scales0, xValues.AGC1Scales1, xValues.AGC1Scales2, xValues.AGC1Scales3},
-		AGC2Scales:              []float64{xValues.AGC2Scales0, xValues.AGC2Scales1, xValues.AGC2Scales2, xValues.AGC2Scales3},
+
+		StageGain:       &xValues.StageGain,
+		AGC1Scale0:      &xValues.AGC1Scale0,
+		AGC1ScaleMul:    &xValues.AGC1ScaleMul,
+		AGC2Scale0:      &xValues.AGC2Scale0,
+		AGC2ScaleMul:    &xValues.AGC2ScaleMul,
+		TimeConstant0:   &xValues.TimeConstant0,
+		TimeConstantMul: &xValues.TimeConstantMul,
 	}
-	fmt.Printf("Evaluating with %+v\n", xValues.optimizedFields())
+	fmt.Printf("Evaluation %v with %+v\n", l.lossCalculations, xValues.optimizedFields())
 
 	carfacs := make(chan carfac.CF, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
