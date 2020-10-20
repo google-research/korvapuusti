@@ -101,13 +101,14 @@ type xValues struct {
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
 }
 
-func (x xValues) limitLoss() float64 {
+func (x xValues) limitLoss() (float64, []string) {
 	val := reflect.ValueOf(x)
 	typ := reflect.TypeOf(x)
 	result := 0.0
+	explanation := []string{}
 	for idx := 0; idx < val.NumField(); idx++ {
 		current := val.Field(idx).Float()
-		current = normalize(current, x.scaleForField(idx)) * 10
+		normCurrent := normalize(current, x.scaleForField(idx)) * 10
 		limits := typ.Field(idx).Tag.Get("limits")
 		if limits == "" {
 			log.Fatalf("Field %+v doesn't have a limits tag!", typ.Field(idx))
@@ -121,9 +122,11 @@ func (x xValues) limitLoss() float64 {
 			if err != nil {
 				log.Fatalf("Field %+v has a limits tag whose lower limit isn't parseable as float64: %v", typ.Field(idx), err)
 			}
-			lowerLimit = normalize(lowerLimit, x.scaleForField(idx)) * 10
+			normLowerLimit := normalize(lowerLimit, x.scaleForField(idx)) * 10
 			if current < lowerLimit {
-				result += math.Pow(lowerLimit-current, 2)
+				contribution := math.Pow(normLowerLimit-normCurrent, 2)
+				result += contribution
+				explanation = append(explanation, fmt.Sprintf("%v = %v (< %v): %v", typ.Field(idx).Name, current, lowerLimit, contribution))
 			}
 		}
 		if parts[1] != "-" {
@@ -131,13 +134,15 @@ func (x xValues) limitLoss() float64 {
 			if err != nil {
 				log.Fatalf("Field %+v has a limits tag whose upper limit isn't parseable as float64: %v", typ.Field(idx), err)
 			}
-			upperLimit = normalize(upperLimit, x.scaleForField(idx)) * 10
+			normUpperLimit := normalize(upperLimit, x.scaleForField(idx)) * 10
 			if current > upperLimit {
-				result += math.Pow(upperLimit-current, 2)
+				contribution := math.Pow(normUpperLimit-normCurrent, 2)
+				result += contribution
+				explanation = append(explanation, fmt.Sprintf("%v = %v (> %v): %v", typ.Field(idx).Name, current, upperLimit, contribution))
 			}
 		}
 	}
-	return result
+	return result, explanation
 }
 
 func (x xValues) optimizedFields() map[string]float64 {
@@ -550,9 +555,9 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		}
 	}
 	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.pNorm)
-	limitLoss := xValues.limitLoss()
+	limitLoss, explanation := xValues.limitLoss()
 	totalLoss := loss + limitLoss
-	fmt.Printf("Got loss %v (limit loss %v)\n", totalLoss, limitLoss)
+	fmt.Printf("Got loss %v (limit loss %v: %v)\n", totalLoss, limitLoss, strings.Join(explanation, ", "))
 	return totalLoss
 }
 
