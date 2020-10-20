@@ -15,6 +15,8 @@ carfac create_carfac(
 		float *zero_ratio,
 		float *high_f_damping_compression,
 		float *erb_per_step,
+		float *erb_break_freq,
+		float *erb_q,
 		float *dh_dg_ratio,
 		
 		float *stage_gain,
@@ -35,6 +37,8 @@ carfac create_carfac(
   if (zero_ratio != NULL) car_params.zero_ratio = *zero_ratio;
   if (high_f_damping_compression != NULL) car_params.high_f_damping_compression = *high_f_damping_compression;
   if (erb_per_step != NULL) car_params.erb_per_step = *erb_per_step;
+  if (erb_break_freq != NULL) car_params.erb_break_freq = *erb_break_freq;
+  if (erb_q != NULL) car_params.erb_q = *erb_q;
   if (dh_dg_ratio != NULL) car_params.dh_dg_ratio = *dh_dg_ratio;
 
   if (stage_gain != NULL) agc_params.agc_stage_gain = *stage_gain;

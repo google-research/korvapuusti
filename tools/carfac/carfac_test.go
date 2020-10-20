@@ -248,6 +248,34 @@ func TestCARFAC(t *testing.T) {
 				return cf.BM()
 			},
 		},
+		{
+			desc: "ERBBreakFreqDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				two_hundred := 200.0
+				cf := New(CARFACParams{SampleRate: 48000, ERBBreakFreq: &two_hundred})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
+		{
+			desc: "ERBQDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+			f2: func() ([]float32, error) {
+				x := 1200 / (24.7 * 4.37)
+				cf := New(CARFACParams{SampleRate: 48000, ERBQ: &x})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.BM()
+			},
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			res1, err := tc.f1()
