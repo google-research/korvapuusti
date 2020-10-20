@@ -622,6 +622,7 @@ func test() {
 }
 
 func main() {
+	test()
 
 	flag.Parse()
 	if *evaluationJSONGlob == "" {
