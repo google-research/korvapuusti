@@ -435,6 +435,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 				cf := <-carfacs
 				defer func() { carfacs <- cf }()
 				scaledSignal := evaluation.signal.ToFloat32AddLevel(l.evaluationFullScaleSineLevel - signals.DB(xValues.CarfacFullScaleSineLevel))
+				cf.Reset()
 				cf.Run(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
 				bm, err := cf.BM()
 				if err != nil {

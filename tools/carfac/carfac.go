@@ -60,6 +60,7 @@ func floatsToFloatAry(floats []float32) C.float_ary {
 type CF interface {
 	Run(buffer []float32)
 	RunOpen(buffer []float32)
+	Reset()
 	NAP() ([]float32, error)
 	BM() ([]float32, error)
 	NumChannels() int
@@ -157,6 +158,10 @@ func New(cfp CARFACParams) CF {
 		poles:       floatAryToFloats(cf.poles),
 		cf:          &cf,
 	}
+}
+
+func (c *carfac) Reset() {
+	C.carfac_reset(c.cf)
 }
 
 func (c *carfac) RunOpen(buffer []float32) {

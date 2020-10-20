@@ -67,9 +67,13 @@ carfac create_carfac(
 
 void delete_carfac(carfac *cf) { delete static_cast<CARFAC *>(cf->cf); }
 
-void carfac_run(carfac *cf, float_ary buffer, int open_loop) {
+void carfac_reset(carfac *cf) {
   auto real_cf = static_cast<CARFAC *>(cf->cf);
   real_cf->Reset();
+}
+
+void carfac_run(carfac *cf, float_ary buffer, int open_loop) {
+  auto real_cf = static_cast<CARFAC *>(cf->cf);
   auto input_map = ArrayXX::Map(reinterpret_cast<const float *>(buffer.data), 1,
                                 cf->num_samples);
   auto real_output = static_cast<CARFACOutput *>(cf->latest_output);

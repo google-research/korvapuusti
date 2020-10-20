@@ -52,6 +52,8 @@ void delete_carfac(carfac *cf);
 
 void carfac_run(carfac *cf, float_ary buffer, int open_loop);
 
+void carfac_reset(carfac *cf);
+
 int carfac_bm(carfac *cf, float_ary result);
 
 int carfac_nap(carfac *cf, float_ary result);
