@@ -77,28 +77,67 @@ func denormalize(x float64, scale [2]float64) float64 {
 }
 
 type xValues struct {
-	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0"`
+	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"70.0,130.0"`
 
-	VelocityScale           float64 `start:"0.1" scale:"0.02,0.5"`
-	VOffset                 float64 `start:"0.04" scale:"0.0,0.5"`
-	MinZeta                 float64 `start:"0.1" scale:"0.01,0.05"`
-	MaxZeta                 float64 `start:"0.35" scale:"0.1,0.5"`
-	ZeroRatio               float64 `start:"1.4142135623730951" scale:"0.5,3.0"`
-	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0"`
-	ERBBreakFreq            float64 `start:"165.3" scale:"150.0,180.0"`
-	ERBQ                    float64 `start:"9.264491981582191" scale:"7.0,11.5"`
-	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0"`
+	VelocityScale           float64 `start:"0.1" scale:"0.02,0.5" limits:"0.01,-"`
+	VOffset                 float64 `start:"0.04" scale:"0.0,0.5" limits:"0.0,-"`
+	MinZeta                 float64 `start:"0.1" scale:"0.01,0.05" limits:"0.01,-"`
+	MaxZeta                 float64 `start:"0.35" scale:"0.1,0.5" limits:"0.1,-"`
+	ZeroRatio               float64 `start:"1.4142135623730951" scale:"0.5,3.0" limits:"0.01,-"`
+	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0" limits:"0.1,-"`
+	ERBBreakFreq            float64 `start:"165.3" scale:"150.0,180.0" limits:"150.0,180.0"`
+	ERBQ                    float64 `start:"9.264491981582191" scale:"7.0,11.5" limits:"7.0,11.5"`
+	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0" limits:"-2.0,2.0"`
 
-	StageGain       float64 `start:"2.0" scale:"1.0,4.0"`
-	AGC1Scale0      float64 `start:"1.0" scale:"0.5,2.0"`
-	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0"`
-	AGC2Scale0      float64 `start:"1.65" scale:"0.5,2.0"`
-	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0"`
-	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.004"`
-	TimeConstantMul float64 `start:"4" scale:"2.0,8.0"`
+	StageGain       float64 `start:"2.0" scale:"1.0,4.0" limits:"1.0,4.0"`
+	AGC1Scale0      float64 `start:"1.0" scale:"0.5,2.0" limits:"0.5,2.0"`
+	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0" limits:"1.01,3.0"`
+	AGC2Scale0      float64 `start:"1.65" scale:"0.5,2.0" limits:"0.5,2.0"`
+	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0" limits:"1.01,3.0"`
+	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.004" limits:"0.0001,-"`
+	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"2.0,8.0"`
 
-	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0"`
-	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0"`
+	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0" limits:"-,-"`
+	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
+}
+
+func (x xValues) limitLoss() float64 {
+	val := reflect.ValueOf(x)
+	typ := reflect.TypeOf(x)
+	result := 0.0
+	for idx := 0; idx < val.NumField(); idx++ {
+		current := val.Field(idx).Float()
+		current = normalize(current, x.scaleForField(idx)) * 10
+		limits := typ.Field(idx).Tag.Get("limits")
+		if limits == "" {
+			log.Fatalf("Field %+v doesn't have a limits tag!", typ.Field(idx))
+		}
+		parts := strings.Split(limits, ",")
+		if len(parts) != 2 {
+			log.Fatalf("Field %+v doesn't have a limits tag that consists of two comma separated values!", typ.Field(idx))
+		}
+		if parts[0] != "-" {
+			lowerLimit, err := strconv.ParseFloat(parts[0], 64)
+			if err != nil {
+				log.Fatalf("Field %+v has a limits tag whose lower limit isn't parseable as float64: %v", typ.Field(idx), err)
+			}
+			lowerLimit = normalize(lowerLimit, x.scaleForField(idx)) * 10
+			if current < lowerLimit {
+				result += math.Pow(lowerLimit-current, 2)
+			}
+		}
+		if parts[1] != "-" {
+			upperLimit, err := strconv.ParseFloat(parts[1], 64)
+			if err != nil {
+				log.Fatalf("Field %+v has a limits tag whose upper limit isn't parseable as float64: %v", typ.Field(idx), err)
+			}
+			upperLimit = normalize(upperLimit, x.scaleForField(idx)) * 10
+			if current > upperLimit {
+				result += math.Pow(upperLimit-current, 2)
+			}
+		}
+	}
+	return result
 }
 
 func (x xValues) optimizedFields() map[string]float64 {
@@ -511,8 +550,10 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		}
 	}
 	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.pNorm)
-	fmt.Println("Got loss", loss, atomic.LoadInt64(&runningGoRoutines), "running routines left")
-	return loss
+	limitLoss := xValues.limitLoss()
+	totalLoss := loss + limitLoss
+	fmt.Printf("Got loss %v (limit loss %v)\n", totalLoss, limitLoss)
+	return totalLoss
 }
 
 func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
