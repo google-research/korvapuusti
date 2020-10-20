@@ -35,6 +35,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/cheggaaa/pb"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
@@ -162,41 +163,52 @@ func (m multiErr) Error() string {
 	return fmt.Sprint([]error(m))
 }
 
+var runningGoRoutines int64
+
+func run(f func()) {
+	atomic.AddInt64(&runningGoRoutines, 1)
+	go func() {
+		defer atomic.AddInt64(&runningGoRoutines, -1)
+		f()
+	}()
+}
+
 func startWorkerPool() (prioJobs chan func() error, ticketJobs chan func() error, errorPromise func() error) {
 	ticketJobs = make(chan func() error)
 	prioJobs = make(chan func() error)
 	errors := make(chan error)
 
-	go func() {
+	run(func() {
 		defer close(errors)
 		wg := &sync.WaitGroup{}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		runWait := func(f func()) {
+			wg.Add(1)
+			run(func() {
+				defer wg.Done()
+				f()
+			})
+		}
+		runWait(func() {
 			tickets := make(chan struct{}, runtime.NumCPU())
-			for job := range ticketJobs {
+			for iterJob := range ticketJobs {
+				job := iterJob
 				tickets <- struct{}{}
-				wg.Add(1)
-				go func(job func() error) {
-					defer wg.Done()
+				runWait(func() {
 					defer func() { <-tickets }()
 					errors <- job()
-				}(job)
+				})
 			}
-		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for job := range prioJobs {
-				wg.Add(1)
-				go func(job func() error) {
-					defer wg.Done()
+		})
+		runWait(func() {
+			for iterJob := range prioJobs {
+				job := iterJob
+				runWait(func() {
 					errors <- job()
-				}(job)
+				})
 			}
-		}()
+		})
 		wg.Wait()
-	}()
+	})
 	return prioJobs, ticketJobs, func() error {
 		me := multiErr{}
 		for err := range errors {
@@ -264,11 +276,11 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 	l.evaluations = nil
 	evaluationChannel := make(chan evaluation)
 	defer close(evaluationChannel)
-	go func() {
+	run(func() {
 		for evaluation := range evaluationChannel {
 			l.evaluations = append(l.evaluations, evaluation)
 		}
-	}()
+	})
 
 	prioJobs, ticketJobs, errorPromise := startWorkerPool()
 
@@ -464,6 +476,10 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		psnrByRunID[evalPSNR.evaluation.runID] = append(psnrByRunID[evalPSNR.evaluation.runID], evalPSNR)
 		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
 		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.pNorm)
+		if evalPSNR.evaluation.evaluatedLoudness < 27 {
+			errorDiscount := float64(30-evalPSNR.evaluation.evaluatedLoudness) / 3
+			square /= errorDiscount
+		}
 		sumOfSquares += square
 		lossByRunID[evalPSNR.evaluation.runID] += square
 	}
@@ -483,7 +499,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		}
 	}
 	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.pNorm)
-	fmt.Println("Got loss", loss)
+	fmt.Println("Got loss", loss, atomic.LoadInt64(&runningGoRoutines), "running routines left")
 	return loss
 }
 
