@@ -53,6 +53,8 @@ const (
 var (
 	sqrt2 = math.Sqrt(2.0)
 
+	startX = flag.String("start_x", "", "Starting values in JSON format.")
+
 	// Optimize-time outputs.
 
 	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
@@ -396,6 +398,12 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	l.lossCalculations++
 	xValues := &xValues{}
 	xValues.setFromNormalizedFloat64Slice(x)
+	b, err := json.Marshal(xValues)
+	if err != nil {
+		l.err = err
+		return 0.0
+	}
+	fmt.Printf("Evaluation %v with %s\n", l.lossCalculations, b)
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
 
@@ -417,7 +425,6 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		TimeConstant0:   &xValues.TimeConstant0,
 		TimeConstantMul: &xValues.TimeConstantMul,
 	}
-	fmt.Printf("Evaluation %v with %+v\n", l.lossCalculations, xValues.optimizedFields())
 
 	carfacs := make(chan carfac.CF, runtime.NumCPU())
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -591,7 +598,13 @@ func main() {
 		},
 	}
 	initX := &xValues{}
-	initX.init()
+	if *startX == "" {
+		initX.init()
+	} else {
+		if err := json.Unmarshal([]byte(*startX), initX); err != nil {
+			log.Fatal(err)
+		}
+	}
 	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(), nil, nil)
 	fmt.Println(res, err)
 
