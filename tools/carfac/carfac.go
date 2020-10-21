@@ -1,8 +1,6 @@
 /* partial_loudness is a package that lets you run a server presenting a web page
  * that plays sounds and lets you adjust levels.
  *
- * Run it and browse to http://localhost:12000.
- *
  * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
