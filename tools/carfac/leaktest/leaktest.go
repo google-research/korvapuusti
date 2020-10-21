@@ -46,10 +46,9 @@ func main() {
 	for p := 0; p < runtime.NumCPU(); p++ {
 		wg.Add(1)
 		go func() {
-			cf := carfac.New(carfac.CARFACParams{SampleRate: 48000})
-			sig := makeSignal(cf.NumSamples())
 			for i := 0; i < perCPU; i++ {
-				cf.Reset()
+				cf := carfac.New(carfac.CARFACParams{SampleRate: 48000})
+				sig := makeSignal(cf.NumSamples())
 				cf.Run(sig)
 				result, err := cf.BM()
 				if err != nil {
