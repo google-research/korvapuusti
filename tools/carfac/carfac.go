@@ -1,5 +1,4 @@
-/* partial_loudness is a package that lets you run a server presenting a web page
- * that plays sounds and lets you adjust levels.
+/* carfac contains a wrapper around the CARFAC hearing model.
  *
  * Copyright 2020 Google LLC
  *
