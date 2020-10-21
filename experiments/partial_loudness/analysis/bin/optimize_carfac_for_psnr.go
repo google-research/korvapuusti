@@ -34,14 +34,13 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
-	"sync/atomic"
 
 	"github.com/cheggaaa/pb"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
 	"github.com/google-research/korvapuusti/tools/carfac"
 	"github.com/google-research/korvapuusti/tools/spectrum"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
+	"github.com/google-research/korvapuusti/tools/workerpool"
 	"gonum.org/v1/gonum/optimize"
 )
 
@@ -205,72 +204,6 @@ func (x *xValues) setFromNormalizedFloat64Slice(xSlice []float64) {
 	}
 }
 
-type multiErr []error
-
-func (m multiErr) Error() string {
-	return fmt.Sprint([]error(m))
-}
-
-var runningGoRoutines int64
-
-func run(f func()) {
-	atomic.AddInt64(&runningGoRoutines, 1)
-	go func() {
-		defer atomic.AddInt64(&runningGoRoutines, -1)
-		f()
-	}()
-}
-
-func startWorkerPool() (prioJobs chan func() error, ticketJobs chan func() error, errorPromise func() error) {
-	ticketJobs = make(chan func() error)
-	prioJobs = make(chan func() error)
-	errors := make(chan error)
-
-	run(func() {
-		defer close(errors)
-		wg := &sync.WaitGroup{}
-		runWait := func(f func()) {
-			wg.Add(1)
-			run(func() {
-				defer wg.Done()
-				f()
-			})
-		}
-		runWait(func() {
-			tickets := make(chan struct{}, runtime.NumCPU())
-			for iterJob := range ticketJobs {
-				job := iterJob
-				tickets <- struct{}{}
-				runWait(func() {
-					defer func() { <-tickets }()
-					errors <- job()
-				})
-			}
-		})
-		runWait(func() {
-			for iterJob := range prioJobs {
-				job := iterJob
-				runWait(func() {
-					errors <- job()
-				})
-			}
-		})
-		wg.Wait()
-	})
-	return prioJobs, ticketJobs, func() error {
-		me := multiErr{}
-		for err := range errors {
-			if err != nil {
-				me = append(me, err)
-			}
-		}
-		if len(me) == 0 {
-			return nil
-		}
-		return me
-	}
-}
-
 type evaluation struct {
 	signal            signals.Float64Slice
 	evaluationID      string
@@ -322,17 +255,18 @@ type lossCalculator struct {
 
 func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) error {
 	l.evaluations = nil
+
+	wp := workerpool.New(map[string]int{"L": runtime.NumCPU(), "P": 0, "C": 0})
+
 	evaluationChannel := make(chan evaluation)
-	defer close(evaluationChannel)
-	run(func() {
+	wp.Queue("C", func() error {
 		for evaluation := range evaluationChannel {
 			l.evaluations = append(l.evaluations, evaluation)
 		}
+		return nil
 	})
 
-	prioJobs, ticketJobs, errorPromise := startWorkerPool()
-
-	prioJobs <- func() error {
+	wp.Queue("P", func() error {
 		evaluationFileNames, err := filepath.Glob(glob)
 		if err != nil {
 			return err
@@ -365,7 +299,7 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 				fileBar.Set(0)
 				for _, lineVar := range lines {
 					line := lineVar
-					ticketJobs <- func() error {
+					wp.Queue("L", func() error {
 						equivalentLoudness := &analysis.EquivalentLoudness{}
 						if err := json.Unmarshal(line, equivalentLoudness); err != nil {
 							return err
@@ -420,7 +354,7 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 						}
 						fileBar.Increment()
 						return nil
-					}
+					})
 				}
 				return nil
 			}(); err != nil {
@@ -431,11 +365,16 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 		}
 		allFilesBar.Finish()
 		barPool.Stop()
-		close(ticketJobs)
+		wp.Close("L")
 		return nil
+	})
+	wp.Close("P")
+	if err := wp.Wait("L", "P"); err != nil {
+		return err
 	}
-	close(prioJobs)
-	return errorPromise()
+	close(evaluationChannel)
+	wp.Close("C")
+	return wp.WaitAll()
 }
 
 func (l *lossCalculator) loss(x []float64) float64 {
@@ -478,11 +417,11 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	bar := pb.StartNew(len(l.evaluations)).Prefix("Evaluating")
 
 	psnrChan := make(chan psnr, len(l.evaluations))
-	prioJobs, ticketJobs, errorPromise := startWorkerPool()
-	prioJobs <- func() error {
+	wp := workerpool.New(map[string]int{"L": runtime.NumCPU(), "P": 0})
+	wp.Queue("P", func() error {
 		for _, evaluationVar := range l.evaluations {
 			evaluation := evaluationVar
-			ticketJobs <- func() error {
+			wp.Queue("L", func() error {
 				cf := <-carfacs
 				defer func() { carfacs <- cf }()
 				scaledSignal := evaluation.signal.ToFloat32AddLevel(l.evaluationFullScaleSineLevel - signals.DB(xValues.CarfacFullScaleSineLevel))
@@ -513,13 +452,13 @@ func (l *lossCalculator) loss(x []float64) float64 {
 				psnrChan <- evalPSNR
 				bar.Increment()
 				return nil
-			}
+			})
 		}
-		close(ticketJobs)
+		wp.Close("L")
 		return nil
-	}
-	close(prioJobs)
-	if err := errorPromise(); err != nil {
+	})
+	wp.Close("P")
+	if err := wp.WaitAll(); err != nil {
 		l.err = err
 		return 0.0
 	}
