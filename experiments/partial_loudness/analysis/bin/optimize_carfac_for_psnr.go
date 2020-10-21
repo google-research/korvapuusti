@@ -592,6 +592,14 @@ func main() {
 		}
 	}
 	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(), nil, nil)
-	fmt.Println(res, err)
-
+	if err != nil {
+		log.Fatal(err)
+	}
+	result := &xValues{}
+	result.setFromNormalizedFloat64Slice(res.Location.X)
+	b, err := json.Marshal(result)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Final results: %s\n", b)
 }
