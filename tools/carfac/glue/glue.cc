@@ -65,7 +65,10 @@ carfac create_carfac(
   };
 }
 
-void delete_carfac(carfac *cf) { delete static_cast<CARFAC *>(cf->cf); }
+void delete_carfac(carfac *cf) {
+	delete static_cast<CARFACOutput *>(cf->latest_output);
+	delete static_cast<CARFAC *>(cf->cf);
+}
 
 void carfac_reset(carfac *cf) {
   auto real_cf = static_cast<CARFAC *>(cf->cf);

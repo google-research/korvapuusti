@@ -145,16 +145,17 @@ func New(cfp CARFACParams) CF {
 		cfp.cFloat(cfp.TimeConstant0),
 		cfp.cFloat(cfp.TimeConstantMul),
 	)
-	runtime.SetFinalizer(&cf, func(i interface{}) {
-		C.delete_carfac(&cf)
-	})
-	return &carfac{
+	result := &carfac{
 		numChannels: int(cf.num_channels),
 		numSamples:  int(cf.num_samples),
 		sampleRate:  cfp.SampleRate,
 		poles:       floatAryToFloats(cf.poles),
 		cf:          &cf,
 	}
+	runtime.SetFinalizer(result, func(i interface{}) {
+		C.delete_carfac(&cf)
+	})
+	return result
 }
 
 func (c *carfac) Reset() {
