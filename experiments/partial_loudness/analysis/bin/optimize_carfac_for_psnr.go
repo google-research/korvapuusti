@@ -83,17 +83,17 @@ type xValues struct {
 	VOffset                 float64 `start:"0.04" scale:"0.0,0.5" limits:"0.0,-"`
 	MinZeta                 float64 `start:"0.1" scale:"0.01,0.05" limits:"0.01,-"`
 	MaxZeta                 float64 `start:"0.35" scale:"0.1,0.5" limits:"0.1,-"`
-	ZeroRatio               float64 `start:"1.4142135623730951" scale:"0.5,3.0" limits:"0.01,-"`
+	ZeroRatio               float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
 	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0" limits:"0.1,-"`
-	ERBBreakFreq            float64 `start:"165.3" scale:"150.0,180.0" limits:"150.0,180.0"`
-	ERBQ                    float64 `start:"9.264491981582191" scale:"7.0,11.5" limits:"7.0,11.5"`
+	ERBBreakFreq            float64 `start:"165.3" scale:"160.0,170.0" limits:"160.0,170.0"`
+	ERBQ                    float64 `start:"9.264491981582191" scale:"8.5,10.0" limits:"8.5,10.0"`
 	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0" limits:"-2.0,2.0"`
 
 	StageGain       float64 `start:"2.0" scale:"1.0,4.0" limits:"1.0,4.0"`
 	AGC1Scale0      float64 `start:"1.0" scale:"0.5,2.0" limits:"0.5,2.0"`
-	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0" limits:"1.01,3.0"`
+	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
 	AGC2Scale0      float64 `start:"1.65" scale:"0.5,2.0" limits:"0.5,2.0"`
-	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.0,3.0" limits:"1.01,3.0"`
+	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
 	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.004" limits:"0.0001,-"`
 	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"2.0,8.0"`
 
