@@ -609,11 +609,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	result := &xValues{}
-	result.setFromNormalizedFloat64Slice(res.Location.X)
-	b, err := json.Marshal(result)
+	resultValues := &xValues{}
+	resultValues.setFromNormalizedFloat64Slice(res.Location.X)
+	b, err := json.Marshal(resultValues)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Final results: %s\n", b)
+	fmt.Printf("Final results: %+v\n%v\n%s\n", res.Stats, res.Status, b)
 }
