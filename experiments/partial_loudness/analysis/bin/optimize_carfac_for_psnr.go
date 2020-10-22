@@ -58,6 +58,8 @@ var (
 
 	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
 	lossCalculationOutputRatio = flag.Int("loss_calculation_output_ratio", 100, "How seldom to output data about the best/worst results of a calculation run.")
+	openLoop                   = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
+	bmOutput                   = flag.Bool("bm_output", true, "Whether to use the basilar membrane output of the CARFAC (as opposed to the neural activation pattern output).")
 
 	// Definition of evaluations.
 
@@ -247,6 +249,8 @@ type lossCalculator struct {
 	evaluationFullScaleSineLevel signals.DB
 	lossCalculationOutputRatio   int
 	pNorm                        float64
+	openLoop                     bool
+	bmOutput                     bool
 
 	evaluations      []evaluation
 	err              error
@@ -427,7 +431,15 @@ func (l *lossCalculator) loss(x []float64) float64 {
 				scaledSignal := evaluation.signal.ToFloat32AddLevel(l.evaluationFullScaleSineLevel - signals.DB(xValues.CarfacFullScaleSineLevel))
 				cf.Reset()
 				cf.Run(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
-				bm, err := cf.BM()
+				if l.openLoop {
+					cf.RunOpen(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
+				}
+				var cfOut []float32
+				if l.bmOutput {
+					cfOut, err = cf.BM()
+				} else {
+					cfOut, err = cf.NAP()
+				}
 				if err != nil {
 					return err
 				}
@@ -438,7 +450,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 				for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
 					channel := make([]float64, fftWindowSize)
 					for sampleIdx := range channel {
-						channel[sampleIdx] = float64(bm[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
+						channel[sampleIdx] = float64(cfOut[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
 					}
 					spec := spectrum.Compute(channel, rate)
 					for binIdx := int(math.Floor(float64(evaluation.probeSampler.LowerLimit / spec.BinWidth))); binIdx <= int(math.Ceil(float64(evaluation.probeSampler.UpperLimit/spec.BinWidth))); binIdx++ {
@@ -573,6 +585,8 @@ func main() {
 		evaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 		lossCalculationOutputRatio:   *lossCalculationOutputRatio,
 		pNorm:                        *pNorm,
+		openLoop:                     *openLoop,
+		bmOutput:                     *bmOutput,
 	}
 	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
 		log.Fatal(err)
