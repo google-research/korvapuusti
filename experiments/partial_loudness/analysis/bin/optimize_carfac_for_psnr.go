@@ -409,7 +409,11 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	l.lossCalculations++
 	xValues := &xValues{}
 	xValues.setFromNormalizedFloat64Slice(l.usingNAP, x)
-	fmt.Printf("Evaluation %v with %s\n", l.lossCalculations, xValues.activeValues(l.usingNAP))
+	measure := "BM"
+	if l.usingNAP {
+		measure = "NAP"
+	}
+	fmt.Printf("Evaluation %v measuring %v with %s\n", l.lossCalculations, measure, xValues.activeValues(l.usingNAP))
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
 
