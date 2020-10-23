@@ -40,6 +40,11 @@ carfac create_carfac(
 		float *erb_q,
 		float *dh_dg_ratio,
 		
+		float *tau_lpf,
+		float *tau1_out,
+		float *tau1_in,
+		float *ac_corner_hz,
+
 		float *stage_gain,
 		float *agc1_scale0,
 		float *agc1_scale_mul,

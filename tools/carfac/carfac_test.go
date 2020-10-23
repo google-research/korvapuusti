@@ -291,6 +291,62 @@ func TestCARFAC(t *testing.T) {
 				return cf.BM()
 			},
 		},
+		{
+			desc: "TauLPFDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+			f2: func() ([]float32, error) {
+				x := 0.00009
+				cf := New(CARFACParams{SampleRate: 48000, TauLPF: &x})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+		},
+		{
+			desc: "Tau1OutDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+			f2: func() ([]float32, error) {
+				x := 0.006
+				cf := New(CARFACParams{SampleRate: 48000, Tau1Out: &x})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+		},
+		{
+			desc: "Tau1InDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+			f2: func() ([]float32, error) {
+				x := 0.02
+				cf := New(CARFACParams{SampleRate: 48000, Tau1In: &x})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+		},
+		{
+			desc: "ACCornerHzDifferent",
+			f1: func() ([]float32, error) {
+				cf := New(CARFACParams{SampleRate: 48000})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+			f2: func() ([]float32, error) {
+				x := 0.25
+				cf := New(CARFACParams{SampleRate: 48000, ACCornerHz: &x})
+				cf.Run(makeSignal(cf.NumSamples()))
+				return cf.NAP()
+			},
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			res1, err := tc.f1()

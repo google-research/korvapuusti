@@ -19,6 +19,11 @@ carfac create_carfac(
 		float *erb_q,
 		float *dh_dg_ratio,
 		
+		float *tau_lpf,
+		float *tau1_out,
+		float *tau1_in,
+		float *ac_corner_hz,
+
 		float *stage_gain,
 		float *agc1_scale0,
 		float *agc1_scale_mul,
@@ -40,6 +45,11 @@ carfac create_carfac(
   if (erb_break_freq != NULL) car_params.erb_break_freq = *erb_break_freq;
   if (erb_q != NULL) car_params.erb_q = *erb_q;
   if (dh_dg_ratio != NULL) car_params.dh_dg_ratio = *dh_dg_ratio;
+
+  if (tau_lpf != NULL) ihc_params.tau_lpf = *tau_lpf;
+  if (tau1_out != NULL) ihc_params.tau1_out = *tau1_out;
+  if (tau1_in != NULL) ihc_params.tau1_in = *tau1_in;
+  if (ac_corner_hz != NULL) ihc_params.ac_corner_hz = *ac_corner_hz;
 
   if (stage_gain != NULL) agc_params.agc_stage_gain = *stage_gain;
   if (agc1_scale0 != NULL) agc_params.agc1_scale0 = *agc1_scale0;

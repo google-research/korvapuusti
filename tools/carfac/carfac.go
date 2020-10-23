@@ -105,6 +105,11 @@ type CARFACParams struct {
 	ERBQ                    *float64
 	DhDgRatio               *float64
 
+	TauLPF     *float64
+	Tau1Out    *float64
+	Tau1In     *float64
+	ACCornerHz *float64
+
 	StageGain       *float64
 	AGC1Scale0      *float64
 	AGC1ScaleMul    *float64
@@ -136,6 +141,11 @@ func New(cfp CARFACParams) CF {
 		cfp.cFloat(cfp.ERBBreakFreq),
 		cfp.cFloat(cfp.ERBQ),
 		cfp.cFloat(cfp.DhDgRatio),
+
+		cfp.cFloat(cfp.TauLPF),
+		cfp.cFloat(cfp.Tau1Out),
+		cfp.cFloat(cfp.Tau1In),
+		cfp.cFloat(cfp.ACCornerHz),
 
 		cfp.cFloat(cfp.StageGain),
 		cfp.cFloat(cfp.AGC1Scale0),
