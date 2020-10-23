@@ -538,7 +538,7 @@ func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(logFile, []byte(fmt.Sprintf(`#!/usr/bin/python3
+	if err := ioutil.WriteFile(logFile, []byte(fmt.Sprintf(`#!/usr/bin/python3
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -552,7 +552,11 @@ ax.plot(%s, %s, label='Evaluated')
 ax.plot(%s, %s, label='Predicted')
 plt.legend()
 plt.show()
-`, l.lossCalculations, p[0].evaluation.runID, marshalledXValues, marshalledEvaluatedYValues, marshalledXValues, marshalledPredictedYValues)), 0777)
+`, l.lossCalculations, p[0].evaluation.runID, marshalledXValues, marshalledEvaluatedYValues, marshalledXValues, marshalledPredictedYValues)), 0777); err != nil {
+		return err
+	}
+	fmt.Printf("Saved psnr plot to %v\n", logFile)
+	return nil
 }
 
 func test() {
