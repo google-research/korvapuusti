@@ -97,11 +97,12 @@ type xValues struct {
 
 	StageGain       float64 `start:"2.0" scale:"1.0,4.0" limits:"1.0,4.0"`
 	AGC1Scale0      float64 `start:"1.0" scale:"0.5,2.0" limits:"0.5,2.0"`
-	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
+	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,2.0" limits:"1.2,2.0"`
 	AGC2Scale0      float64 `start:"1.65" scale:"0.5,2.0" limits:"0.5,2.0"`
-	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
+	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,2.0" limits:"1.2,2.0"`
 	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.004" limits:"0.0001,-"`
 	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"2.0,8.0"`
+	AGCMixCoeff     float64 `start:"0.5" scale:"0.2,0.8" limits:"0.2,0.8"`
 
 	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0" limits:"-,-"`
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
@@ -434,6 +435,7 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		AGC2ScaleMul:    &xValues.AGC2ScaleMul,
 		TimeConstant0:   &xValues.TimeConstant0,
 		TimeConstantMul: &xValues.TimeConstantMul,
+		AGCMixCoeff:     &xValues.AGCMixCoeff,
 	}
 
 	carfacs := make(chan carfac.CF, runtime.NumCPU())
@@ -590,10 +592,16 @@ func test() {
 		for idx := range xSlice {
 			xSlice[idx] = float64(idx)
 		}
-		roundTripValues := &xValues{}
-		roundTripValues.setFromNormalizedFloat64Slice(usingNAP, xSlice)
-		if roundTrip := roundTripValues.toNormalizedFloat64Slice(usingNAP); !reflect.DeepEqual(xSlice, roundTrip) {
-			log.Panicf("Converting back and forth between xValues doesn't provide the same result! Got %+v, wanted %+v", roundTrip, xSlice)
+		preRoundtripValues := &xValues{}
+		preRoundtripValues.setFromNormalizedFloat64Slice(usingNAP, xSlice)
+		postRoundtripValues := preRoundtripValues.toNormalizedFloat64Slice(usingNAP)
+		if len(xSlice) != len(postRoundtripValues) {
+			log.Panicf("Converting back and forth between xValues doesn't provide the same result! Got %+v, wanted %+v", postRoundtripValues, xSlice)
+		}
+		for idx := range xSlice {
+			if math.Abs(xSlice[idx]-postRoundtripValues[idx]) > 0.0000000001 {
+				log.Panicf("Converting back and forth between xValues doesn't provide the same result! Got %+v, wanted %+v", postRoundtripValues, xSlice)
+			}
 		}
 	}
 }
