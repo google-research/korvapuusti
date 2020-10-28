@@ -58,8 +58,6 @@ var (
 
 	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
 	lossCalculationOutputRatio = flag.Int("loss_calculation_output_ratio", 100, "How seldom to output data about the best/worst results of a calculation run.")
-	openLoop                   = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
-	usingNAP                   = flag.Bool("using_nap", false, "Whether to use the neural activation pattern output of CARFAC (as opposed to the basilar membrane output).")
 
 	// Definition of evaluations.
 
@@ -67,6 +65,8 @@ var (
 	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100.0, "The calibration for a full scale sine during evaluation.")
 	noiseFloor                   = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
 	pNorm                        = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
+	openLoop                     = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
+	usingNAP                     = flag.Bool("using_nap", false, "Whether to use the neural activation pattern output of CARFAC (as opposed to the basilar membrane output).")
 )
 
 func normalize(x float64, scale [2]float64) float64 {
@@ -224,6 +224,7 @@ func (x xValues) toNormalizedFloat64Slice(usingNAP bool) []float64 {
 }
 
 func (x *xValues) setFromNormalizedFloat64Slice(usingNAP bool, xSlice []float64) {
+	x.init()
 	val := reflect.ValueOf(x)
 	for _, idx := range x.activeFieldIndices(usingNAP) {
 		val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(xSlice[0], x.scaleForField(idx))))
@@ -407,6 +408,10 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 }
 
 func (l *lossCalculator) loss(x []float64) float64 {
+	return l.lossHelper(x, "")
+}
+
+func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string) float64 {
 	l.lossCalculations++
 	xValues := &xValues{}
 	xValues.setFromNormalizedFloat64Slice(l.usingNAP, x)
@@ -414,7 +419,11 @@ func (l *lossCalculator) loss(x []float64) float64 {
 	if l.usingNAP {
 		measure = "NAP"
 	}
-	fmt.Printf("Evaluation %v measuring %v with %s\n", l.lossCalculations, measure, xValues.activeValues(l.usingNAP))
+	loop := "closed"
+	if l.openLoop {
+		loop = "open"
+	}
+	fmt.Printf("Evaluation ** %v ** measuring %v in %v loop with %s\n", l.lossCalculations, measure, loop, xValues.activeValues(l.usingNAP))
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
 
@@ -427,6 +436,11 @@ func (l *lossCalculator) loss(x []float64) float64 {
 		ERBBreakFreq:            &xValues.ERBBreakFreq,
 		ERBQ:                    &xValues.ERBQ,
 		DhDgRatio:               &xValues.DhDgRatio,
+
+		TauLPF:     &xValues.TauLPF,
+		Tau1Out:    &xValues.Tau1Out,
+		Tau1In:     &xValues.Tau1In,
+		ACCornerHz: &xValues.ACCornerHz,
 
 		StageGain:       &xValues.StageGain,
 		AGC1Scale0:      &xValues.AGC1Scale0,
@@ -525,8 +539,12 @@ func (l *lossCalculator) loss(x []float64) float64 {
 			worstRun = psnrByRunID[runID]
 		}
 	}
-	if l.lossCalculations%l.lossCalculationOutputRatio == 0 {
-		if err := l.logPSNRs(worstRun, "worst_evaluation_run"); err != nil {
+	if forceLogWorstTo != "" || l.lossCalculations%l.lossCalculationOutputRatio == 0 {
+		name := "worst_evaluation_run"
+		if forceLogWorstTo != "" {
+			name = forceLogWorstTo
+		}
+		if err := l.logPSNRs(worstRun, name); err != nil {
 			l.err = err
 			return 0.0
 		}
@@ -614,6 +632,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+	os.MkdirAll(*outputDir, 0755)
 	lc := &lossCalculator{
 		outDir:                       *outputDir,
 		evaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
@@ -643,8 +662,23 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	resultValues := &xValues{}
 	resultValues.setFromNormalizedFloat64Slice(lc.usingNAP, res.Location.X)
+	finalFile, err := os.Create(filepath.Join(*outputDir, "final_results.json"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer finalFile.Close()
+	if err := json.NewEncoder(finalFile).Encode(map[string]interface{}{
+		"X":        resultValues,
+		"UsingNAP": *usingNAP,
+		"OpenLoop": *openLoop,
+		"Loss":     lc.lossHelper(resultValues.toNormalizedFloat64Slice(*usingNAP), "worst_run_final_results"),
+	}); err != nil {
+		log.Fatal(err)
+	}
+
 	b, err := json.Marshal(resultValues)
 	if err != nil {
 		log.Fatal(err)
