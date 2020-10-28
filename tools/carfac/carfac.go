@@ -117,6 +117,7 @@ type CARFACParams struct {
 	AGC2ScaleMul    *float64
 	TimeConstant0   *float64
 	TimeConstantMul *float64
+	AGCMixCoeff     *float64
 }
 
 func (c CARFACParams) cFloat(f *float64) *C.float {
@@ -154,6 +155,7 @@ func New(cfp CARFACParams) CF {
 		cfp.cFloat(cfp.AGC2ScaleMul),
 		cfp.cFloat(cfp.TimeConstant0),
 		cfp.cFloat(cfp.TimeConstantMul),
+		cfp.cFloat(cfp.AGCMixCoeff),
 	)
 	result := &carfac{
 		numChannels: int(cf.num_channels),

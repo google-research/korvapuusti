@@ -30,7 +30,8 @@ carfac create_carfac(
 		float *agc2_scale0,
 		float *agc2_scale_mul,
 		float *time_constant0,
-		float *time_constant_mul) {
+		float *time_constant_mul,
+		float *agc_mix_coeff) {
   CARParams car_params;
   IHCParams ihc_params;
   AGCParams agc_params;
@@ -58,6 +59,7 @@ carfac create_carfac(
   if (agc2_scale_mul != NULL) agc_params.agc2_scale_mul = *agc2_scale_mul;
   if (time_constant0 != NULL) agc_params.time_constant0 = *time_constant0;
   if (time_constant_mul != NULL) agc_params.time_constant_mul = *time_constant_mul;
+  if (agc_mix_coeff != NULL) agc_params.agc_mix_coeff = *agc_mix_coeff;
 
   auto c = new CARFAC(1, static_cast<float>(sample_rate), car_params,
                       ihc_params, agc_params);

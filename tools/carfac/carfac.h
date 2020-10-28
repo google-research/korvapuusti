@@ -51,7 +51,8 @@ carfac create_carfac(
 		float *agc2_scale0,
 		float *agc2_scale_mul,
 		float *time_constant0,
-		float *time_constant_mul);
+		float *time_constant_mul,
+		float *agc_mix_coeff);
 
 void delete_carfac(carfac *cf);
 
