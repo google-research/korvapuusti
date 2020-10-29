@@ -658,7 +658,9 @@ func main() {
 		},
 	}
 	for _, disabledField := range strings.Split(*disabledFields, ",") {
-		lc.conf.DisabledFields[disabledField] = true
+		if strings.TrimSpace(disabledField) != "" {
+			lc.conf.DisabledFields[disabledField] = true
+		}
 	}
 	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
 		log.Fatal(err)
