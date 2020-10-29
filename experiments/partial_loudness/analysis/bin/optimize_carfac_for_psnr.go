@@ -86,16 +86,16 @@ type xValues struct {
 	MaxZeta                 float64 `start:"0.35" scale:"0.1,0.5" limits:"0.1,-"`
 	ZeroRatio               float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
 	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0" limits:"0.1,-"`
-	ERBBreakFreq            float64 `start:"165.3" scale:"160.0,170.0" limits:"160.0,170.0"`
-	ERBQ                    float64 `start:"9.264491981582191" scale:"8.5,10.0" limits:"8.5,10.0"`
+	ERBBreakFreq            float64 `start:"165.3" scale:"100.0,200.0" limits:"100.0,200.0"`
+	ERBQ                    float64 `start:"9.264491981582191" scale:"5.0,15.0" limits:"5.0,15.0"`
 	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0" limits:"-2.0,2.0"`
 
 	TauLPF     float64 `start:"0.00008" scale:"0.00002,0.00016" limits:"0.00002,0.00016" nap:"true"`
 	Tau1Out    float64 `start:"0.0005" scale:"0.0002,0.001" limits:"0.0002,0.001" nap:"true"`
 	Tau1In     float64 `start:"0.01" scale:"0.005,0.02" limits:"0.005,0.02" nap:"true"`
-	ACCornerHz float64 `start:"20.0" scale:"10.0,40.0" limits:"10.0,40.0" nap:"true"`
+	ACCornerHz float64 `start:"20.0" scale:"5.0,80.0" limits:"10.0,40.0" nap:"true"`
 
-	StageGain       float64 `start:"2.0" scale:"1.0,4.0" limits:"1.0,4.0"`
+	StageGain       float64 `start:"2.0" scale:"1.2,4.0" limits:"1.2,4.0"`
 	AGC1Scale0      float64 `start:"1.0" scale:"0.5,2.0" limits:"0.5,2.0"`
 	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,2.0" limits:"1.2,2.0"`
 	AGC2Scale0      float64 `start:"1.65" scale:"0.5,2.0" limits:"0.5,2.0"`
