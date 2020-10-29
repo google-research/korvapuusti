@@ -423,15 +423,7 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	l.lossCalculations++
 	xValues := &xValues{}
 	xValues.setFromNormalizedFloat64Slice(l.conf, x)
-	measure := "BM"
-	if l.conf.UsingNAP {
-		measure = "NAP"
-	}
-	loop := "closed"
-	if l.conf.OpenLoop {
-		loop = "open"
-	}
-	fmt.Printf("Evaluation ** %v ** measuring %v in %v loop with %s\n", l.lossCalculations, measure, loop, xValues.activeValues(l.conf))
+	fmt.Printf("Evaluation ** %v ** using %+v with %s\n", l.lossCalculations, l.conf, xValues.activeValues(l.conf))
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
 
