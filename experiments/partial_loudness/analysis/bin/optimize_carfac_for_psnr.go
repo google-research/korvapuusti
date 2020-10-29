@@ -52,8 +52,6 @@ const (
 var (
 	sqrt2 = math.Sqrt(2.0)
 
-	startX = flag.String("start_x", "", "Starting values in JSON format.")
-
 	// Optimize-time outputs.
 
 	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
@@ -64,9 +62,14 @@ var (
 	evaluationJSONGlob           = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
 	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100.0, "The calibration for a full scale sine during evaluation.")
 	noiseFloor                   = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
-	pNorm                        = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
-	openLoop                     = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
-	usingNAP                     = flag.Bool("using_nap", false, "Whether to use the neural activation pattern output of CARFAC (as opposed to the basilar membrane output).")
+
+	// Optimization settings
+
+	startX         = flag.String("start_x", "", "Starting values in JSON format.")
+	pNorm          = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
+	openLoop       = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
+	usingNAP       = flag.Bool("using_nap", false, "Whether to use the neural activation pattern output of CARFAC (as opposed to the basilar membrane output).")
+	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
 )
 
 func normalize(x float64, scale [2]float64) float64 {
@@ -75,6 +78,13 @@ func normalize(x float64, scale [2]float64) float64 {
 
 func denormalize(x float64, scale [2]float64) float64 {
 	return x*(scale[1]-scale[0]) + scale[0]
+}
+
+type optConfig struct {
+	OpenLoop       bool
+	UsingNAP       bool
+	DisabledFields map[string]bool
+	PNorm          float64
 }
 
 type xValues struct {
@@ -108,7 +118,7 @@ type xValues struct {
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
 }
 
-func (x xValues) activeValues(usingNAP bool) string {
+func (x xValues) activeValues(conf optConfig) string {
 	b, err := json.Marshal(x)
 	if err != nil {
 		log.Panic(err)
@@ -119,7 +129,7 @@ func (x xValues) activeValues(usingNAP bool) string {
 	}
 	activeFields := map[string]bool{}
 	typ := reflect.TypeOf(x)
-	for _, idx := range x.activeFieldIndices(usingNAP) {
+	for _, idx := range x.activeFieldIndices(conf) {
 		activeFields[typ.Field(idx).Name] = true
 	}
 	for k := range m {
@@ -178,11 +188,11 @@ func (x xValues) limitLoss() (float64, []string) {
 	return result, explanation
 }
 
-func (x xValues) activeFieldIndices(usingNAP bool) []int {
+func (x xValues) activeFieldIndices(conf optConfig) []int {
 	typ := reflect.TypeOf(x)
 	result := []int{}
 	for idx := 0; idx < typ.NumField(); idx++ {
-		if typ.Field(idx).Tag.Get("disabled") != "true" && (usingNAP || typ.Field(idx).Tag.Get("nap") != "true") {
+		if !conf.DisabledFields[typ.Field(idx).Name] && (conf.UsingNAP || typ.Field(idx).Tag.Get("nap") != "true") {
 			result = append(result, idx)
 		}
 	}
@@ -214,19 +224,19 @@ func (x *xValues) init() {
 	}
 }
 
-func (x xValues) toNormalizedFloat64Slice(usingNAP bool) []float64 {
+func (x xValues) toNormalizedFloat64Slice(conf optConfig) []float64 {
 	val := reflect.ValueOf(x)
 	result := []float64{}
-	for _, idx := range x.activeFieldIndices(usingNAP) {
+	for _, idx := range x.activeFieldIndices(conf) {
 		result = append(result, normalize(val.Field(idx).Float(), x.scaleForField(idx)))
 	}
 	return result
 }
 
-func (x *xValues) setFromNormalizedFloat64Slice(usingNAP bool, xSlice []float64) {
+func (x *xValues) setFromNormalizedFloat64Slice(conf optConfig, xSlice []float64) {
 	x.init()
 	val := reflect.ValueOf(x)
-	for _, idx := range x.activeFieldIndices(usingNAP) {
+	for _, idx := range x.activeFieldIndices(conf) {
 		val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(xSlice[0], x.scaleForField(idx))))
 		xSlice = xSlice[1:]
 	}
@@ -274,9 +284,7 @@ type lossCalculator struct {
 	outDir                       string
 	evaluationFullScaleSineLevel signals.DB
 	lossCalculationOutputRatio   int
-	pNorm                        float64
-	openLoop                     bool
-	usingNAP                     bool
+	conf                         optConfig
 
 	evaluations      []evaluation
 	err              error
@@ -414,16 +422,16 @@ func (l *lossCalculator) loss(x []float64) float64 {
 func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLogAllTo string) float64 {
 	l.lossCalculations++
 	xValues := &xValues{}
-	xValues.setFromNormalizedFloat64Slice(l.usingNAP, x)
+	xValues.setFromNormalizedFloat64Slice(l.conf, x)
 	measure := "BM"
-	if l.usingNAP {
+	if l.conf.UsingNAP {
 		measure = "NAP"
 	}
 	loop := "closed"
-	if l.openLoop {
+	if l.conf.OpenLoop {
 		loop = "open"
 	}
-	fmt.Printf("Evaluation ** %v ** measuring %v in %v loop with %s\n", l.lossCalculations, measure, loop, xValues.activeValues(l.usingNAP))
+	fmt.Printf("Evaluation ** %v ** measuring %v in %v loop with %s\n", l.lossCalculations, measure, loop, xValues.activeValues(l.conf))
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
 
@@ -470,12 +478,12 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 				scaledSignal := evaluation.signal.ToFloat32AddLevel(l.evaluationFullScaleSineLevel - signals.DB(xValues.CarfacFullScaleSineLevel))
 				cf.Reset()
 				cf.Run(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
-				if l.openLoop {
+				if l.conf.OpenLoop {
 					cf.RunOpen(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
 				}
 				var cfOut []float32
 				var err error
-				if !l.usingNAP {
+				if !l.conf.UsingNAP {
 					cfOut, err = cf.BM()
 				} else {
 					cfOut, err = cf.NAP()
@@ -522,7 +530,7 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	for evalPSNR := range psnrChan {
 		psnrsByRunID[evalPSNR.evaluation.runID] = append(psnrsByRunID[evalPSNR.evaluation.runID], evalPSNR)
 		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
-		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.pNorm)
+		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.conf.PNorm)
 		if evalPSNR.evaluation.evaluatedLoudness < 27 {
 			errorDiscount := float64(30-evalPSNR.evaluation.evaluatedLoudness) / 3
 			square /= errorDiscount
@@ -533,7 +541,7 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	worstRun := psnrs{}
 	worstAvgLoss := 0.0
 	for runID := range lossByRunID {
-		lossByRunID[runID] = math.Pow(lossByRunID[runID]/float64(len(psnrsByRunID[runID])), 1.0/l.pNorm)
+		lossByRunID[runID] = math.Pow(lossByRunID[runID]/float64(len(psnrsByRunID[runID])), 1.0/l.conf.PNorm)
 		if lossByRunID[runID] > worstAvgLoss {
 			worstAvgLoss = lossByRunID[runID]
 			worstRun = psnrsByRunID[runID]
@@ -559,7 +567,7 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 			return 0.0
 		}
 	}
-	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.pNorm)
+	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.conf.PNorm)
 	limitLoss, explanation := xValues.limitLoss()
 	totalLoss := loss + limitLoss
 	fmt.Printf("Got loss %v (limit loss %v: %v)\n", totalLoss, limitLoss, strings.Join(explanation, ", "))
@@ -615,14 +623,15 @@ plt.show()
 
 func test() {
 	for _, usingNAP := range []bool{true, false} {
+		conf := optConfig{UsingNAP: usingNAP}
 		testXValues := xValues{}
-		xSlice := testXValues.toNormalizedFloat64Slice(usingNAP)
+		xSlice := testXValues.toNormalizedFloat64Slice(conf)
 		for idx := range xSlice {
 			xSlice[idx] = float64(idx)
 		}
 		preRoundtripValues := &xValues{}
-		preRoundtripValues.setFromNormalizedFloat64Slice(usingNAP, xSlice)
-		postRoundtripValues := preRoundtripValues.toNormalizedFloat64Slice(usingNAP)
+		preRoundtripValues.setFromNormalizedFloat64Slice(conf, xSlice)
+		postRoundtripValues := preRoundtripValues.toNormalizedFloat64Slice(conf)
 		if len(xSlice) != len(postRoundtripValues) {
 			log.Panicf("Converting back and forth between xValues doesn't provide the same result! Got %+v, wanted %+v", postRoundtripValues, xSlice)
 		}
@@ -642,14 +651,22 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	os.MkdirAll(*outputDir, 0755)
+	if err := os.MkdirAll(*outputDir, 0755); err != nil {
+		log.Fatal(err)
+	}
 	lc := &lossCalculator{
 		outDir:                       *outputDir,
 		evaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 		lossCalculationOutputRatio:   *lossCalculationOutputRatio,
-		pNorm:                        *pNorm,
-		openLoop:                     *openLoop,
-		usingNAP:                     *usingNAP,
+		conf: optConfig{
+			PNorm:          *pNorm,
+			OpenLoop:       *openLoop,
+			UsingNAP:       *usingNAP,
+			DisabledFields: map[string]bool{},
+		},
+	}
+	for _, disabledField := range strings.Split(*disabledFields, ",") {
+		lc.conf.DisabledFields[disabledField] = true
 	}
 	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
 		log.Fatal(err)
@@ -668,23 +685,22 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(lc.usingNAP), nil, nil)
+	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(lc.conf), nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	resultValues := &xValues{}
-	resultValues.setFromNormalizedFloat64Slice(lc.usingNAP, res.Location.X)
+	resultValues.setFromNormalizedFloat64Slice(lc.conf, res.Location.X)
 	finalFile, err := os.Create(filepath.Join(*outputDir, "final_results.json"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer finalFile.Close()
 	if err := json.NewEncoder(finalFile).Encode(map[string]interface{}{
-		"X":        resultValues,
-		"UsingNAP": *usingNAP,
-		"OpenLoop": *openLoop,
-		"Loss":     lc.lossHelper(resultValues.toNormalizedFloat64Slice(*usingNAP), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
+		"X":    resultValues,
+		"Conf": lc.conf,
+		"Loss": lc.lossHelper(resultValues.toNormalizedFloat64Slice(lc.conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
 	}); err != nil {
 		log.Fatal(err)
 	}
