@@ -408,10 +408,10 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 }
 
 func (l *lossCalculator) loss(x []float64) float64 {
-	return l.lossHelper(x, "")
+	return l.lossHelper(x, "", "")
 }
 
-func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string) float64 {
+func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLogAllTo string) float64 {
 	l.lossCalculations++
 	xValues := &xValues{}
 	xValues.setFromNormalizedFloat64Slice(l.usingNAP, x)
@@ -517,10 +517,10 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string) float64
 	close(psnrChan)
 	bar.Finish()
 	sumOfSquares := 0.0
-	psnrByRunID := map[string]psnrs{}
+	psnrsByRunID := map[string]psnrs{}
 	lossByRunID := map[string]float64{}
 	for evalPSNR := range psnrChan {
-		psnrByRunID[evalPSNR.evaluation.runID] = append(psnrByRunID[evalPSNR.evaluation.runID], evalPSNR)
+		psnrsByRunID[evalPSNR.evaluation.runID] = append(psnrsByRunID[evalPSNR.evaluation.runID], evalPSNR)
 		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
 		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.pNorm)
 		if evalPSNR.evaluation.evaluatedLoudness < 27 {
@@ -533,10 +533,10 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string) float64
 	worstRun := psnrs{}
 	worstAvgLoss := 0.0
 	for runID := range lossByRunID {
-		lossByRunID[runID] = math.Pow(lossByRunID[runID]/float64(len(psnrByRunID[runID])), 1.0/l.pNorm)
+		lossByRunID[runID] = math.Pow(lossByRunID[runID]/float64(len(psnrsByRunID[runID])), 1.0/l.pNorm)
 		if lossByRunID[runID] > worstAvgLoss {
 			worstAvgLoss = lossByRunID[runID]
-			worstRun = psnrByRunID[runID]
+			worstRun = psnrsByRunID[runID]
 		}
 	}
 	if forceLogWorstTo != "" || l.lossCalculations%l.lossCalculationOutputRatio == 0 {
@@ -545,6 +545,16 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string) float64
 			name = forceLogWorstTo
 		}
 		if err := l.logPSNRs(worstRun, name); err != nil {
+			l.err = err
+			return 0.0
+		}
+	}
+	if forceLogAllTo != "" {
+		all := psnrs{}
+		for _, runs := range psnrsByRunID {
+			all = append(all, runs...)
+		}
+		if err := l.logPSNRs(all, forceLogAllTo); err != nil {
 			l.err = err
 			return 0.0
 		}
@@ -674,7 +684,7 @@ func main() {
 		"X":        resultValues,
 		"UsingNAP": *usingNAP,
 		"OpenLoop": *openLoop,
-		"Loss":     lc.lossHelper(resultValues.toNormalizedFloat64Slice(*usingNAP), "worst_run_final_results"),
+		"Loss":     lc.lossHelper(resultValues.toNormalizedFloat64Slice(*usingNAP), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
 	}); err != nil {
 		log.Fatal(err)
 	}
