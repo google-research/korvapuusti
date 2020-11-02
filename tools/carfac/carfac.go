@@ -14,7 +14,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-//go:generate sh -c "c++ -c `pkg-config --libs --cflags eigen3` carfac/cpp/agc.h carfac/cpp/binaural_sai.cc carfac/cpp/car.h carfac/cpp/carfac.cc carfac/cpp/carfac_util.h carfac/cpp/common.h carfac/cpp/ear.cc carfac/cpp/ihc.h carfac/cpp/sai.cc glue/glue.cc && ar rcs libcarfac.a *.o"
+//go:generate sh -c "c++ -c `pkg-config --libs --cflags eigen3` carfac/cpp/agc.h carfac/cpp/binaural_sai.cc carfac/cpp/car.h carfac/cpp/carfac.cc carfac/cpp/carfac_util.h carfac/cpp/common.h carfac/cpp/ear.cc carfac/cpp/ihc.h carfac/cpp/sai.cc glue/glue.cc && ar rcs libcarfac.a *.o && cd carfac && git clean -f && cd .."
 package carfac
 
 // #cgo CFLAGS: -I${SRCDIR}
@@ -103,7 +103,6 @@ type CARFACParams struct {
 	ERBPerStep              *float64
 	ERBBreakFreq            *float64
 	ERBQ                    *float64
-	DhDgRatio               *float64
 
 	TauLPF     *float64
 	Tau1Out    *float64
@@ -141,7 +140,6 @@ func New(cfp CARFACParams) CF {
 		cfp.cFloat(cfp.ERBPerStep),
 		cfp.cFloat(cfp.ERBBreakFreq),
 		cfp.cFloat(cfp.ERBQ),
-		cfp.cFloat(cfp.DhDgRatio),
 
 		cfp.cFloat(cfp.TauLPF),
 		cfp.cFloat(cfp.Tau1Out),

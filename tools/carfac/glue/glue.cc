@@ -17,7 +17,6 @@ carfac create_carfac(
 		float *erb_per_step,
 		float *erb_break_freq,
 		float *erb_q,
-		float *dh_dg_ratio,
 		
 		float *tau_lpf,
 		float *tau1_out,
@@ -45,7 +44,6 @@ carfac create_carfac(
   if (erb_per_step != NULL) car_params.erb_per_step = *erb_per_step;
   if (erb_break_freq != NULL) car_params.erb_break_freq = *erb_break_freq;
   if (erb_q != NULL) car_params.erb_q = *erb_q;
-  if (dh_dg_ratio != NULL) car_params.dh_dg_ratio = *dh_dg_ratio;
 
   if (tau_lpf != NULL) ihc_params.tau_lpf = *tau_lpf;
   if (tau1_out != NULL) ihc_params.tau1_out = *tau1_out;

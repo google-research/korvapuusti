@@ -38,7 +38,6 @@ carfac create_carfac(
 		float *erb_per_step,
 		float *erb_break_freq,
 		float *erb_q,
-		float *dh_dg_ratio,
 		
 		float *tau_lpf,
 		float *tau1_out,
