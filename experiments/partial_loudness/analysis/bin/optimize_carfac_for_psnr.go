@@ -63,13 +63,18 @@ var (
 	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100.0, "The calibration for a full scale sine during evaluation.")
 	noiseFloor                   = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
 
-	// Optimization settings
+	// Optimization settings.
 
 	startX         = flag.String("start_x", "", "Starting values in JSON format.")
 	pNorm          = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
 	openLoop       = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
 	usingNAP       = flag.Bool("using_nap", false, "Whether to use the neural activation pattern output of CARFAC (as opposed to the basilar membrane output).")
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
+
+	// Alternative modes.
+
+	exploreField       = flag.String("explore_field", "", "Change mode to explore this field from min limit to max limit, and generating a plot of the loss across that dimension.")
+	exploreFieldPoints = flag.Int("explore_field_points", 100, "The number of points to calculate when exploring a field.")
 )
 
 func normalize(x float64, scale [2]float64) float64 {
@@ -98,7 +103,6 @@ type xValues struct {
 	HighFDampingCompression float64 `start:"0.5" scale:"0.5,3.0" limits:"0.1,-"`
 	ERBBreakFreq            float64 `start:"165.3" scale:"100.0,200.0" limits:"100.0,200.0"`
 	ERBQ                    float64 `start:"9.264491981582191" scale:"5.0,15.0" limits:"5.0,15.0"`
-	DhDgRatio               float64 `start:"0.0" scale:"-1.0,1.0" limits:"-2.0,2.0"`
 
 	TauLPF     float64 `start:"0.00008" scale:"0.00002,0.00016" limits:"0.00002,0.00016" nap:"true"`
 	Tau1Out    float64 `start:"0.0005" scale:"0.0002,0.001" limits:"0.0002,0.001" nap:"true"`
@@ -144,6 +148,34 @@ func (x xValues) activeValues(conf optConfig) string {
 	return string(b)
 }
 
+func (x xValues) limitsForField(idx int) []*float64 {
+	typ := reflect.TypeOf(x)
+	limits := typ.Field(idx).Tag.Get("limits")
+	if limits == "" {
+		log.Fatalf("Field %+v doesn't have a limits tag!", typ.Field(idx))
+	}
+	parts := strings.Split(limits, ",")
+	if len(parts) != 2 {
+		log.Fatalf("Field %+v doesn't have a limits tag that consists of two comma separated values!", typ.Field(idx))
+	}
+	result := make([]*float64, 2)
+	if parts[0] != "-" {
+		lowerLimit, err := strconv.ParseFloat(parts[0], 64)
+		if err != nil {
+			log.Fatalf("Field %+v has a limits tag whose lower limit isn't parseable as float64: %v", typ.Field(idx), err)
+		}
+		result[0] = &lowerLimit
+	}
+	if parts[1] != "-" {
+		upperLimit, err := strconv.ParseFloat(parts[1], 64)
+		if err != nil {
+			log.Fatalf("Field %+v has a limits tag whose upper limit isn't parseable as float64: %v", typ.Field(idx), err)
+		}
+		result[1] = &upperLimit
+	}
+	return result
+}
+
 func (x xValues) limitLoss() (float64, []string) {
 	val := reflect.ValueOf(x)
 	typ := reflect.TypeOf(x)
@@ -152,36 +184,21 @@ func (x xValues) limitLoss() (float64, []string) {
 	for idx := 0; idx < val.NumField(); idx++ {
 		current := val.Field(idx).Float()
 		normCurrent := normalize(current, x.scaleForField(idx)) * 10
-		limits := typ.Field(idx).Tag.Get("limits")
-		if limits == "" {
-			log.Fatalf("Field %+v doesn't have a limits tag!", typ.Field(idx))
-		}
-		parts := strings.Split(limits, ",")
-		if len(parts) != 2 {
-			log.Fatalf("Field %+v doesn't have a limits tag that consists of two comma separated values!", typ.Field(idx))
-		}
-		if parts[0] != "-" {
-			lowerLimit, err := strconv.ParseFloat(parts[0], 64)
-			if err != nil {
-				log.Fatalf("Field %+v has a limits tag whose lower limit isn't parseable as float64: %v", typ.Field(idx), err)
-			}
-			normLowerLimit := normalize(lowerLimit, x.scaleForField(idx)) * 10
-			if current < lowerLimit {
+		limits := x.limitsForField(idx)
+		if limits[0] != nil {
+			if current < *limits[0] {
+				normLowerLimit := normalize(*limits[0], x.scaleForField(idx)) * 10
 				contribution := math.Pow(normLowerLimit-normCurrent, 2)
 				result += contribution
-				explanation = append(explanation, fmt.Sprintf("%v = %v (< %v): %v", typ.Field(idx).Name, current, lowerLimit, contribution))
+				explanation = append(explanation, fmt.Sprintf("%v = %v (< %v): %v", typ.Field(idx).Name, current, *limits[0], contribution))
 			}
 		}
-		if parts[1] != "-" {
-			upperLimit, err := strconv.ParseFloat(parts[1], 64)
-			if err != nil {
-				log.Fatalf("Field %+v has a limits tag whose upper limit isn't parseable as float64: %v", typ.Field(idx), err)
-			}
-			normUpperLimit := normalize(upperLimit, x.scaleForField(idx)) * 10
-			if current > upperLimit {
+		if limits[1] != nil {
+			if current > *limits[1] {
+				normUpperLimit := normalize(*limits[1], x.scaleForField(idx)) * 10
 				contribution := math.Pow(normUpperLimit-normCurrent, 2)
 				result += contribution
-				explanation = append(explanation, fmt.Sprintf("%v = %v (> %v): %v", typ.Field(idx).Name, current, upperLimit, contribution))
+				explanation = append(explanation, fmt.Sprintf("%v = %v (> %v): %v", typ.Field(idx).Name, current, *limits[1], contribution))
 			}
 		}
 	}
@@ -435,7 +452,6 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 		HighFDampingCompression: &xValues.HighFDampingCompression,
 		ERBBreakFreq:            &xValues.ERBBreakFreq,
 		ERBQ:                    &xValues.ERBQ,
-		DhDgRatio:               &xValues.DhDgRatio,
 
 		TauLPF:     &xValues.TauLPF,
 		Tau1Out:    &xValues.Tau1Out,
@@ -566,6 +582,44 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	return totalLoss
 }
 
+type plot struct {
+	x     []float64
+	y     []float64
+	label string
+}
+
+func (l *lossCalculator) makePythonPlot(filename string, title string, xlabel string, ylabel string, plots []plot) error {
+	plotCommands := []string{}
+	for _, p := range plots {
+		marshalledXValues, err := json.Marshal(p.x)
+		if err != nil {
+			return err
+		}
+		marshalledYValues, err := json.Marshal(p.y)
+		if err != nil {
+			return err
+		}
+		plotCommands = append(plotCommands, fmt.Sprintf("ax.plot(%s, %s, label='%s')", marshalledXValues, marshalledYValues, p.label))
+	}
+	if err := ioutil.WriteFile(filename, []byte(fmt.Sprintf(`#!/usr/bin/python3
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig = plt.figure(figsize=(8,4))
+ax = fig.add_subplot()
+ax.set_title('%s')
+ax.set_xlabel('%s')
+ax.set_ylabel('%s')
+%s
+plt.legend()
+plt.show()
+`, title, xlabel, ylabel, strings.Join(plotCommands, "\n"))), 0777); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
 	if err := os.MkdirAll(l.outDir, 0777); err != nil {
 		return err
@@ -580,33 +634,18 @@ func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
 		evaluatedYValues = append(evaluatedYValues, float64(p[idx].evaluation.evaluatedLoudness))
 		predictedYValues = append(predictedYValues, float64(p[idx].predictedLoudness))
 	}
-	marshalledXValues, err := json.Marshal(xValues)
-	if err != nil {
-		return err
-	}
-	marshalledEvaluatedYValues, err := json.Marshal(evaluatedYValues)
-	if err != nil {
-		return err
-	}
-	marshalledPredictedYValues, err := json.Marshal(predictedYValues)
-	if err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile(logFile, []byte(fmt.Sprintf(`#!/usr/bin/python3
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-
-fig = plt.figure(figsize=(8,4))
-ax = fig.add_subplot()
-ax.set_title('Optimization run %v/Evaluation run %v')
-ax.set_xlabel('Evaluation index')
-ax.set_ylabel('Loudness')
-ax.plot(%s, %s, label='Evaluated')
-ax.plot(%s, %s, label='Predicted')
-plt.legend()
-plt.show()
-`, l.lossCalculations, p[0].evaluation.runID, marshalledXValues, marshalledEvaluatedYValues, marshalledXValues, marshalledPredictedYValues)), 0777); err != nil {
+	if err := l.makePythonPlot(logFile, fmt.Sprintf("Optimization run %v/Evaluation run %v", l.lossCalculations, p[0].evaluation.runID), "Evaluation index", "Loudness", []plot{
+		{
+			x:     xValues,
+			y:     evaluatedYValues,
+			label: "Evaluated",
+		},
+		{
+			x:     xValues,
+			y:     predictedYValues,
+			label: "Predicted",
+		},
+	}); err != nil {
 		return err
 	}
 	fmt.Printf("Saved psnr plot to %v\n", logFile)
@@ -635,6 +674,80 @@ func test() {
 	}
 }
 
+func (l *lossCalculator) optimize() {
+	problem := optimize.Problem{
+		Func: l.loss,
+		Status: func() (optimize.Status, error) {
+			return optimize.NotTerminated, l.err
+		},
+	}
+	initX := &xValues{}
+	if *startX == "" {
+		initX.init()
+	} else {
+		if err := json.Unmarshal([]byte(*startX), initX); err != nil {
+			log.Fatal(err)
+		}
+	}
+	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(l.conf), nil, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resultValues := &xValues{}
+	resultValues.setFromNormalizedFloat64Slice(l.conf, res.Location.X)
+	finalFile, err := os.Create(filepath.Join(*outputDir, "final_results.json"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer finalFile.Close()
+	if err := json.NewEncoder(finalFile).Encode(map[string]interface{}{
+		"X":    resultValues,
+		"Conf": l.conf,
+		"Loss": l.lossHelper(resultValues.toNormalizedFloat64Slice(l.conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
+	}); err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := json.Marshal(resultValues)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Final results: %+v\n%v\n%s\n", res.Stats, res.Status, b)
+}
+
+func (l *lossCalculator) explore(field string, points int) {
+	initX := &xValues{}
+	initX.init()
+	initXTyp := reflect.TypeOf(*initX)
+	fieldIdx := -1
+	for idx := 0; idx < initXTyp.NumField(); idx++ {
+		if initXTyp.Field(idx).Name == field {
+			fieldIdx = idx
+			break
+		}
+	}
+	if fieldIdx == -1 {
+		log.Panicf("Unknown field %q!", field)
+	}
+	scale := initX.scaleForField(fieldIdx)
+	step := (scale[1] - scale[0]) / float64(points)
+	vals := []float64{}
+	losses := []float64{}
+	initXVal := reflect.ValueOf(initX)
+	for val := scale[0]; val < scale[1]; val += step {
+		vals = append(vals, val)
+		initXVal.Elem().Field(fieldIdx).Set(reflect.ValueOf(val))
+		loss := l.loss(initX.toNormalizedFloat64Slice(l.conf))
+		losses = append(losses, loss)
+	}
+	logFile := filepath.Join(l.outDir, fmt.Sprintf("exploration_of_%s_over_%v_points.py", field, points))
+	if err := l.makePythonPlot(logFile, fmt.Sprintf("Exploration of loss over %s", field), field, "Loss", []plot{{x: vals, y: losses, label: "Loss"}}); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Plotted exploration of %v over %v points to %v\n", field, points, logFile)
+}
+
 func main() {
 	test()
 
@@ -642,9 +755,6 @@ func main() {
 	if *evaluationJSONGlob == "" {
 		flag.Usage()
 		os.Exit(1)
-	}
-	if err := os.MkdirAll(*outputDir, 0755); err != nil {
-		log.Fatal(err)
 	}
 	lc := &lossCalculator{
 		outDir:                       *outputDir,
@@ -665,43 +775,13 @@ func main() {
 	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
 		log.Fatal(err)
 	}
-	problem := optimize.Problem{
-		Func: lc.loss,
-		Status: func() (optimize.Status, error) {
-			return optimize.NotTerminated, lc.err
-		},
+	if err := os.MkdirAll(*outputDir, 0755); err != nil {
+		log.Fatal(err)
 	}
-	initX := &xValues{}
-	if *startX == "" {
-		initX.init()
+
+	if *exploreField != "" {
+		lc.explore(*exploreField, *exploreFieldPoints)
 	} else {
-		if err := json.Unmarshal([]byte(*startX), initX); err != nil {
-			log.Fatal(err)
-		}
+		lc.optimize()
 	}
-	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(lc.conf), nil, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resultValues := &xValues{}
-	resultValues.setFromNormalizedFloat64Slice(lc.conf, res.Location.X)
-	finalFile, err := os.Create(filepath.Join(*outputDir, "final_results.json"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer finalFile.Close()
-	if err := json.NewEncoder(finalFile).Encode(map[string]interface{}{
-		"X":    resultValues,
-		"Conf": lc.conf,
-		"Loss": lc.lossHelper(resultValues.toNormalizedFloat64Slice(lc.conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
-	}); err != nil {
-		log.Fatal(err)
-	}
-
-	b, err := json.Marshal(resultValues)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Final results: %+v\n%v\n%s\n", res.Stats, res.Status, b)
 }
