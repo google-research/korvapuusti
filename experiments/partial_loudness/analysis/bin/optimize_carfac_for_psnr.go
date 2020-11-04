@@ -66,7 +66,7 @@ var (
 	// Optimization settings.
 
 	startX         = flag.String("start_x", "", "Starting values in JSON format.")
-	pNorm          = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
+	pNorm          = flag.Float64("p_norm", 4, "Power of the norm when calculating the loss.")
 	skipOpenLoop   = flag.Bool("skip_open_loop", false, "Whether to skip the second (open, less non-linear) run of each signal sample.")
 	usingBM        = flag.Bool("using_bm", false, "Whether to use the basilar membrane output of CARFAC (as opposed to the neural activation pattern output).")
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
