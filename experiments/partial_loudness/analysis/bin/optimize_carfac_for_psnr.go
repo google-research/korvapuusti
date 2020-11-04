@@ -67,8 +67,8 @@ var (
 
 	startX         = flag.String("start_x", "", "Starting values in JSON format.")
 	pNorm          = flag.Float64("p_norm", 2, "Power of the norm when calculating the loss.")
-	openLoop       = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
-	usingNAP       = flag.Bool("using_nap", false, "Whether to use the neural activation pattern output of CARFAC (as opposed to the basilar membrane output).")
+	skipOpenLoop   = flag.Bool("skip_open_loop", false, "Whether to skip the second (open, less non-linear) run of each signal sample.")
+	usingBM        = flag.Bool("using_bm", false, "Whether to use the basilar membrane output of CARFAC (as opposed to the neural activation pattern output).")
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
 	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
 
@@ -754,8 +754,8 @@ func main() {
 		lossCalculationOutputRatio:   *lossCalculationOutputRatio,
 		conf: optConfig{
 			PNorm:          *pNorm,
-			OpenLoop:       *openLoop,
-			UsingNAP:       *usingNAP,
+			OpenLoop:       !*skipOpenLoop,
+			UsingNAP:       !*usingBM,
 			DisabledFields: map[string]bool{},
 			Limits:         !*noLimits,
 		},
