@@ -70,6 +70,7 @@ var (
 	openLoop       = flag.Bool("open_loop", false, "Whether to run the samples one more time in open mode before getting the outputs.")
 	usingNAP       = flag.Bool("using_nap", false, "Whether to use the neural activation pattern output of CARFAC (as opposed to the basilar membrane output).")
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
+	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
 
 	// Alternative modes.
 
@@ -90,26 +91,27 @@ type optConfig struct {
 	UsingNAP       bool
 	DisabledFields map[string]bool
 	PNorm          float64
+	Limits         bool
 }
 
 type xValues struct {
-	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"70.0,130.0"`
+	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"-,-"`
 
-	VelocityScale float64 `start:"0.1" scale:"0.02,0.5" limits:"0.01,-"`
-	VOffset       float64 `start:"0.04" scale:"0.0,0.5" limits:"0.0,-"`
-	MinZeta       float64 `start:"0.1" scale:"0.01,0.05" limits:"0.01,-"`
-	MaxZeta       float64 `start:"0.35" scale:"0.1,0.5" limits:"0.1,-"`
-	ZeroRatio     float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
-	ERBBreakFreq  float64 `start:"165.3" scale:"100.0,200.0" limits:"100.0,200.0"`
-	ERBQ          float64 `start:"9.264491981582191" scale:"5.0,15.0" limits:"5.0,15.0"`
+	VelocityScale float64 `start:"0.1" scale:"0.02,0.5" limits:"-,-"`
+	VOffset       float64 `start:"0.04" scale:"0.0,0.5" limits:"-,-"`
+	MinZeta       float64 `start:"0.1" scale:"0.01,0.5" limits:"0.0,-"`
+	MaxZeta       float64 `start:"0.35" scale:"0.1,0.5" limits:"-,-"`
+	ZeroRatio     float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
+	ERBBreakFreq  float64 `start:"165.3" scale:"100.0,200.0" limits:"-,-"`
+	ERBQ          float64 `start:"9.264491981582191" scale:"5.0,15.0" limits:"-,-"`
 
-	StageGain       float64 `start:"2.0" scale:"1.2,8.0" limits:"1.2,8.0"`
-	AGC1Scale0      float64 `start:"1.0" scale:"0.5,3.0" limits:"0.5,3.0"`
-	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
-	AGC2Scale0      float64 `start:"1.65" scale:"0.2,2.0" limits:"0.2,2.0"`
-	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"1.2,3.0"`
-	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.008" limits:"0.0001,-"`
-	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"2.0,8.0"`
+	StageGain       float64 `start:"2.0" scale:"1.2,8.0" limits:"1.2,-"`
+	AGC1Scale0      float64 `start:"1.0" scale:"0.5,3.0" limits:"-,-"`
+	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
+	AGC2Scale0      float64 `start:"1.65" scale:"0.2,2.0" limits:"-,-"`
+	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
+	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.008" limits:"-,-"`
+	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"-,-"`
 
 	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0" limits:"-,-"`
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
@@ -562,7 +564,11 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 		}
 	}
 	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.conf.PNorm)
-	limitLoss, explanation := xValues.limitLoss()
+	limitLoss := 0.0
+	explanation := []string{"limit loss disabled"}
+	if l.conf.Limits {
+		limitLoss, explanation = xValues.limitLoss()
+	}
 	totalLoss := loss + limitLoss
 	fmt.Printf("Got loss %v (limit loss %v: %v)\n", totalLoss, limitLoss, strings.Join(explanation, ", "))
 	return totalLoss
@@ -751,6 +757,7 @@ func main() {
 			OpenLoop:       *openLoop,
 			UsingNAP:       *usingNAP,
 			DisabledFields: map[string]bool{},
+			Limits:         !*noLimits,
 		},
 	}
 	for _, disabledField := range strings.Split(*disabledFields, ",") {
