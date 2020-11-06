@@ -102,6 +102,7 @@ type xValues struct {
 	MinZeta       float64 `start:"0.1" scale:"0.01,0.5" limits:"0.0,-"`
 	MaxZeta       float64 `start:"0.35" scale:"0.1,0.5" limits:"-,-"`
 	ZeroRatio     float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
+	ERBPerStep    float64 `start:"0.5" scale:"0.1,1.0" limits:"0.1,-"`
 	ERBBreakFreq  float64 `start:"165.3" scale:"100.0,200.0" limits:"-,-"`
 	ERBQ          float64 `start:"9.264491981582191" scale:"5.0,15.0" limits:"-,-"`
 
@@ -444,6 +445,7 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 		MinZeta:       &xValues.MinZeta,
 		MaxZeta:       &xValues.MaxZeta,
 		ZeroRatio:     &xValues.ZeroRatio,
+		ERBPerStep:    &xValues.ERBPerStep,
 		ERBBreakFreq:  &xValues.ERBBreakFreq,
 		ERBQ:          &xValues.ERBQ,
 
