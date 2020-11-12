@@ -528,11 +528,11 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	for evalPSNR := range psnrChan {
 		psnrsByRunID[evalPSNR.evaluation.runID] = append(psnrsByRunID[evalPSNR.evaluation.runID], evalPSNR)
 		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
-		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.conf.PNorm)
 		if evalPSNR.evaluation.evaluatedLoudness < 27 {
-			errorDiscount := float64(30-evalPSNR.evaluation.evaluatedLoudness) / 3
-			square /= errorDiscount
+			errorDiscount := signals.DB(30-evalPSNR.evaluation.evaluatedLoudness) / 3
+			predictedLoudnessError /= errorDiscount
 		}
+		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.conf.PNorm)
 		sumOfSquares += square
 		lossByRunID[evalPSNR.evaluation.runID] += square
 	}
