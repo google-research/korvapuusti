@@ -73,7 +73,7 @@ var (
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
 	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
 	useSNNR        = flag.Bool("use_snnr", true, "Use SNNR instead of SNR to estimate partial loudness.")
-	erbPerStep     = flag.Float64("erb_per_step", 0.5, "erb_per_step while running CARFAC.")
+	erbPerStep     = flag.Float64("erb_per_step", 0.25, "erb_per_step while running CARFAC.")
 
 	// Alternative modes.
 
