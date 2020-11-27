@@ -333,20 +333,6 @@ func TestCARFAC(t *testing.T) {
 				return cf.NAP()
 			},
 		},
-		{
-			desc: "AGCMixCoeffDifferent",
-			f1: func() ([]float32, error) {
-				cf := New(CARFACParams{SampleRate: 48000})
-				cf.Run(makeSignal(cf.NumSamples()))
-				return cf.NAP()
-			},
-			f2: func() ([]float32, error) {
-				x := 0.6
-				cf := New(CARFACParams{SampleRate: 48000, AGCMixCoeff: &x})
-				cf.Run(makeSignal(cf.NumSamples()))
-				return cf.NAP()
-			},
-		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			res1, err := tc.f1()

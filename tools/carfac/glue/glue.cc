@@ -2,6 +2,7 @@
 #include "../carfac.h"
 
 #include <stdio.h>
+#include <vector>
 
 #include "../carfac/cpp/carfac.h"
 
@@ -51,12 +52,24 @@ carfac create_carfac(
   if (ac_corner_hz != NULL) ihc_params.ac_corner_hz = *ac_corner_hz;
 
   if (stage_gain != NULL) agc_params.agc_stage_gain = *stage_gain;
-  if (agc1_scale0 != NULL) agc_params.agc1_scale0 = *agc1_scale0;
-  if (agc1_scale_mul != NULL) agc_params.agc1_scale_mul = *agc1_scale_mul;
-  if (agc2_scale0 != NULL) agc_params.agc2_scale0 = *agc2_scale0;
-  if (agc2_scale_mul != NULL) agc_params.agc2_scale_mul = *agc2_scale_mul;
-  if (time_constant0 != NULL) agc_params.time_constant0 = *time_constant0;
-  if (time_constant_mul != NULL) agc_params.time_constant_mul = *time_constant_mul;
+  std::vector<FPType> agc1_scales(agc_params.num_stages);
+  std::vector<FPType> agc2_scales(agc_params.num_stages);
+  std::vector<FPType> time_constants(agc_params.num_stages);
+  agc1_scales[0] = agc1_scale0 == NULL ? 1.0 : *agc1_scale0;
+  for (int i = 1; i < agc_params.num_stages; ++i) {
+	  agc1_scales[i] = agc1_scales[i - 1] * (agc1_scale_mul == NULL ? sqrt(2.0) : *agc1_scale_mul);
+  }
+  agc_params.agc1_scales = agc1_scales;
+  agc2_scales[0] = agc2_scale0 == NULL ? 1.65 : *agc2_scale0;
+  for (int i = 1; i < agc_params.num_stages; ++i) {
+	  agc2_scales[i] = agc2_scales[i - 1] * (agc2_scale_mul == NULL ? sqrt(2.0) : *agc2_scale_mul);
+  }
+  agc_params.agc2_scales = agc2_scales;
+  time_constants[0] = time_constant0 == NULL ? 0.002 : *time_constant0;
+  for (int i = 1; i < agc_params.num_stages; ++i) {
+	  time_constants[i] = time_constants[i - 1] * (time_constant_mul == NULL ? 4.0 : *time_constant_mul);
+  }
+  agc_params.time_constants = time_constants;
   if (agc_mix_coeff != NULL) agc_params.agc_mix_coeff = *agc_mix_coeff;
 
   auto c = new CARFAC(1, static_cast<float>(sample_rate), car_params,
