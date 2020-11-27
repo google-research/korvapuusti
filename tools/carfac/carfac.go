@@ -14,7 +14,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-//go:generate sh -c "c++ -c `pkg-config --libs --cflags eigen3` carfac/cpp/agc.h carfac/cpp/binaural_sai.cc carfac/cpp/car.h carfac/cpp/carfac.cc carfac/cpp/carfac_util.h carfac/cpp/common.h carfac/cpp/ear.cc carfac/cpp/ihc.h carfac/cpp/sai.cc glue/glue.cc && ar rcs libcarfac.a *.o && cd carfac && git clean -f && cd .."
+//go:generate sh -c "c++ -c `pkg-config --libs --cflags eigen3` carfac/cpp/agc.h carfac/cpp/binaural_sai.cc carfac/cpp/car.h carfac/cpp/carfac.cc carfac/cpp/carfac_util.h carfac/cpp/common.h carfac/cpp/ear.cc carfac/cpp/ihc.h carfac/cpp/sai.cc glue/glue.cc && c++ -g -pg `pkg-config --libs --cflags eigen3` *.o -I. benchmark/benchmark.cc -o benchmark/benchmark && ar rcs libcarfac.a *.o && cd carfac && git clean -f && cd .."
 package carfac
 
 // #cgo CFLAGS: -I${SRCDIR}
