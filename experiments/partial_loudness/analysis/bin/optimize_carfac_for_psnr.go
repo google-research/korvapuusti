@@ -99,13 +99,21 @@ type optConfig struct {
 	ERBPerStep     float64
 }
 
+func (o *optConfig) zeta(zetaConst float64) float64 {
+	// Based on the assumtion that max small-signal gain at the passband peak
+	// will be on the order of  (0.5/min_zeta)^(1/erb_per_step), and we need
+	// the start value of that in the same region or the loss function becomes
+	// too uneven to optimize.
+	return math.Pow(zetaConst, -o.ERBPerStep) * math.Pow(math.Pow(0.5, -1.0/o.ERBPerStep), -o.ERBPerStep)
+}
+
 type xValues struct {
 	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"-,-"`
 
 	VelocityScale float64 `start:"0.1" scale:"0.02,0.5" limits:"-,-"`
 	VOffset       float64 `start:"0.04" scale:"0.0,0.5" limits:"-,-"`
-	MinZeta       float64 `start:"0.1" scale:"0.01,0.5" limits:"0.0,-"`
-	MaxZeta       float64 `start:"0.35" scale:"0.1,0.5" limits:"-,-"`
+	MinZeta       float64 `scale:"0.01,0.5" limits:"0.0,-"`
+	MaxZeta       float64 `scale:"0.1,5.0" limits:"-,-"`
 	ZeroRatio     float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
 
 	StageGain       float64 `start:"2.0" scale:"1.2,8.0" limits:"1.2,-"`
@@ -120,7 +128,7 @@ type xValues struct {
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
 }
 
-func (x xValues) activeValues(conf optConfig) string {
+func (x xValues) activeValues(conf *optConfig) string {
 	b, err := json.Marshal(x)
 	if err != nil {
 		log.Panic(err)
@@ -203,7 +211,7 @@ func (x xValues) limitLoss() (float64, []string) {
 	return result, explanation
 }
 
-func (x xValues) activeFieldIndices(conf optConfig) []int {
+func (x xValues) activeFieldIndices(conf *optConfig) []int {
 	typ := reflect.TypeOf(x)
 	result := []int{}
 	for idx := 0; idx < typ.NumField(); idx++ {
@@ -227,19 +235,26 @@ func (x xValues) scaleForField(fieldIdx int) [2]float64 {
 	return [2]float64{min, max}
 }
 
-func (x *xValues) init() {
+func (x *xValues) init(conf *optConfig) {
 	val := reflect.ValueOf(x)
 	typ := reflect.TypeOf(*x)
 	for idx := 0; idx < typ.NumField(); idx++ {
-		start, err := strconv.ParseFloat(typ.Field(idx).Tag.Get("start"), 64)
-		if err != nil {
-			log.Panicf("Field %+v doesn't have a start tag!", typ.Field(idx))
+		switch typ.Field(idx).Name {
+		case "MinZeta":
+			val.Elem().Field(idx).Set(reflect.ValueOf(conf.zeta(25)))
+		case "MaxZeta":
+			val.Elem().Field(idx).Set(reflect.ValueOf(conf.zeta(2.0408163265306123)))
+		default:
+			start, err := strconv.ParseFloat(typ.Field(idx).Tag.Get("start"), 64)
+			if err != nil {
+				log.Panicf("Field %+v doesn't have a start tag!", typ.Field(idx))
+			}
+			val.Elem().Field(idx).Set(reflect.ValueOf(start))
 		}
-		val.Elem().Field(idx).Set(reflect.ValueOf(start))
 	}
 }
 
-func (x xValues) toNormalizedFloat64Slice(conf optConfig) []float64 {
+func (x xValues) toNormalizedFloat64Slice(conf *optConfig) []float64 {
 	val := reflect.ValueOf(x)
 	result := []float64{}
 	for _, idx := range x.activeFieldIndices(conf) {
@@ -248,8 +263,8 @@ func (x xValues) toNormalizedFloat64Slice(conf optConfig) []float64 {
 	return result
 }
 
-func (x *xValues) setFromNormalizedFloat64Slice(conf optConfig, xSlice []float64) {
-	x.init()
+func (x *xValues) setFromNormalizedFloat64Slice(conf *optConfig, xSlice []float64) {
+	x.init(conf)
 	val := reflect.ValueOf(x)
 	for _, idx := range x.activeFieldIndices(conf) {
 		val.Elem().Field(idx).Set(reflect.ValueOf(denormalize(xSlice[0], x.scaleForField(idx))))
@@ -299,7 +314,7 @@ type lossCalculator struct {
 	outDir                       string
 	evaluationFullScaleSineLevel signals.DB
 	lossCalculationOutputRatio   int
-	conf                         optConfig
+	conf                         *optConfig
 
 	evaluations      []evaluation
 	err              error
@@ -660,7 +675,7 @@ func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
 
 func test() {
 	for _, usingNAP := range []bool{true, false} {
-		conf := optConfig{UsingNAP: usingNAP}
+		conf := &optConfig{UsingNAP: usingNAP}
 		testXValues := xValues{}
 		xSlice := testXValues.toNormalizedFloat64Slice(conf)
 		for idx := range xSlice {
@@ -689,7 +704,7 @@ func (l *lossCalculator) optimize() {
 	}
 	initX := &xValues{}
 	if *startX == "" {
-		initX.init()
+		initX.init(l.conf)
 	} else {
 		if err := json.Unmarshal([]byte(*startX), initX); err != nil {
 			log.Fatal(err)
@@ -724,7 +739,7 @@ func (l *lossCalculator) optimize() {
 
 func (l *lossCalculator) explore(field string, points int) {
 	initX := &xValues{}
-	initX.init()
+	initX.init(l.conf)
 	initXTyp := reflect.TypeOf(*initX)
 	fieldIdx := -1
 	for idx := 0; idx < initXTyp.NumField(); idx++ {
@@ -766,7 +781,7 @@ func main() {
 		outDir:                       *outputDir,
 		evaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 		lossCalculationOutputRatio:   *lossCalculationOutputRatio,
-		conf: optConfig{
+		conf: &optConfig{
 			PNorm:          *pNorm,
 			OpenLoop:       !*skipOpenLoop,
 			UsingNAP:       !*usingBM,
