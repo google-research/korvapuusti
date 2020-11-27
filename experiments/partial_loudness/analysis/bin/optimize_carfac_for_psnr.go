@@ -42,6 +42,7 @@ import (
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
 	"github.com/google-research/korvapuusti/tools/workerpool"
 	"gonum.org/v1/gonum/optimize"
+	"gonum.org/v1/gonum/stat"
 )
 
 const (
@@ -68,9 +69,11 @@ var (
 	startX         = flag.String("start_x", "", "Starting values in JSON format.")
 	pNorm          = flag.Float64("p_norm", 4, "Power of the norm when calculating the loss.")
 	skipOpenLoop   = flag.Bool("skip_open_loop", false, "Whether to skip the second (open, less non-linear) run of each signal sample.")
-	usingBM        = flag.Bool("using_bm", false, "Whether to use the basilar membrane output of CARFAC (as opposed to the neural activation pattern output).")
+	usingBM        = flag.Bool("using_bm", true, "Whether to use the basilar membrane output of CARFAC (as opposed to the neural activation pattern output).")
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
 	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
+	useSNNR        = flag.Bool("use_snnr", true, "Use SNNR instead of SNR to estimate partial loudness.")
+	erbPerStep     = flag.Float64("erb_per_step", 0.25, "erb_per_step while running CARFAC.")
 
 	// Alternative modes.
 
@@ -92,6 +95,8 @@ type optConfig struct {
 	DisabledFields map[string]bool
 	PNorm          float64
 	Limits         bool
+	UseSNNR        bool
+	ERBPerStep     float64
 }
 
 type xValues struct {
@@ -102,9 +107,6 @@ type xValues struct {
 	MinZeta       float64 `start:"0.1" scale:"0.01,0.5" limits:"0.0,-"`
 	MaxZeta       float64 `start:"0.35" scale:"0.1,0.5" limits:"-,-"`
 	ZeroRatio     float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
-	ERBPerStep    float64 `start:"0.5" scale:"0.1,1.0" limits:"0.1,-"`
-	ERBBreakFreq  float64 `start:"165.3" scale:"100.0,200.0" limits:"-,-"`
-	ERBQ          float64 `start:"9.264491981582191" scale:"5.0,15.0" limits:"-,-"`
 
 	StageGain       float64 `start:"2.0" scale:"1.2,8.0" limits:"1.2,-"`
 	AGC1Scale0      float64 `start:"1.0" scale:"0.5,3.0" limits:"-,-"`
@@ -445,9 +447,7 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 		MinZeta:       &xValues.MinZeta,
 		MaxZeta:       &xValues.MaxZeta,
 		ZeroRatio:     &xValues.ZeroRatio,
-		ERBPerStep:    &xValues.ERBPerStep,
-		ERBBreakFreq:  &xValues.ERBBreakFreq,
-		ERBQ:          &xValues.ERBQ,
+		ERBPerStep:    &l.conf.ERBPerStep,
 
 		StageGain:       &xValues.StageGain,
 		AGC1Scale0:      &xValues.AGC1Scale0,
@@ -498,9 +498,21 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 					for sampleIdx := range channel {
 						channel[sampleIdx] = float64(cfOut[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
 					}
-					spec := spectrum.Compute(channel, rate)
+					channelPower := 0.0
+					spec := spectrum.S{}
+					if l.conf.UseSNNR {
+						channelPower = 10 * math.Log10(stat.Variance(channel, nil))
+						spec = spectrum.ComputeSignalPower(channel, rate)
+					} else {
+						spec = spectrum.Compute(channel, rate)
+					}
 					for binIdx := int(math.Floor(float64(evaluation.probeSampler.LowerLimit / spec.BinWidth))); binIdx <= int(math.Ceil(float64(evaluation.probeSampler.UpperLimit/spec.BinWidth))); binIdx++ {
-						snr := spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
+						snr := 0.0
+						if l.conf.UseSNNR {
+							snr = spec.SignalPower[binIdx] - channelPower
+						} else {
+							snr = spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
+						}
 						if snr > evalPSNR.psnr {
 							evalPSNR.psnr = snr
 						}
@@ -528,11 +540,11 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	for evalPSNR := range psnrChan {
 		psnrsByRunID[evalPSNR.evaluation.runID] = append(psnrsByRunID[evalPSNR.evaluation.runID], evalPSNR)
 		predictedLoudnessError := evalPSNR.predictedLoudness - evalPSNR.evaluation.evaluatedLoudness
-		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.conf.PNorm)
 		if evalPSNR.evaluation.evaluatedLoudness < 27 {
-			errorDiscount := float64(30-evalPSNR.evaluation.evaluatedLoudness) / 3
-			square /= errorDiscount
+			errorDiscount := signals.DB(30-evalPSNR.evaluation.evaluatedLoudness) / 3
+			predictedLoudnessError /= errorDiscount
 		}
+		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.conf.PNorm)
 		sumOfSquares += square
 		lossByRunID[evalPSNR.evaluation.runID] += square
 	}
@@ -760,6 +772,8 @@ func main() {
 			UsingNAP:       !*usingBM,
 			DisabledFields: map[string]bool{},
 			Limits:         !*noLimits,
+			UseSNNR:        *useSNNR,
+			ERBPerStep:     *erbPerStep,
 		},
 	}
 	for _, disabledField := range strings.Split(*disabledFields, ",") {
