@@ -27,6 +27,9 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"math/rand"
+	"net/http"
+	"net/rpc"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -34,6 +37,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"github.com/cheggaaa/pb"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
@@ -57,6 +61,7 @@ var (
 
 	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
 	lossCalculationOutputRatio = flag.Int("loss_calculation_output_ratio", 100, "How seldom to output data about the best/worst results of a calculation run.")
+	remoteComputers            = flag.String("remote_computers", "", "Comma separated list of host:port pairs defining remote computers to use. Not providing this will instead run a remote computer.")
 
 	// Definition of evaluations.
 
@@ -107,7 +112,7 @@ func (o *optConfig) zeta(zetaConst float64) float64 {
 	return math.Pow(zetaConst, -o.ERBPerStep) * math.Pow(math.Pow(0.5, -1.0/o.ERBPerStep), -o.ERBPerStep)
 }
 
-type xValues struct {
+type XValues struct {
 	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"-,-"`
 
 	VelocityScale float64 `start:"0.1" scale:"0.02,0.5" limits:"-,-"`
@@ -128,7 +133,7 @@ type xValues struct {
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
 }
 
-func (x xValues) activeValues(conf *optConfig) string {
+func (x *XValues) activeValues(conf *optConfig) string {
 	b, err := json.Marshal(x)
 	if err != nil {
 		log.Panic(err)
@@ -138,7 +143,7 @@ func (x xValues) activeValues(conf *optConfig) string {
 		log.Panic(err)
 	}
 	activeFields := map[string]bool{}
-	typ := reflect.TypeOf(x)
+	typ := reflect.TypeOf(*x)
 	for _, idx := range x.activeFieldIndices(conf) {
 		activeFields[typ.Field(idx).Name] = true
 	}
@@ -154,8 +159,8 @@ func (x xValues) activeValues(conf *optConfig) string {
 	return string(b)
 }
 
-func (x xValues) limitsForField(idx int) []*float64 {
-	typ := reflect.TypeOf(x)
+func (x *XValues) limitsForField(idx int) []*float64 {
+	typ := reflect.TypeOf(*x)
 	limits := typ.Field(idx).Tag.Get("limits")
 	if limits == "" {
 		log.Fatalf("Field %+v doesn't have a limits tag!", typ.Field(idx))
@@ -182,9 +187,9 @@ func (x xValues) limitsForField(idx int) []*float64 {
 	return result
 }
 
-func (x xValues) limitLoss() (float64, []string) {
-	val := reflect.ValueOf(x)
-	typ := reflect.TypeOf(x)
+func (x *XValues) limitLoss() (float64, []string) {
+	val := reflect.ValueOf(*x)
+	typ := reflect.TypeOf(*x)
 	result := 0.0
 	explanation := []string{}
 	for idx := 0; idx < val.NumField(); idx++ {
@@ -211,8 +216,8 @@ func (x xValues) limitLoss() (float64, []string) {
 	return result, explanation
 }
 
-func (x xValues) activeFieldIndices(conf *optConfig) []int {
-	typ := reflect.TypeOf(x)
+func (x *XValues) activeFieldIndices(conf *optConfig) []int {
+	typ := reflect.TypeOf(*x)
 	result := []int{}
 	for idx := 0; idx < typ.NumField(); idx++ {
 		if !conf.DisabledFields[typ.Field(idx).Name] && (conf.UsingNAP || typ.Field(idx).Tag.Get("nap") != "true") {
@@ -222,8 +227,8 @@ func (x xValues) activeFieldIndices(conf *optConfig) []int {
 	return result
 }
 
-func (x xValues) scaleForField(fieldIdx int) [2]float64 {
-	parts := strings.Split(reflect.TypeOf(x).Field(fieldIdx).Tag.Get("scale"), ",")
+func (x *XValues) scaleForField(fieldIdx int) [2]float64 {
+	parts := strings.Split(reflect.TypeOf(*x).Field(fieldIdx).Tag.Get("scale"), ",")
 	min, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
 		panic(err)
@@ -235,7 +240,7 @@ func (x xValues) scaleForField(fieldIdx int) [2]float64 {
 	return [2]float64{min, max}
 }
 
-func (x *xValues) init(conf *optConfig) {
+func (x *XValues) init(conf *optConfig) {
 	val := reflect.ValueOf(x)
 	typ := reflect.TypeOf(*x)
 	for idx := 0; idx < typ.NumField(); idx++ {
@@ -254,8 +259,8 @@ func (x *xValues) init(conf *optConfig) {
 	}
 }
 
-func (x xValues) toNormalizedFloat64Slice(conf *optConfig) []float64 {
-	val := reflect.ValueOf(x)
+func (x *XValues) toNormalizedFloat64Slice(conf *optConfig) []float64 {
+	val := reflect.ValueOf(*x)
 	result := []float64{}
 	for _, idx := range x.activeFieldIndices(conf) {
 		result = append(result, normalize(val.Field(idx).Float(), x.scaleForField(idx)))
@@ -263,7 +268,7 @@ func (x xValues) toNormalizedFloat64Slice(conf *optConfig) []float64 {
 	return result
 }
 
-func (x *xValues) setFromNormalizedFloat64Slice(conf *optConfig, xSlice []float64) {
+func (x *XValues) setFromNormalizedFloat64Slice(conf *optConfig, xSlice []float64) {
 	x.init(conf)
 	val := reflect.ValueOf(x)
 	for _, idx := range x.activeFieldIndices(conf) {
@@ -310,18 +315,24 @@ func (p psnrs) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-type lossCalculator struct {
+type remoteComputer struct {
+	client    *rpc.Client
+	available int64
+}
+
+type LossCalculator struct {
 	outDir                       string
 	evaluationFullScaleSineLevel signals.DB
 	lossCalculationOutputRatio   int
 	conf                         *optConfig
+	remoteComputers              []remoteComputer
 
 	evaluations      []evaluation
 	err              error
 	lossCalculations int
 }
 
-func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) error {
+func (l *LossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) error {
 	l.evaluations = nil
 
 	wp := workerpool.New(map[string]int{"L": runtime.NumCPU(), "P": 0, "C": 0})
@@ -445,96 +456,133 @@ func (l *lossCalculator) loadEvaluations(glob string, noiseFloor signals.DB) err
 	return wp.WaitAll()
 }
 
-func (l *lossCalculator) loss(x []float64) float64 {
+func (l *LossCalculator) loss(x []float64) float64 {
 	return l.lossHelper(x, "", "")
 }
 
-func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLogAllTo string) float64 {
-	l.lossCalculations++
-	xValues := &xValues{}
-	xValues.setFromNormalizedFloat64Slice(l.conf, x)
-	fmt.Printf("Evaluation ** %v ** using %+v with %s\n", l.lossCalculations, l.conf, xValues.activeValues(l.conf))
+type ComputePSNRReq struct {
+	EvaluationIndex int
+	XValues         XValues
+}
+
+type ComputePSNRResp struct {
+	PSNR              float64
+	PredictedLoudness signals.DB
+}
+
+func (l *LossCalculator) NumCPU(req struct{}, result *int) error {
+	*result = runtime.NumCPU()
+	return nil
+}
+
+func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) error {
+	evaluation := l.evaluations[req.EvaluationIndex]
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
 
-		VelocityScale: &xValues.VelocityScale,
-		VOffset:       &xValues.VOffset,
-		MinZeta:       &xValues.MinZeta,
-		MaxZeta:       &xValues.MaxZeta,
-		ZeroRatio:     &xValues.ZeroRatio,
+		VelocityScale: &req.XValues.VelocityScale,
+		VOffset:       &req.XValues.VOffset,
+		MinZeta:       &req.XValues.MinZeta,
+		MaxZeta:       &req.XValues.MaxZeta,
+		ZeroRatio:     &req.XValues.ZeroRatio,
 		ERBPerStep:    &l.conf.ERBPerStep,
 
-		StageGain:       &xValues.StageGain,
-		AGC1Scale0:      &xValues.AGC1Scale0,
-		AGC1ScaleMul:    &xValues.AGC1ScaleMul,
-		AGC2Scale0:      &xValues.AGC2Scale0,
-		AGC2ScaleMul:    &xValues.AGC2ScaleMul,
-		TimeConstant0:   &xValues.TimeConstant0,
-		TimeConstantMul: &xValues.TimeConstantMul,
+		StageGain:       &req.XValues.StageGain,
+		AGC1Scale0:      &req.XValues.AGC1Scale0,
+		AGC1ScaleMul:    &req.XValues.AGC1ScaleMul,
+		AGC2Scale0:      &req.XValues.AGC2Scale0,
+		AGC2ScaleMul:    &req.XValues.AGC2ScaleMul,
+		TimeConstant0:   &req.XValues.TimeConstant0,
+		TimeConstantMul: &req.XValues.TimeConstantMul,
 	}
+	cf := carfac.New(carfacParams)
+	// The runtime finalizer will run this automatically, but to speed up the cleanup.
+	defer cf.Destroy()
+	scaledSignal := evaluation.signal.ToFloat32AddLevel(l.evaluationFullScaleSineLevel - signals.DB(req.XValues.CarfacFullScaleSineLevel))
+	cf.Run(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
+	if l.conf.OpenLoop {
+		cf.RunOpen(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
+	}
+	var cfOut []float32
+	var err error
+	if !l.conf.UsingNAP {
+		cfOut, err = cf.BM()
+	} else {
+		cfOut, err = cf.NAP()
+	}
+	if err != nil {
+		return err
+	}
+	resp.PSNR = -math.MaxFloat64
+	for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
+		channel := make([]float64, fftWindowSize)
+		for sampleIdx := range channel {
+			channel[sampleIdx] = float64(cfOut[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
+		}
+		channelPower := 0.0
+		spec := spectrum.S{}
+		if l.conf.UseSNNR {
+			channelPower = 10 * math.Log10(stat.Variance(channel, nil))
+			spec = spectrum.ComputeSignalPower(channel, rate)
+		} else {
+			spec = spectrum.Compute(channel, rate)
+		}
+		for binIdx := int(math.Floor(float64(evaluation.probeSampler.LowerLimit / spec.BinWidth))); binIdx <= int(math.Ceil(float64(evaluation.probeSampler.UpperLimit/spec.BinWidth))); binIdx++ {
+			snr := 0.0
+			if l.conf.UseSNNR {
+				snr = spec.SignalPower[binIdx] - channelPower
+			} else {
+				snr = spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
+			}
+			if snr > resp.PSNR {
+				resp.PSNR = snr
+			}
+		}
+	}
+	resp.PredictedLoudness = signals.DB(req.XValues.LoudnessConstant + req.XValues.LoudnessScale*resp.PSNR)
+	return nil
+}
 
-	carfacs := make(chan carfac.CF, runtime.NumCPU())
-	for i := 0; i < runtime.NumCPU(); i++ {
-		carfacs <- carfac.New(carfacParams)
-	}
+func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLogAllTo string) float64 {
+	l.lossCalculations++
+	xv := XValues{}
+	xv.setFromNormalizedFloat64Slice(l.conf, x)
+	fmt.Printf("Evaluation ** %v ** using %+v with %s\n", l.lossCalculations, l.conf, xv.activeValues(l.conf))
 
 	bar := pb.StartNew(len(l.evaluations)).Prefix("Evaluating")
-
 	psnrChan := make(chan psnr, len(l.evaluations))
-	wp := workerpool.New(map[string]int{"L": runtime.NumCPU(), "P": 0})
+	availableComputers := 0
+	for _, rc := range l.remoteComputers {
+		availableComputers += int(rc.available)
+	}
+	wp := workerpool.New(map[string]int{"L": availableComputers, "P": 0})
 	wp.Queue("P", func() error {
-		for _, evaluationVar := range l.evaluations {
-			evaluation := evaluationVar
+		for evaluationIdxVar := range l.evaluations {
+			evaluationIdx := evaluationIdxVar
 			wp.Queue("L", func() error {
-				cf := <-carfacs
-				defer func() { carfacs <- cf }()
-				scaledSignal := evaluation.signal.ToFloat32AddLevel(l.evaluationFullScaleSineLevel - signals.DB(xValues.CarfacFullScaleSineLevel))
-				cf.Reset()
-				cf.Run(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
-				if l.conf.OpenLoop {
-					cf.RunOpen(scaledSignal[len(evaluation.signal)-cf.NumSamples():])
-				}
-				var cfOut []float32
-				var err error
-				if !l.conf.UsingNAP {
-					cfOut, err = cf.BM()
-				} else {
-					cfOut, err = cf.NAP()
-				}
-				if err != nil {
-					return err
-				}
-				evalPSNR := psnr{
-					evaluation: evaluation,
-					psnr:       -10000,
-				}
-				for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
-					channel := make([]float64, fftWindowSize)
-					for sampleIdx := range channel {
-						channel[sampleIdx] = float64(cfOut[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
-					}
-					channelPower := 0.0
-					spec := spectrum.S{}
-					if l.conf.UseSNNR {
-						channelPower = 10 * math.Log10(stat.Variance(channel, nil))
-						spec = spectrum.ComputeSignalPower(channel, rate)
+				var rcToUse *remoteComputer
+				for _, rcIdx := range rand.Perm(len(l.remoteComputers)) {
+					if availablePostTake := atomic.AddInt64(&l.remoteComputers[rcIdx].available, -1); availablePostTake >= 0 {
+						rcToUse = &l.remoteComputers[rcIdx]
+						defer atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
 					} else {
-						spec = spectrum.Compute(channel, rate)
-					}
-					for binIdx := int(math.Floor(float64(evaluation.probeSampler.LowerLimit / spec.BinWidth))); binIdx <= int(math.Ceil(float64(evaluation.probeSampler.UpperLimit/spec.BinWidth))); binIdx++ {
-						snr := 0.0
-						if l.conf.UseSNNR {
-							snr = spec.SignalPower[binIdx] - channelPower
-						} else {
-							snr = spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
-						}
-						if snr > evalPSNR.psnr {
-							evalPSNR.psnr = snr
-						}
+						atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
 					}
 				}
-				evalPSNR.predictedLoudness = signals.DB(xValues.LoudnessConstant + xValues.LoudnessScale*evalPSNR.psnr)
-				psnrChan <- evalPSNR
+				if rcToUse == nil {
+					log.Fatal("Didn't find a remote computer to use, this is unheard of?")
+				}
+
+				resp := ComputePSNRResp{}
+				if err := rcToUse.client.Call("LossCalculator.ComputePSNR", ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp); err != nil {
+					log.Fatalf("Unable to call LossCalculator.ComputePSNR using %+v: %v", rcToUse, err)
+				}
+
+				psnrChan <- psnr{
+					evaluation:        l.evaluations[evaluationIdx],
+					psnr:              resp.PSNR,
+					predictedLoudness: resp.PredictedLoudness,
+				}
 				bar.Increment()
 				return nil
 			})
@@ -596,7 +644,7 @@ func (l *lossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	limitLoss := 0.0
 	explanation := []string{"limit loss disabled"}
 	if l.conf.Limits {
-		limitLoss, explanation = xValues.limitLoss()
+		limitLoss, explanation = xv.limitLoss()
 	}
 	totalLoss := loss + limitLoss
 	fmt.Printf("Got loss %v (limit loss %v: %v)\n", totalLoss, limitLoss, strings.Join(explanation, ", "))
@@ -609,7 +657,7 @@ type plot struct {
 	label string
 }
 
-func (l *lossCalculator) makePythonPlot(filename string, title string, xlabel string, ylabel string, plots []plot) error {
+func (l *LossCalculator) makePythonPlot(filename string, title string, xlabel string, ylabel string, plots []plot) error {
 	plotCommands := []string{}
 	for _, p := range plots {
 		marshalledXValues, err := json.Marshal(p.x)
@@ -641,7 +689,7 @@ plt.show()
 	return nil
 }
 
-func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
+func (l *LossCalculator) logPSNRs(p psnrs, name string) error {
 	if err := os.MkdirAll(l.outDir, 0777); err != nil {
 		return err
 	}
@@ -676,12 +724,12 @@ func (l *lossCalculator) logPSNRs(p psnrs, name string) error {
 func test() {
 	for _, usingNAP := range []bool{true, false} {
 		conf := &optConfig{UsingNAP: usingNAP}
-		testXValues := xValues{}
+		testXValues := XValues{}
 		xSlice := testXValues.toNormalizedFloat64Slice(conf)
 		for idx := range xSlice {
 			xSlice[idx] = float64(idx)
 		}
-		preRoundtripValues := &xValues{}
+		preRoundtripValues := &XValues{}
 		preRoundtripValues.setFromNormalizedFloat64Slice(conf, xSlice)
 		postRoundtripValues := preRoundtripValues.toNormalizedFloat64Slice(conf)
 		if len(xSlice) != len(postRoundtripValues) {
@@ -695,31 +743,31 @@ func test() {
 	}
 }
 
-func (l *lossCalculator) optimize() {
+func (l *LossCalculator) optimize() error {
 	problem := optimize.Problem{
 		Func: l.loss,
 		Status: func() (optimize.Status, error) {
 			return optimize.NotTerminated, l.err
 		},
 	}
-	initX := &xValues{}
+	initX := XValues{}
 	if *startX == "" {
 		initX.init(l.conf)
 	} else {
 		if err := json.Unmarshal([]byte(*startX), initX); err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(l.conf), nil, nil)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	resultValues := &xValues{}
+	resultValues := XValues{}
 	resultValues.setFromNormalizedFloat64Slice(l.conf, res.Location.X)
 	finalFile, err := os.Create(filepath.Join(*outputDir, "final_results.json"))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer finalFile.Close()
 	if err := json.NewEncoder(finalFile).Encode(map[string]interface{}{
@@ -727,20 +775,21 @@ func (l *lossCalculator) optimize() {
 		"Conf": l.conf,
 		"Loss": l.lossHelper(resultValues.toNormalizedFloat64Slice(l.conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
 	}); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	b, err := json.Marshal(resultValues)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fmt.Printf("Final results: %+v\n%v\n%s\n", res.Stats, res.Status, b)
+	return nil
 }
 
-func (l *lossCalculator) explore(field string, points int) {
-	initX := &xValues{}
+func (l *LossCalculator) explore(field string, points int) {
+	initX := XValues{}
 	initX.init(l.conf)
-	initXTyp := reflect.TypeOf(*initX)
+	initXTyp := reflect.TypeOf(initX)
 	fieldIdx := -1
 	for idx := 0; idx < initXTyp.NumField(); idx++ {
 		if initXTyp.Field(idx).Name == field {
@@ -769,6 +818,25 @@ func (l *lossCalculator) explore(field string, points int) {
 	fmt.Printf("Plotted exploration of %v over %v points to %v\n", field, points, logFile)
 }
 
+func (l *LossCalculator) serveOrOptimize() error {
+	if err := l.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
+		return err
+	}
+	if len(l.remoteComputers) == 0 {
+		rpc.Register(l)
+		rpc.HandleHTTP()
+		log.Printf("Listening on :8080 for connections...")
+		http.ListenAndServe("0.0.0.0:8080", nil)
+	} else {
+		if err := os.MkdirAll(*outputDir, 0755); err != nil {
+			return err
+		}
+
+		return l.optimize()
+	}
+	return nil
+}
+
 func main() {
 	test()
 
@@ -777,7 +845,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	lc := &lossCalculator{
+	lc := &LossCalculator{
 		outDir:                       *outputDir,
 		evaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 		lossCalculationOutputRatio:   *lossCalculationOutputRatio,
@@ -791,21 +859,32 @@ func main() {
 			ERBPerStep:     *erbPerStep,
 		},
 	}
+	for _, remoteSpec := range strings.Split(*remoteComputers, ",") {
+		if remoteSpec != "" {
+			client, err := rpc.DialHTTP("tcp", remoteSpec)
+			if err != nil {
+				log.Fatal(err)
+			}
+			rc := remoteComputer{
+				client: client,
+			}
+			if err := rc.client.Call("LossCalculator.NumCPU", struct{}{}, &rc.available); err != nil {
+				log.Fatal(err)
+			}
+			lc.remoteComputers = append(lc.remoteComputers, rc)
+		}
+	}
 	for _, disabledField := range strings.Split(*disabledFields, ",") {
 		if strings.TrimSpace(disabledField) != "" {
 			lc.conf.DisabledFields[disabledField] = true
 		}
 	}
-	if err := lc.loadEvaluations(*evaluationJSONGlob, signals.DB(*noiseFloor-*evaluationFullScaleSineLevel)); err != nil {
-		log.Fatal(err)
-	}
-	if err := os.MkdirAll(*outputDir, 0755); err != nil {
-		log.Fatal(err)
-	}
 
 	if *exploreField != "" {
 		lc.explore(*exploreField, *exploreFieldPoints)
 	} else {
-		lc.optimize()
+		if err := lc.serveOrOptimize(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }

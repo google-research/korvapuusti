@@ -64,6 +64,7 @@ type CF interface {
 	NumSamples() int
 	SampleRate() int
 	Poles() []float32
+	Destroy()
 }
 
 type carfac struct {
@@ -73,6 +74,7 @@ type carfac struct {
 	poles       []float32
 	openLoop    bool
 	cf          *C.carfac
+	destroyed   bool
 }
 
 func (c *carfac) NumChannels() int {
@@ -161,11 +163,19 @@ func New(cfp CARFACParams) CF {
 		sampleRate:  cfp.SampleRate,
 		poles:       floatAryToFloats(cf.poles),
 		cf:          &cf,
+		destroyed:   false,
 	}
 	runtime.SetFinalizer(result, func(i interface{}) {
-		C.delete_carfac(&cf)
+		i.(*carfac).Destroy()
 	})
 	return result
+}
+
+func (c *carfac) Destroy() {
+	if !c.destroyed {
+		c.destroyed = true
+		C.delete_carfac(c.cf)
+	}
 }
 
 func (c *carfac) Reset() {
