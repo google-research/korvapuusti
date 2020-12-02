@@ -22,6 +22,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/sha1"
+	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -54,6 +55,11 @@ const (
 	rate          = 48000
 	fftWindowSize = 2048
 )
+
+func init() {
+	gob.Register(map[string]interface{}{})
+	gob.Register([]interface{}{})
+}
 
 var (
 	sqrt2 = math.Sqrt(2.0)
@@ -96,7 +102,7 @@ func denormalize(x float64, scale [2]float64) float64 {
 	return x*(scale[1]-scale[0]) + scale[0]
 }
 
-type OptConfig struct {
+type optConfig struct {
 	OpenLoop                     bool
 	UsingNAP                     bool
 	DisabledFields               map[string]bool
@@ -108,7 +114,7 @@ type OptConfig struct {
 	NoiseFloor                   signals.DB
 }
 
-func (o *OptConfig) zeta(zetaConst float64) float64 {
+func (o *optConfig) zeta(zetaConst float64) float64 {
 	// Based on the assumtion that max small-signal gain at the passband peak
 	// will be on the order of  (0.5/min_zeta)^(1/erb_per_step), and we need
 	// the start value of that in the same region or the loss function becomes
@@ -137,7 +143,7 @@ type XValues struct {
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
 }
 
-func (x *XValues) activeValues(conf *OptConfig) string {
+func (x *XValues) activeValues(conf *optConfig) string {
 	b, err := json.Marshal(x)
 	if err != nil {
 		log.Panic(err)
@@ -220,7 +226,7 @@ func (x *XValues) limitLoss() (float64, []string) {
 	return result, explanation
 }
 
-func (x *XValues) activeFieldIndices(conf *OptConfig) []int {
+func (x *XValues) activeFieldIndices(conf *optConfig) []int {
 	typ := reflect.TypeOf(*x)
 	result := []int{}
 	for idx := 0; idx < typ.NumField(); idx++ {
@@ -244,7 +250,7 @@ func (x *XValues) scaleForField(fieldIdx int) [2]float64 {
 	return [2]float64{min, max}
 }
 
-func (x *XValues) init(conf *OptConfig) {
+func (x *XValues) init(conf *optConfig) {
 	val := reflect.ValueOf(x)
 	typ := reflect.TypeOf(*x)
 	for idx := 0; idx < typ.NumField(); idx++ {
@@ -263,7 +269,7 @@ func (x *XValues) init(conf *OptConfig) {
 	}
 }
 
-func (x *XValues) toNormalizedFloat64Slice(conf *OptConfig) []float64 {
+func (x *XValues) toNormalizedFloat64Slice(conf *optConfig) []float64 {
 	val := reflect.ValueOf(*x)
 	result := []float64{}
 	for _, idx := range x.activeFieldIndices(conf) {
@@ -272,7 +278,7 @@ func (x *XValues) toNormalizedFloat64Slice(conf *OptConfig) []float64 {
 	return result
 }
 
-func (x *XValues) setFromNormalizedFloat64Slice(conf *OptConfig, xSlice []float64) {
+func (x *XValues) setFromNormalizedFloat64Slice(conf *optConfig, xSlice []float64) {
 	x.init(conf)
 	val := reflect.ValueOf(x)
 	for _, idx := range x.activeFieldIndices(conf) {
@@ -334,9 +340,9 @@ func (p psnrs) Swap(i, j int) {
 }
 
 type remoteComputer struct {
-	spec      string
-	client    *rpc.Client
-	available int
+	spec   string
+	client *rpc.Client
+	numCPU int
 }
 
 type remoteComputerSlice []remoteComputer
@@ -344,7 +350,7 @@ type remoteComputerSlice []remoteComputer
 func (r remoteComputerSlice) shuffled() chan *remoteComputer {
 	slice := []*remoteComputer{}
 	for i := range r {
-		for j := 0; j < r[i].available; j++ {
+		for j := 0; j < r[i].numCPU; j++ {
 			slice = append(slice, &r[i])
 		}
 	}
@@ -357,9 +363,10 @@ func (r remoteComputerSlice) shuffled() chan *remoteComputer {
 }
 
 type LossCalculator struct {
-	Conf        *OptConfig
-	evaluations evaluations
-
+	conf                       *optConfig
+	evaluationJSONGlob         string
+	equivalentLoudnesses       []analysis.EquivalentLoudness
+	evaluations                evaluations
 	outDir                     string
 	runLocal                   bool
 	lossCalculationOutputRatio int
@@ -369,10 +376,51 @@ type LossCalculator struct {
 	lossCalculations int
 }
 
-func (l *LossCalculator) loadEvaluations(glob string) error {
+func (l *LossCalculator) loadEvaluations() error {
+	l.equivalentLoudnesses = nil
+
+	evaluationFileNames, err := filepath.Glob(l.evaluationJSONGlob)
+	if err != nil {
+		return err
+	}
+
+	for _, evaluationFileName := range evaluationFileNames {
+		evaluationFile, err := os.Open(evaluationFileName)
+		if err != nil {
+			return err
+		}
+		if err := func() error {
+			defer evaluationFile.Close()
+			lineReader := bufio.NewReader(evaluationFile)
+			lines := [][]byte{}
+			for line, err := lineReader.ReadString('\n'); err == nil; line, err = lineReader.ReadString('\n') {
+				lines = append(lines, []byte(line))
+			}
+			if err != nil && err != io.EOF {
+				return err
+			}
+			for _, lineVar := range lines {
+				line := lineVar
+				equivalentLoudness := analysis.EquivalentLoudness{}
+				if err := json.Unmarshal(line, &equivalentLoudness); err != nil {
+					return err
+				}
+				if equivalentLoudness.EntryType == "EquivalentLoudnessMeasurement" {
+					l.equivalentLoudnesses = append(l.equivalentLoudnesses, equivalentLoudness)
+				}
+			}
+			return nil
+		}(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (l *LossCalculator) SynthesizeEvaluations(req struct{}, checksum *[]byte) error {
 	l.evaluations = nil
 
-	wp := workerpool.New(map[string]int{"L": runtime.NumCPU(), "P": 0, "C": 0})
+	wp := workerpool.New(map[string]int{"L": runtime.NumCPU(), "C": 0})
 
 	evaluationChannel := make(chan Evaluation)
 	wp.Queue("C", func() error {
@@ -382,110 +430,63 @@ func (l *LossCalculator) loadEvaluations(glob string) error {
 		return nil
 	})
 
-	wp.Queue("P", func() error {
-		evaluationFileNames, err := filepath.Glob(glob)
-		if err != nil {
-			return err
-		}
-
-		allFilesBar := pb.New(len(evaluationFileNames)).Prefix("Loading evaluation files")
-		fileBar := pb.New(0)
-		barPool, err := pb.StartPool(allFilesBar, fileBar)
-		if err != nil {
-			return err
-		}
-
-		for _, evaluationFileName := range evaluationFileNames {
-			fileBar.Prefix(evaluationFileName)
-			evaluationFile, err := os.Open(evaluationFileName)
+	fmt.Printf("Synthesizing with %+v\n", l.conf)
+	bar := pb.StartNew(len(l.equivalentLoudnesses)).Prefix("Synthesizing")
+	for _, equivalentLoudnessVar := range l.equivalentLoudnesses {
+		equivalentLoudness := equivalentLoudnessVar
+		wp.Queue("L", func() error {
+			eval := Evaluation{
+				EvaluatedLoudness: signals.DB(equivalentLoudness.Results.ProbeDBSPLForEquivalentLoudness),
+				EvaluationID:      equivalentLoudness.Evaluation.ID,
+				RunID:             equivalentLoudness.Run.ID,
+			}
+			probeSampler, err := equivalentLoudness.Evaluation.Probe.Sampler()
 			if err != nil {
 				return err
 			}
-			if err := func() error {
-				defer evaluationFile.Close()
-				lineReader := bufio.NewReader(evaluationFile)
-				lines := [][]byte{}
-				for line, err := lineReader.ReadString('\n'); err == nil; line, err = lineReader.ReadString('\n') {
-					lines = append(lines, []byte(line))
-				}
-				if err != nil && err != io.EOF {
-					log.Panic(err)
-				}
-				fileBar.SetTotal(len(lines))
-				fileBar.Set(0)
-				for _, lineVar := range lines {
-					line := lineVar
-					wp.Queue("L", func() error {
-						equivalentLoudness := &analysis.EquivalentLoudness{}
-						if err := json.Unmarshal(line, equivalentLoudness); err != nil {
-							return err
-						}
-						if equivalentLoudness.EntryType == "EquivalentLoudnessMeasurement" {
-							eval := Evaluation{
-								EvaluatedLoudness: signals.DB(equivalentLoudness.Results.ProbeDBSPLForEquivalentLoudness),
-								EvaluationID:      equivalentLoudness.Evaluation.ID,
-								RunID:             equivalentLoudness.Run.ID,
-							}
-							probeSampler, err := equivalentLoudness.Evaluation.Probe.Sampler()
-							if err != nil {
-								return err
-							}
-							probeNoise, ok := probeSampler.(*signals.Noise)
-							if !ok {
-								return fmt.Errorf("Probe sampler %+v isn't a Noise sampler?", probeSampler)
-							}
-							eval.ProbeSampler = *probeNoise
-							combinedSampler, err := equivalentLoudness.Evaluation.Combined.Sampler()
-							if err != nil {
-								return err
-							}
-							superpos, ok := combinedSampler.(signals.Superposition)
-							if !ok {
-								return fmt.Errorf("Combined sampler %+v isn't a Superposition sampler?", combinedSampler)
-							}
-							for _, sampler := range superpos {
-								noise, ok := sampler.(*signals.Noise)
-								if !ok {
-									return fmt.Errorf("Combined part sampler %+v isn't a Noise sampler?", sampler)
-								}
-								if noise.LowerLimit == probeNoise.LowerLimit && noise.UpperLimit == probeNoise.UpperLimit {
-									continue
-								}
-								if noise.LowerLimit <= probeNoise.LowerLimit && noise.UpperLimit >= probeNoise.UpperLimit {
-									return nil
-								}
-								if noise.LowerLimit >= probeNoise.LowerLimit && noise.LowerLimit <= probeNoise.UpperLimit {
-									return nil
-								}
-								if noise.UpperLimit >= probeNoise.LowerLimit && noise.UpperLimit <= probeNoise.UpperLimit {
-									return nil
-								}
-							}
-							noisySampler := signals.Superposition{combinedSampler, &signals.Noise{Color: signals.White, LowerLimit: 20, UpperLimit: 20000, Level: l.Conf.NoiseFloor - l.Conf.EvaluationFullScaleSineLevel}}
-							eval.Signal, err = noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
-							if err != nil {
-								return err
-							}
-							evaluationChannel <- eval
-						}
-						fileBar.Increment()
-						return nil
-					})
-				}
-				return nil
-			}(); err != nil {
+			probeNoise, ok := probeSampler.(*signals.Noise)
+			if !ok {
+				return fmt.Errorf("Probe sampler %+v isn't a Noise sampler?", probeSampler)
+			}
+			eval.ProbeSampler = *probeNoise
+			combinedSampler, err := equivalentLoudness.Evaluation.Combined.Sampler()
+			if err != nil {
 				return err
 			}
-			fileBar.Finish()
-			allFilesBar.Increment()
-		}
-		allFilesBar.Finish()
-		barPool.Stop()
-		wp.Close("L")
-		return nil
-	})
-	wp.Close("P")
-	if err := wp.Wait("L", "P"); err != nil {
+			superpos, ok := combinedSampler.(signals.Superposition)
+			if !ok {
+				return fmt.Errorf("Combined sampler %+v isn't a Superposition sampler?", combinedSampler)
+			}
+			for _, sampler := range superpos {
+				noise, ok := sampler.(*signals.Noise)
+				if !ok {
+					return fmt.Errorf("Combined part sampler %+v isn't a Noise sampler?", sampler)
+				}
+				if noise.LowerLimit == probeNoise.LowerLimit && noise.UpperLimit == probeNoise.UpperLimit {
+					continue
+				}
+				if noise.LowerLimit <= probeNoise.LowerLimit && noise.UpperLimit >= probeNoise.UpperLimit {
+					return nil
+				}
+				if noise.LowerLimit >= probeNoise.LowerLimit && noise.LowerLimit <= probeNoise.UpperLimit {
+					return nil
+				}
+				if noise.UpperLimit >= probeNoise.LowerLimit && noise.UpperLimit <= probeNoise.UpperLimit {
+					return nil
+				}
+			}
+			noisySampler := signals.Superposition{combinedSampler, &signals.Noise{Color: signals.White, LowerLimit: 20, UpperLimit: 20000, Level: l.conf.NoiseFloor - l.conf.EvaluationFullScaleSineLevel}}
+			eval.Signal, err = noisySampler.Sample(signals.TimeStretch{FromInclusive: 0, ToExclusive: 1}, rate, nil)
+			if err != nil {
+				return err
+			}
+			evaluationChannel <- eval
+			bar.Increment()
+			return nil
+		})
+	}
+	wp.Close("L")
+	if err := wp.Wait("L"); err != nil {
 		return err
 	}
 	close(evaluationChannel)
@@ -493,7 +494,16 @@ func (l *LossCalculator) loadEvaluations(glob string) error {
 	if err := wp.WaitAll(); err != nil {
 		return err
 	}
+	bar.Finish()
+
+	fmt.Printf("Checksumming %v signals\n", len(l.evaluations))
 	sort.Sort(l.evaluations)
+	h := sha1.New()
+	if err := json.NewEncoder(h).Encode(l.evaluations); err != nil {
+		return err
+	}
+	*checksum = h.Sum(nil)
+
 	return nil
 }
 
@@ -511,18 +521,23 @@ type ComputePSNRResp struct {
 	PredictedLoudness signals.DB
 }
 
+type ConfigureReq struct {
+	Conf                 optConfig
+	EquivalentLoudnesses []analysis.EquivalentLoudness
+}
+
+func (l *LossCalculator) Configure(req ConfigureReq, res *struct{}) error {
+	l.conf = &req.Conf
+	l.equivalentLoudnesses = req.EquivalentLoudnesses
+	return nil
+}
+
 type ChecksumResp struct {
 	Evaluations []byte
-	Config      []byte
 }
 
 func (l *LossCalculator) Checksum(req struct{}, result *ChecksumResp) error {
 	h := sha1.New()
-	if err := json.NewEncoder(h).Encode(l); err != nil {
-		return err
-	}
-	result.Config = h.Sum(nil)
-	h = sha1.New()
 	if err := json.NewEncoder(h).Encode(l.evaluations); err != nil {
 		return err
 	}
@@ -545,7 +560,7 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 		MinZeta:       &req.XValues.MinZeta,
 		MaxZeta:       &req.XValues.MaxZeta,
 		ZeroRatio:     &req.XValues.ZeroRatio,
-		ERBPerStep:    &l.Conf.ERBPerStep,
+		ERBPerStep:    &l.conf.ERBPerStep,
 
 		StageGain:       &req.XValues.StageGain,
 		AGC1Scale0:      &req.XValues.AGC1Scale0,
@@ -558,14 +573,14 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 	cf := carfac.New(carfacParams)
 	// The runtime finalizer will run this automatically, but to speed up the cleanup.
 	defer cf.Destroy()
-	scaledSignal := evaluation.Signal.ToFloat32AddLevel(l.Conf.EvaluationFullScaleSineLevel - signals.DB(req.XValues.CarfacFullScaleSineLevel))
+	scaledSignal := evaluation.Signal.ToFloat32AddLevel(l.conf.EvaluationFullScaleSineLevel - signals.DB(req.XValues.CarfacFullScaleSineLevel))
 	cf.Run(scaledSignal[len(evaluation.Signal)-cf.NumSamples():])
-	if l.Conf.OpenLoop {
+	if l.conf.OpenLoop {
 		cf.RunOpen(scaledSignal[len(evaluation.Signal)-cf.NumSamples():])
 	}
 	var cfOut []float32
 	var err error
-	if !l.Conf.UsingNAP {
+	if !l.conf.UsingNAP {
 		cfOut, err = cf.BM()
 	} else {
 		cfOut, err = cf.NAP()
@@ -581,7 +596,7 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 		}
 		channelPower := 0.0
 		spec := spectrum.S{}
-		if l.Conf.UseSNNR {
+		if l.conf.UseSNNR {
 			channelPower = 10 * math.Log10(stat.Variance(channel, nil))
 			spec = spectrum.ComputeSignalPower(channel, rate)
 		} else {
@@ -589,7 +604,7 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 		}
 		for binIdx := int(math.Floor(float64(evaluation.ProbeSampler.LowerLimit / spec.BinWidth))); binIdx <= int(math.Ceil(float64(evaluation.ProbeSampler.UpperLimit/spec.BinWidth))); binIdx++ {
 			snr := 0.0
-			if l.Conf.UseSNNR {
+			if l.conf.UseSNNR {
 				snr = spec.SignalPower[binIdx] - channelPower
 			} else {
 				snr = spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
@@ -606,8 +621,8 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLogAllTo string) float64 {
 	l.lossCalculations++
 	xv := XValues{}
-	xv.setFromNormalizedFloat64Slice(l.Conf, x)
-	fmt.Printf("Evaluation ** %v ** using %+v with %s\n", l.lossCalculations, l.Conf, xv.activeValues(l.Conf))
+	xv.setFromNormalizedFloat64Slice(l.conf, x)
+	fmt.Printf("Evaluation ** %v ** using %+v with %s\n", l.lossCalculations, l.conf, xv.activeValues(l.conf))
 
 	bar := pb.StartNew(len(l.evaluations)).Prefix("Evaluating")
 	psnrChan := make(chan psnr, len(l.evaluations))
@@ -618,16 +633,17 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 			evaluationIdx := evaluationIdxVar
 			wp.Queue("L", func() error {
 				resp := ComputePSNRResp{}
-				var err error
 				if l.runLocal {
-					err = l.ComputePSNR(ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp)
+					if err := l.ComputePSNR(ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp); err != nil {
+						log.Fatal("Unable to call ComputePSNR locally: %v", err)
+					}
 				} else {
 					rcToUse := <-shuffledComputers
-					err = rcToUse.client.Call("LossCalculator.ComputePSNR", ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp)
+					err := rcToUse.client.Call("LossCalculator.ComputePSNR", ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp)
 					shuffledComputers <- rcToUse
-				}
-				if err != nil {
-					log.Fatalf("Unable to call LossCalculator.ComputePSNR using %+v: %v", rcToUse, err)
+					if err != nil {
+						log.Fatalf("Unable to call LossCalculator.ComputePSNR using %+v: %v", rcToUse, err)
+					}
 				}
 
 				psnrChan <- psnr{
@@ -659,14 +675,14 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 			errorDiscount := signals.DB(30-evalPSNR.evaluation.EvaluatedLoudness) / 3
 			predictedLoudnessError /= errorDiscount
 		}
-		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.Conf.PNorm)
+		square := math.Pow(float64(predictedLoudnessError*predictedLoudnessError), l.conf.PNorm)
 		sumOfSquares += square
 		lossByRunID[evalPSNR.evaluation.RunID] += square
 	}
 	worstRun := psnrs{}
 	worstAvgLoss := 0.0
 	for runID := range lossByRunID {
-		lossByRunID[runID] = math.Pow(lossByRunID[runID]/float64(len(psnrsByRunID[runID])), 1.0/l.Conf.PNorm)
+		lossByRunID[runID] = math.Pow(lossByRunID[runID]/float64(len(psnrsByRunID[runID])), 1.0/l.conf.PNorm)
 		if lossByRunID[runID] > worstAvgLoss {
 			worstAvgLoss = lossByRunID[runID]
 			worstRun = psnrsByRunID[runID]
@@ -694,10 +710,10 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 			}
 		}
 	}
-	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.Conf.PNorm)
+	loss := math.Pow(sumOfSquares/float64(len(l.evaluations)), 1.0/l.conf.PNorm)
 	limitLoss := 0.0
 	explanation := []string{"limit loss disabled"}
-	if l.Conf.Limits {
+	if l.conf.Limits {
 		limitLoss, explanation = xv.limitLoss()
 	}
 	totalLoss := loss + limitLoss
@@ -777,7 +793,7 @@ func (l *LossCalculator) logPSNRs(p psnrs, name string) error {
 
 func test() {
 	for _, usingNAP := range []bool{true, false} {
-		conf := &OptConfig{UsingNAP: usingNAP}
+		conf := &optConfig{UsingNAP: usingNAP}
 		testXValues := XValues{}
 		xSlice := testXValues.toNormalizedFloat64Slice(conf)
 		for idx := range xSlice {
@@ -797,7 +813,59 @@ func test() {
 	}
 }
 
+type remoteChecksum struct {
+	spec     string
+	checksum []byte
+}
+
+func (l *LossCalculator) verifyRemotes() error {
+	localSum := []byte{}
+	wp := workerpool.New(map[string]int{"P": 0})
+	wp.Queue("P", func() error {
+		return l.SynthesizeEvaluations(struct{}{}, &localSum)
+	})
+	otherSums := make(chan remoteChecksum, len(l.remoteComputers))
+	for _, rcVar := range l.remoteComputers {
+		rc := rcVar
+		wp.Queue("P", func() error {
+			if err := rc.client.Call("LossCalculator.Configure", ConfigureReq{
+				Conf:                 *l.conf,
+				EquivalentLoudnesses: l.equivalentLoudnesses,
+			}, &struct{}{}); err != nil {
+				log.Printf("failed configure: %v", err)
+				return err
+			}
+			remoteSum := []byte{}
+			if err := rc.client.Call("LossCalculator.SynthesizeEvaluations", struct{}{}, &remoteSum); err != nil {
+				return err
+			}
+			otherSums <- remoteChecksum{spec: rc.spec, checksum: remoteSum}
+			return nil
+		})
+	}
+	wp.Close("P")
+	if err := wp.WaitAll(); err != nil {
+		return err
+	}
+	close(otherSums)
+	for otherSum := range otherSums {
+		if bytes.Compare(localSum, otherSum.checksum) != 0 {
+			return fmt.Errorf("remote computer %v has different evaluations checksum from controller", otherSum.spec)
+		}
+	}
+	return nil
+}
+
 func (l *LossCalculator) optimize() error {
+	if !l.runLocal {
+		if err := l.verifyRemotes(); err != nil {
+			return err
+		}
+	}
+	if err := os.MkdirAll(*outputDir, 0755); err != nil {
+		return err
+	}
+
 	problem := optimize.Problem{
 		Func: l.loss,
 		Status: func() (optimize.Status, error) {
@@ -806,19 +874,19 @@ func (l *LossCalculator) optimize() error {
 	}
 	initX := XValues{}
 	if *startX == "" {
-		initX.init(l.Conf)
+		initX.init(l.conf)
 	} else {
 		if err := json.Unmarshal([]byte(*startX), initX); err != nil {
 			return err
 		}
 	}
-	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(l.Conf), nil, nil)
+	res, err := optimize.Minimize(problem, initX.toNormalizedFloat64Slice(l.conf), nil, nil)
 	if err != nil {
 		return err
 	}
 
 	resultValues := XValues{}
-	resultValues.setFromNormalizedFloat64Slice(l.Conf, res.Location.X)
+	resultValues.setFromNormalizedFloat64Slice(l.conf, res.Location.X)
 	finalFile, err := os.Create(filepath.Join(*outputDir, "final_results.json"))
 	if err != nil {
 		return err
@@ -826,8 +894,8 @@ func (l *LossCalculator) optimize() error {
 	defer finalFile.Close()
 	if err := json.NewEncoder(finalFile).Encode(map[string]interface{}{
 		"X":    resultValues,
-		"Conf": l.Conf,
-		"Loss": l.lossHelper(resultValues.toNormalizedFloat64Slice(l.Conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
+		"Conf": l.conf,
+		"Loss": l.lossHelper(resultValues.toNormalizedFloat64Slice(l.conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
 	}); err != nil {
 		return err
 	}
@@ -842,7 +910,7 @@ func (l *LossCalculator) optimize() error {
 
 func (l *LossCalculator) explore(field string, points int) {
 	initX := XValues{}
-	initX.init(l.Conf)
+	initX.init(l.conf)
 	initXTyp := reflect.TypeOf(initX)
 	fieldIdx := -1
 	for idx := 0; idx < initXTyp.NumField(); idx++ {
@@ -862,7 +930,7 @@ func (l *LossCalculator) explore(field string, points int) {
 	for val := scale[0]; val < scale[1]; val += step {
 		vals = append(vals, val)
 		initXVal.Elem().Field(fieldIdx).Set(reflect.ValueOf(val))
-		loss := l.loss(initX.toNormalizedFloat64Slice(l.Conf))
+		loss := l.loss(initX.toNormalizedFloat64Slice(l.conf))
 		losses = append(losses, loss)
 	}
 	logFile := filepath.Join(l.outDir, fmt.Sprintf("exploration_of_%s_over_%v_points.py", field, points))
@@ -870,52 +938,6 @@ func (l *LossCalculator) explore(field string, points int) {
 		log.Fatal(err)
 	}
 	fmt.Printf("Plotted exploration of %v over %v points to %v\n", field, points, logFile)
-}
-
-func (l *LossCalculator) serveOrOptimize() error {
-	if err := l.loadEvaluations(*evaluationJSONGlob); err != nil {
-		return err
-	}
-	if !l.runLocal && len(l.remoteComputers) == 0 {
-		rpc.Register(l)
-		rpc.HandleHTTP()
-		log.Printf("Listening on :8080 for connections...")
-		http.ListenAndServe("0.0.0.0:8080", nil)
-	} else {
-		if !l.runLocal {
-			localSum := ChecksumResp{}
-			if err := l.Checksum(struct{}{}, &localSum); err != nil {
-				log.Fatal(err)
-			}
-			wp := workerpool.New(map[string]int{"P": 0})
-			for _, rcVar := range l.remoteComputers {
-				rc := rcVar
-				wp.Queue("P", func() error {
-					remoteSum := ChecksumResp{}
-					if err := rc.client.Call("LossCalculator.Checksum", struct{}{}, &remoteSum); err != nil {
-						return err
-					}
-					if bytes.Compare(localSum.Config, remoteSum.Config) != 0 {
-						return fmt.Errorf("Remote computer %q has different config checksum than local client!", rc.spec)
-					}
-					if bytes.Compare(localSum.Evaluations, remoteSum.Evaluations) != 0 {
-						return fmt.Errorf("Remote computer %q has different input checksum than local client!", rc.spec)
-					}
-					return nil
-				})
-			}
-			wp.Close("P")
-			if err := wp.WaitAll(); err != nil {
-				return err
-			}
-		}
-		if err := os.MkdirAll(*outputDir, 0755); err != nil {
-			return err
-		}
-
-		return l.optimize()
-	}
-	return nil
 }
 
 func main() {
@@ -927,8 +949,7 @@ func main() {
 		os.Exit(1)
 	}
 	lc := &LossCalculator{
-		outDir: *outputDir,
-		Conf: &OptConfig{
+		conf: &optConfig{
 			PNorm:                        *pNorm,
 			OpenLoop:                     !*skipOpenLoop,
 			UsingNAP:                     !*usingBM,
@@ -939,8 +960,18 @@ func main() {
 			EvaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 			NoiseFloor:                   signals.DB(*noiseFloor),
 		},
+		outDir:                     *outputDir,
+		evaluationJSONGlob:         *evaluationJSONGlob,
 		runLocal:                   *runLocal,
 		lossCalculationOutputRatio: *lossCalculationOutputRatio,
+	}
+	for _, disabledField := range strings.Split(*disabledFields, ",") {
+		if strings.TrimSpace(disabledField) != "" {
+			lc.conf.DisabledFields[disabledField] = true
+		}
+	}
+	if err := lc.loadEvaluations(); err != nil {
+		log.Fatal(err)
 	}
 	for _, remoteSpec := range strings.Split(*remoteComputers, ",") {
 		if remoteSpec != "" {
@@ -952,22 +983,22 @@ func main() {
 				spec:   remoteSpec,
 				client: client,
 			}
-			if err := rc.client.Call("LossCalculator.NumCPU", struct{}{}, &rc.available); err != nil {
+			if err := rc.client.Call("LossCalculator.NumCPU", struct{}{}, &rc.numCPU); err != nil {
 				log.Fatal(err)
 			}
 			lc.remoteComputers = append(lc.remoteComputers, rc)
 		}
 	}
-	for _, disabledField := range strings.Split(*disabledFields, ",") {
-		if strings.TrimSpace(disabledField) != "" {
-			lc.Conf.DisabledFields[disabledField] = true
-		}
-	}
 
 	if *exploreField != "" {
 		lc.explore(*exploreField, *exploreFieldPoints)
+	} else if !lc.runLocal && len(lc.remoteComputers) == 0 {
+		rpc.Register(lc)
+		rpc.HandleHTTP()
+		log.Printf("Listening on :8080 for connections...")
+		http.ListenAndServe("0.0.0.0:8080", nil)
 	} else {
-		if err := lc.serveOrOptimize(); err != nil {
+		if err := lc.optimize(); err != nil {
 			log.Fatal(err)
 		}
 	}
