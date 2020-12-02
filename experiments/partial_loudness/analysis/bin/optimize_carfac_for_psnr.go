@@ -39,7 +39,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync/atomic"
 
 	"github.com/cheggaaa/pb"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
@@ -337,7 +336,24 @@ func (p psnrs) Swap(i, j int) {
 type remoteComputer struct {
 	spec      string
 	client    *rpc.Client
-	available int64
+	available int
+}
+
+type remoteComputerSlice []remoteComputer
+
+func (r remoteComputerSlice) shuffled() chan *remoteComputer {
+	slice := []*remoteComputer{}
+	for i := range r {
+		for j := 0; j < r[i].available; j++ {
+			slice = append(slice, &r[i])
+		}
+	}
+	rand.Shuffle(len(slice), func(i, j int) { slice[i], slice[j] = slice[j], slice[i] })
+	result := make(chan *remoteComputer, len(slice))
+	for _, rc := range slice {
+		result <- rc
+	}
+	return result
 }
 
 type LossCalculator struct {
@@ -347,7 +363,7 @@ type LossCalculator struct {
 	outDir                     string
 	runLocal                   bool
 	lossCalculationOutputRatio int
-	remoteComputers            []remoteComputer
+	remoteComputers            remoteComputerSlice
 
 	err              error
 	lossCalculations int
@@ -595,36 +611,20 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 
 	bar := pb.StartNew(len(l.evaluations)).Prefix("Evaluating")
 	psnrChan := make(chan psnr, len(l.evaluations))
-	availableComputers := 0
-	for _, rc := range l.remoteComputers {
-		availableComputers += int(rc.available)
-	}
-	wp := workerpool.New(map[string]int{"L": availableComputers, "P": 0})
+	shuffledComputers := l.remoteComputers.shuffled()
+	wp := workerpool.New(map[string]int{"L": 0, "P": 0})
 	wp.Queue("P", func() error {
 		for evaluationIdxVar := range l.evaluations {
 			evaluationIdx := evaluationIdxVar
 			wp.Queue("L", func() error {
-				var rcToUse *remoteComputer
-				if !l.runLocal {
-					for _, rcIdx := range rand.Perm(len(l.remoteComputers)) {
-						if availablePostTake := atomic.AddInt64(&l.remoteComputers[rcIdx].available, -1); availablePostTake >= 0 {
-							rcToUse = &l.remoteComputers[rcIdx]
-							defer atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
-						} else {
-							atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
-						}
-					}
-					if rcToUse == nil {
-						log.Fatal("Didn't find a remote computer to use, this is unheard of?")
-					}
-				}
-
 				resp := ComputePSNRResp{}
 				var err error
 				if l.runLocal {
 					err = l.ComputePSNR(ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp)
 				} else {
+					rcToUse := <-shuffledComputers
 					err = rcToUse.client.Call("LossCalculator.ComputePSNR", ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp)
+					shuffledComputers <- rcToUse
 				}
 				if err != nil {
 					log.Fatalf("Unable to call LossCalculator.ComputePSNR using %+v: %v", rcToUse, err)
