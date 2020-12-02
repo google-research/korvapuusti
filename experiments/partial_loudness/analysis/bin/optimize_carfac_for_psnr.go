@@ -63,7 +63,8 @@ var (
 
 	outputDir                  = flag.String("output_dir", filepath.Join(os.Getenv("HOME"), "optimize_carfac_for_psnr"), "Directory to put output files in.")
 	lossCalculationOutputRatio = flag.Int("loss_calculation_output_ratio", 100, "How seldom to output data about the best/worst results of a calculation run.")
-	remoteComputers            = flag.String("remote_computers", "", "Comma separated list of host:port pairs defining remote computers to use. Not providing this will instead run a remote computer.")
+	remoteComputers            = flag.String("remote_computers", "", "Comma separated list of host:port pairs defining remote computers to use. Not providing this will instead run a remote computer unless run_local is provided.")
+	runLocal                   = flag.Bool("run_local", false, "Run locally instead of using the distributed mode.")
 
 	// Definition of evaluations.
 
@@ -344,6 +345,7 @@ type LossCalculator struct {
 	evaluations evaluations
 
 	outDir                     string
+	runLocal                   bool
 	lossCalculationOutputRatio int
 	remoteComputers            []remoteComputer
 
@@ -603,20 +605,28 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 			evaluationIdx := evaluationIdxVar
 			wp.Queue("L", func() error {
 				var rcToUse *remoteComputer
-				for _, rcIdx := range rand.Perm(len(l.remoteComputers)) {
-					if availablePostTake := atomic.AddInt64(&l.remoteComputers[rcIdx].available, -1); availablePostTake >= 0 {
-						rcToUse = &l.remoteComputers[rcIdx]
-						defer atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
-					} else {
-						atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
+				if !l.runLocal {
+					for _, rcIdx := range rand.Perm(len(l.remoteComputers)) {
+						if availablePostTake := atomic.AddInt64(&l.remoteComputers[rcIdx].available, -1); availablePostTake >= 0 {
+							rcToUse = &l.remoteComputers[rcIdx]
+							defer atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
+						} else {
+							atomic.AddInt64(&l.remoteComputers[rcIdx].available, 1)
+						}
 					}
-				}
-				if rcToUse == nil {
-					log.Fatal("Didn't find a remote computer to use, this is unheard of?")
+					if rcToUse == nil {
+						log.Fatal("Didn't find a remote computer to use, this is unheard of?")
+					}
 				}
 
 				resp := ComputePSNRResp{}
-				if err := rcToUse.client.Call("LossCalculator.ComputePSNR", ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp); err != nil {
+				var err error
+				if l.runLocal {
+					err = l.ComputePSNR(ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp)
+				} else {
+					err = rcToUse.client.Call("LossCalculator.ComputePSNR", ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp)
+				}
+				if err != nil {
 					log.Fatalf("Unable to call LossCalculator.ComputePSNR using %+v: %v", rcToUse, err)
 				}
 
@@ -866,36 +876,38 @@ func (l *LossCalculator) serveOrOptimize() error {
 	if err := l.loadEvaluations(*evaluationJSONGlob); err != nil {
 		return err
 	}
-	if len(l.remoteComputers) == 0 {
+	if !l.runLocal && len(l.remoteComputers) == 0 {
 		rpc.Register(l)
 		rpc.HandleHTTP()
 		log.Printf("Listening on :8080 for connections...")
 		http.ListenAndServe("0.0.0.0:8080", nil)
 	} else {
-		localSum := ChecksumResp{}
-		if err := l.Checksum(struct{}{}, &localSum); err != nil {
-			log.Fatal(err)
-		}
-		wp := workerpool.New(map[string]int{"P": 0})
-		for _, rcVar := range l.remoteComputers {
-			rc := rcVar
-			wp.Queue("P", func() error {
-				remoteSum := ChecksumResp{}
-				if err := rc.client.Call("LossCalculator.Checksum", struct{}{}, &remoteSum); err != nil {
-					return err
-				}
-				if bytes.Compare(localSum.Config, remoteSum.Config) != 0 {
-					return fmt.Errorf("Remote computer %q has different config checksum than local client!", rc.spec)
-				}
-				if bytes.Compare(localSum.Evaluations, remoteSum.Evaluations) != 0 {
-					return fmt.Errorf("Remote computer %q has different input checksum than local client!", rc.spec)
-				}
-				return nil
-			})
-		}
-		wp.Close("P")
-		if err := wp.WaitAll(); err != nil {
-			return err
+		if !l.runLocal {
+			localSum := ChecksumResp{}
+			if err := l.Checksum(struct{}{}, &localSum); err != nil {
+				log.Fatal(err)
+			}
+			wp := workerpool.New(map[string]int{"P": 0})
+			for _, rcVar := range l.remoteComputers {
+				rc := rcVar
+				wp.Queue("P", func() error {
+					remoteSum := ChecksumResp{}
+					if err := rc.client.Call("LossCalculator.Checksum", struct{}{}, &remoteSum); err != nil {
+						return err
+					}
+					if bytes.Compare(localSum.Config, remoteSum.Config) != 0 {
+						return fmt.Errorf("Remote computer %q has different config checksum than local client!", rc.spec)
+					}
+					if bytes.Compare(localSum.Evaluations, remoteSum.Evaluations) != 0 {
+						return fmt.Errorf("Remote computer %q has different input checksum than local client!", rc.spec)
+					}
+					return nil
+				})
+			}
+			wp.Close("P")
+			if err := wp.WaitAll(); err != nil {
+				return err
+			}
 		}
 		if err := os.MkdirAll(*outputDir, 0755); err != nil {
 			return err
@@ -927,6 +939,7 @@ func main() {
 			EvaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 			NoiseFloor:                   signals.DB(*noiseFloor),
 		},
+		runLocal:                   *runLocal,
 		lossCalculationOutputRatio: *lossCalculationOutputRatio,
 	}
 	for _, remoteSpec := range strings.Split(*remoteComputers, ",") {
