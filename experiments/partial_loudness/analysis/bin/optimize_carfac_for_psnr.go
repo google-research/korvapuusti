@@ -347,7 +347,7 @@ type remoteComputer struct {
 
 type remoteComputerSlice []remoteComputer
 
-func (r remoteComputerSlice) shuffled() chan *remoteComputer {
+func (r remoteComputerSlice) shuffledPool() chan *remoteComputer {
 	slice := []*remoteComputer{}
 	for i := range r {
 		for j := 0; j < r[i].numCPU; j++ {
@@ -420,21 +420,21 @@ func (l *LossCalculator) loadEvaluations() error {
 func (l *LossCalculator) SynthesizeEvaluations(req struct{}, checksum *[]byte) error {
 	l.evaluations = nil
 
-	wp := workerpool.New(map[string]int{"L": runtime.NumCPU(), "C": 0})
-
 	evaluationChannel := make(chan Evaluation)
-	wp.Queue("C", func() error {
+	evaluationCollectionDone := make(chan struct{})
+	go func() {
 		for evaluation := range evaluationChannel {
 			l.evaluations = append(l.evaluations, evaluation)
 		}
-		return nil
-	})
+		close(evaluationCollectionDone)
+	}()
 
 	fmt.Printf("Synthesizing with %+v\n", l.conf)
+	cpuPool := workerpool.New(runtime.NumCPU())
 	bar := pb.StartNew(len(l.equivalentLoudnesses)).Prefix("Synthesizing")
 	for _, equivalentLoudnessVar := range l.equivalentLoudnesses {
 		equivalentLoudness := equivalentLoudnessVar
-		wp.Queue("L", func() error {
+		cpuPool.Go(func() error {
 			eval := Evaluation{
 				EvaluatedLoudness: signals.DB(equivalentLoudness.Results.ProbeDBSPLForEquivalentLoudness),
 				EvaluationID:      equivalentLoudness.Evaluation.ID,
@@ -485,15 +485,11 @@ func (l *LossCalculator) SynthesizeEvaluations(req struct{}, checksum *[]byte) e
 			return nil
 		})
 	}
-	wp.Close("L")
-	if err := wp.Wait("L"); err != nil {
+	if err := cpuPool.Wait(); err != nil {
 		return err
 	}
 	close(evaluationChannel)
-	wp.Close("C")
-	if err := wp.WaitAll(); err != nil {
-		return err
-	}
+	<-evaluationCollectionDone
 	bar.Finish()
 
 	fmt.Printf("Checksumming %v signals\n", len(l.evaluations))
@@ -626,12 +622,13 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 
 	bar := pb.StartNew(len(l.evaluations)).Prefix("Evaluating")
 	psnrChan := make(chan psnr, len(l.evaluations))
-	shuffledComputers := l.remoteComputers.shuffled()
-	wp := workerpool.New(map[string]int{"L": 0, "P": 0})
-	wp.Queue("P", func() error {
+	shuffledComputers := l.remoteComputers.shuffledPool()
+	wp := workerpool.New(0)
+	evaluationsDone := make(chan struct{})
+	wp.Go(func() error {
 		for evaluationIdxVar := range l.evaluations {
 			evaluationIdx := evaluationIdxVar
-			wp.Queue("L", func() error {
+			wp.Go(func() error {
 				resp := ComputePSNRResp{}
 				if l.runLocal {
 					if err := l.ComputePSNR(ComputePSNRReq{EvaluationIndex: evaluationIdx, XValues: xv}, &resp); err != nil {
@@ -655,11 +652,11 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 				return nil
 			})
 		}
-		wp.Close("L")
+		close(evaluationsDone)
 		return nil
 	})
-	wp.Close("P")
-	if err := wp.WaitAll(); err != nil {
+	<-evaluationsDone
+	if err := wp.Wait(); err != nil {
 		l.err = err
 		return 0.0
 	}
@@ -820,14 +817,14 @@ type remoteChecksum struct {
 
 func (l *LossCalculator) verifyRemotes() error {
 	localSum := []byte{}
-	wp := workerpool.New(map[string]int{"P": 0})
-	wp.Queue("P", func() error {
+	wp := workerpool.New(0)
+	wp.Go(func() error {
 		return l.SynthesizeEvaluations(struct{}{}, &localSum)
 	})
 	otherSums := make(chan remoteChecksum, len(l.remoteComputers))
 	for _, rcVar := range l.remoteComputers {
 		rc := rcVar
-		wp.Queue("P", func() error {
+		wp.Go(func() error {
 			if err := rc.client.Call("LossCalculator.Configure", ConfigureReq{
 				Conf:                 *l.conf,
 				EquivalentLoudnesses: l.equivalentLoudnesses,
@@ -843,8 +840,7 @@ func (l *LossCalculator) verifyRemotes() error {
 			return nil
 		})
 	}
-	wp.Close("P")
-	if err := wp.WaitAll(); err != nil {
+	if err := wp.Wait(); err != nil {
 		return err
 	}
 	close(otherSums)
