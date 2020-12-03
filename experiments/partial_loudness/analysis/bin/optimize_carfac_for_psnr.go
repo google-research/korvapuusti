@@ -857,7 +857,13 @@ func (l *LossCalculator) verifyRemotes() error {
 }
 
 func (l *LossCalculator) optimize() error {
-	if !l.runLocal {
+	if l.runLocal {
+		localSum := []byte{}
+		if err := l.SynthesizeEvaluations(struct{}{}, &localSum); err != nil {
+			return err
+		}
+
+	} else {
 		if err := l.verifyRemotes(); err != nil {
 			return err
 		}
