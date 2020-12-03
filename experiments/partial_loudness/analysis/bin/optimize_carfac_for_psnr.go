@@ -950,10 +950,6 @@ func main() {
 	test()
 
 	flag.Parse()
-	if *evaluationJSONGlob == "" {
-		flag.Usage()
-		os.Exit(1)
-	}
 	lc := &LossCalculator{
 		conf: &optConfig{
 			PNorm:                        *pNorm,
@@ -976,9 +972,6 @@ func main() {
 			lc.conf.DisabledFields[disabledField] = true
 		}
 	}
-	if err := lc.loadEvaluations(); err != nil {
-		log.Fatal(err)
-	}
 	for _, remoteSpec := range strings.Split(*remoteComputers, ",") {
 		if remoteSpec != "" {
 			client, err := rpc.DialHTTP("tcp", remoteSpec)
@@ -996,13 +989,22 @@ func main() {
 		}
 	}
 
-	if *exploreField != "" {
-		lc.explore(*exploreField, *exploreFieldPoints)
-	} else if !lc.runLocal && len(lc.remoteComputers) == 0 {
+	if *exploreField == "" && !lc.runLocal && len(lc.remoteComputers) == 0 {
 		rpc.Register(lc)
 		rpc.HandleHTTP()
 		log.Printf("Listening on :8080 for connections...")
 		http.ListenAndServe("0.0.0.0:8080", nil)
+	}
+
+	if *evaluationJSONGlob == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+	if err := lc.loadEvaluations(); err != nil {
+		log.Fatal(err)
+	}
+	if *exploreField != "" {
+		lc.explore(*exploreField, *exploreFieldPoints)
 	} else {
 		if err := lc.optimize(); err != nil {
 			log.Fatal(err)
