@@ -87,6 +87,7 @@ var (
 	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
 	useSNNR        = flag.Bool("use_snnr", true, "Use SNNR instead of SNR to estimate partial loudness.")
 	erbPerStep     = flag.Float64("erb_per_step", 0.25, "erb_per_step while running CARFAC.")
+	useGaussianSum = flag.Bool("use_gaussian_sum", false, "Whether to use a gaussian sum of SNRs centered around the output frequency instead of the SNR of the output frequency when predicting loudness.")
 
 	// Alternative modes.
 
@@ -112,6 +113,7 @@ type optConfig struct {
 	ERBPerStep                   float64
 	EvaluationFullScaleSineLevel signals.DB
 	NoiseFloor                   signals.DB
+	UseGaussianSum               bool
 }
 
 func (o *optConfig) zeta(zetaConst float64) float64 {
@@ -139,6 +141,7 @@ type XValues struct {
 	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.008" limits:"-,-"`
 	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"-,-"`
 
+	GaussianStdDev   float64 `start:"1.0" scale:"0.2,20" limits:"-,-" gaussian:"true"`
 	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0" limits:"-,-"`
 	LoudnessScale    float64 `start:"2.0" scale:"0.1,10.0" limits:"-,-"`
 }
@@ -230,7 +233,7 @@ func (x *XValues) activeFieldIndices(conf *optConfig) []int {
 	typ := reflect.TypeOf(*x)
 	result := []int{}
 	for idx := 0; idx < typ.NumField(); idx++ {
-		if !conf.DisabledFields[typ.Field(idx).Name] && (conf.UsingNAP || typ.Field(idx).Tag.Get("nap") != "true") {
+		if !conf.DisabledFields[typ.Field(idx).Name] && (conf.UseGaussianSum || typ.Field(idx).Tag.Get("gaussian") != "true") {
 			result = append(result, idx)
 		}
 	}
@@ -599,14 +602,26 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 			spec = spectrum.Compute(channel, rate)
 		}
 		for binIdx := int(math.Floor(float64(evaluation.ProbeSampler.LowerLimit / spec.BinWidth))); binIdx <= int(math.Ceil(float64(evaluation.ProbeSampler.UpperLimit/spec.BinWidth))); binIdx++ {
-			snr := 0.0
-			if l.conf.UseSNNR {
-				snr = spec.SignalPower[binIdx] - channelPower
+			binSnr := 0.0
+			if l.conf.UseGaussianSum {
+				for componentBinIdx := range spec.SignalPower {
+					componentSNR := 0.0
+					if l.conf.UseSNNR {
+						componentSNR = spec.SignalPower[componentBinIdx] - channelPower
+					} else {
+						componentSNR = spec.SignalPower[componentBinIdx] - spec.NoisePower[componentBinIdx]
+					}
+					binSnr += math.Exp(-math.Pow(componentSNR-float64(binIdx), 2) / (2 * math.Pow(req.XValues.GaussianStdDev, 2)))
+				}
 			} else {
-				snr = spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
+				if l.conf.UseSNNR {
+					binSnr = spec.SignalPower[binIdx] - channelPower
+				} else {
+					binSnr = spec.SignalPower[binIdx] - spec.NoisePower[binIdx]
+				}
 			}
-			if snr > resp.PSNR {
-				resp.PSNR = snr
+			if binSnr > resp.PSNR {
+				resp.PSNR = binSnr
 			}
 		}
 	}
@@ -789,8 +804,8 @@ func (l *LossCalculator) logPSNRs(p psnrs, name string) error {
 }
 
 func test() {
-	for _, usingNAP := range []bool{true, false} {
-		conf := &optConfig{UsingNAP: usingNAP}
+	for _, useGaussianSum := range []bool{true, false} {
+		conf := &optConfig{UseGaussianSum: useGaussianSum}
 		testXValues := XValues{}
 		xSlice := testXValues.toNormalizedFloat64Slice(conf)
 		for idx := range xSlice {
@@ -957,6 +972,7 @@ func main() {
 			ERBPerStep:                   *erbPerStep,
 			EvaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 			NoiseFloor:                   signals.DB(*noiseFloor),
+			UseGaussianSum:               *useGaussianSum,
 		},
 		outDir:                     *outputDir,
 		evaluationJSONGlob:         *evaluationJSONGlob,
