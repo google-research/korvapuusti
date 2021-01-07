@@ -611,7 +611,7 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 					} else {
 						componentSNR = spec.SignalPower[componentBinIdx] - spec.NoisePower[componentBinIdx]
 					}
-					binSnr += math.Exp(-math.Pow(componentSNR-float64(binIdx), 2) / (2 * math.Pow(req.XValues.GaussianStdDev, 2)))
+					binSnr += componentSNR * math.Exp(-math.Pow(float64(componentBinIdx-binIdx), 2)/(2*math.Pow(req.XValues.GaussianStdDev, 2)))
 				}
 			} else {
 				if l.conf.UseSNNR {
