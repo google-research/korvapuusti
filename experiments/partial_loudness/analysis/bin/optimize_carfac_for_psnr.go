@@ -435,6 +435,7 @@ func (l *LossCalculator) SynthesizeEvaluations(req struct{}, checksum *[]byte) e
 	fmt.Printf("Synthesizing with %+v\n", l.conf)
 	cpuPool := workerpool.New(runtime.NumCPU())
 	bar := pb.StartNew(len(l.equivalentLoudnesses)).Prefix("Synthesizing")
+	overlapSkip := 0
 	for _, equivalentLoudnessVar := range l.equivalentLoudnesses {
 		equivalentLoudness := equivalentLoudnessVar
 		cpuPool.Go(func() error {
@@ -469,12 +470,15 @@ func (l *LossCalculator) SynthesizeEvaluations(req struct{}, checksum *[]byte) e
 					continue
 				}
 				if noise.LowerLimit <= probeNoise.LowerLimit && noise.UpperLimit >= probeNoise.UpperLimit {
+					overlapSkip++
 					return nil
 				}
 				if noise.LowerLimit >= probeNoise.LowerLimit && noise.LowerLimit <= probeNoise.UpperLimit {
+					overlapSkip++
 					return nil
 				}
 				if noise.UpperLimit >= probeNoise.LowerLimit && noise.UpperLimit <= probeNoise.UpperLimit {
+					overlapSkip++
 					return nil
 				}
 			}
@@ -495,7 +499,7 @@ func (l *LossCalculator) SynthesizeEvaluations(req struct{}, checksum *[]byte) e
 	<-evaluationCollectionDone
 	bar.Finish()
 
-	fmt.Printf("Checksumming %v signals\n", len(l.evaluations))
+	fmt.Printf("Skipped %v signals due to overlap with masker. Checksumming %v signals\n", overlapSkip, len(l.evaluations))
 	sort.Sort(l.evaluations)
 	h := sha1.New()
 	if err := json.NewEncoder(h).Encode(l.evaluations); err != nil {
