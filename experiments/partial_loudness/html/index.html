@@ -29,7 +29,8 @@
 					speakers.
 				</li>
 				<li>
-					At the start of every evaluating session,
+					At the start of every evaluating session we need to
+					calibrate a full scale 1kHz sine to 100dB SPL. To do that,
 					<b>take off your headphones</b> and put the microphone of a
 					Decibel Meter into one of the headphone speakers while they
 					are covered by something soft to calibrate the volume
@@ -84,7 +85,7 @@
 				Using frequency response measurements from
 				{{.HeadphoneFrequencyResponseFile}}.
 			</p>
-			<div style="margin: 1em">
+			<div style="margin: 1em 0 1em 0">
 				<div>
 					<input
 						type="radio"
@@ -93,7 +94,9 @@
 						value="white-noise-type"
 						id="white-noise-type"
 					/>
-					<label for="white-noise-type">White noise</label>
+					<label for="white-noise-type"
+						>White noise probe and masker</label
+					>
 				</div>
 				<div>
 					<input
@@ -102,105 +105,93 @@
 						value="sine-type"
 						id="sine-type"
 					/>
-					<label for="sine-type">Sine</label>
+					<label for="sine-type">Sine probe and masker</label>
 				</div>
 			</div>
-			<div id="erb-width-container">
-				<label for="erb-width">ERB width</label>
-				<input type="number" name="erb-width" id="erb-width" />
-				<p>
-					The width of the probe and masker noises in
-					<a
+			<div id="erb-width-container" style="margin: 1em 0 1em 0">
+				<label for="erb-width"
+					><a
 						href="https://en.wikipedia.org/wiki/Equivalent_rectangular_bandwidth"
 						>ERB</a
-					>s.
-				</p>
+					>
+					width of white noise signals</label
+				>
+				<input type="number" name="erb-width" id="erb-width" />
 			</div>
 			<div>
 				<label for="mask-level">Mask level</label>
 				<input type="text" name="mask-level" id="mask-level" />
 				<p>
-					The of the masker, in dB SPL. Relies on the calibration tone
-					being 100dB SPL.
+					The level of the masker. Relies on full scale 1kHz sine
+					being calibrated to 100dB SPL.
 				</p>
 			</div>
-			<div>
-				<input
-					type="radio"
-					checked="checked"
-					name="mask-level-type"
-					value="mask-level-db-spl"
-					id="mask-level-db-spl"
-				/>
-				<label for="mask-level-db-spl">Mask in dB SPL</label>
-			</div>
-			<div>
-				<input
-					type="radio"
-					name="mask-level-type"
-					value="mask-level-phons"
-					id="mask-level-phons"
-				/>
-				<label for="mask-level-phons">Mask in Phons</label>
-			</div>
-			<div>
-				<label for="mask-level">Mask level</label>
-				<input type="text" name="mask-level" id="mask-level" />
-				<p>
-					The of the masker, in dB SPL. Relies on the calibration tone
-					being 100dB SPL.
-				</p>
+			<div style="margin: 1em 0 1em 0">
+				<div>
+					<input
+						type="radio"
+						checked="checked"
+						name="mask-level-type"
+						value="mask-level-db-spl"
+						id="mask-level-db-spl"
+					/>
+					<label for="mask-level-db-spl">Mask in dB SPL</label>
+				</div>
+				<div>
+					<input
+						type="radio"
+						name="mask-level-type"
+						value="mask-level-phons"
+						id="mask-level-phons"
+					/>
+					<label for="mask-level-phons">Mask in Phons</label>
+				</div>
 			</div>
 			<div>
 				<label for="probe-level">Probe level</label>
 				<input type="number" name="probe-level" id="probe-level" />
 				<p>
-					The energy of the probe, in dB SPL. Relies on the
-					calibration tone being 100dB SPL.
+					The energy of the probe, in dB SPL. Relies on full scale
+					1kHz sine being calibrated to 100dB SPL.
 				</p>
 			</div>
-			<div>
-				<label for="probe-frequency">Probe frequency</label>
+			<div style="margin: 1em 0 1em 0">
+				<label for="probe-frequency">Probe center frequency</label>
 				<input
 					type="text"
 					name="probe-frequency"
 					id="probe-frequency"
 				/>
-				<p>The center frequency of the probe.</p>
 			</div>
-			<div>
-				<label for="erb-apart">ERB apart</label>
-				<input type="number" name="erb-apart" id="erb-apart" />
-				<p>
-					The distance between center frequencies for the generated
-					probe tones, in
+			<div style="margin: 1em 0 1em 0">
+				<label for="erb-apart"
+					>Generated mask center frequency distance in
 					<a
 						href="https://en.wikipedia.org/wiki/Equivalent_rectangular_bandwidth"
 						>ERB</a
-					>s.
-				</p>
+					></label
+				>
+				<input type="number" name="erb-apart" id="erb-apart" />
 			</div>
 			<div>
-				<label for="exact-mask-frequencies"
-					>Exact mask frequencies</label
-				>
+				<label for="exact-mask-frequencies">
+					Comma separated exact center frequencies for the generated
+					mask tones to use instead of the ERB apart scale.
+				</label>
 				<input
 					type="text"
 					name="exact-mask-frequencies"
 					id="exact-mask-frequencies"
 				/>
-				<p>
-					Comma separated exact center frequencies for the generated
-					mask tones to use instead of the ERB apart scale.
-				</p>
+				<p></p>
 			</div>
-			<div>
-				<label for="extra-masks">Extra masks</label>
-				<input type="text" name="extra-masks" id="extra-masks" />
-				<p>
+			<div style="margin: 1em 0 1em 0">
+				<label for="extra-masks">
 					Comma separated list of slash separated frequency/level
-					pairs for extra masks to play in addition.
-				</p>
+					pairs for extra masks to play in addition to the generated
+					mask tones.
+				</label>
+				<input type="text" name="extra-masks" id="extra-masks" />
 			</div>
 		</div>
 		<div>
