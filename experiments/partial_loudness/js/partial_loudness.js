@@ -763,7 +763,15 @@ function documentLoaded() {
 				frequency = erbToHz(erb)
 			) {
 				addEvaluationForFrequency(frequency);
-				erb += currEvaluation.erbApart;
+				let erbDelta = currEvaluation.erbApart;
+				let probeERB = hzToERB(currEvaluation.probeFrequency);
+				if (Math.abs(probeERB - erb) < 2) {
+					erbDelta *= 0.5;
+				}
+				if (Math.abs(probeERB - erb) < 1) {
+					erbDelta *= 0.5;
+				}
+				erb += erbDelta;
 			}
 		}
 		runNextEvaluation();
@@ -833,11 +841,7 @@ function documentLoaded() {
 		});
 	};
 
-	[
-		xAxisLinearHzInput,
-		xAxisLogHzInput,
-		xAxisCamsInput,
-	].forEach((inp) => {
+	[xAxisLinearHzInput, xAxisLogHzInput, xAxisCamsInput].forEach((inp) => {
 		inp.addEventListener("change", plotLog);
 	});
 
