@@ -521,7 +521,7 @@ func (l *LossCalculator) SynthesizeEvaluations(req struct{}, checksum *[]byte) e
 	<-evaluationCollectionDone
 	bar.Finish()
 
-	fmt.Printf("Skipped %v signals due to overlap with masker. Checksumming %v signals\n", overlapSkip, len(l.evaluations))
+	fmt.Printf("Skipped %v signals due to overlap with masker. Checksumming %v signals.\n", overlapSkip, len(l.evaluations))
 	sort.Sort(l.evaluations)
 	h := sha1.New()
 	if err := json.NewEncoder(h).Encode(l.evaluations); err != nil {
