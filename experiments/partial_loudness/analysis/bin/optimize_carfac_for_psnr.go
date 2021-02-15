@@ -417,28 +417,6 @@ func (l *LossCalculator) loadEvaluations() error {
 			return err
 		}
 	}
-	uniqueCaseMap := map[string][]analysis.EquivalentLoudness{}
-	for _, equiv := range l.equivalentLoudnesses {
-		eval := equiv.Evaluation
-		eval.ID = ""
-		b, err := json.Marshal(eval)
-		if err != nil {
-			return err
-		}
-		uniqueCaseMap[string(b)] = append(uniqueCaseMap[string(b)], equiv)
-	}
-	uniqueCaseSlice := []analysis.EquivalentLoudness{}
-	for _, cases := range uniqueCaseMap {
-		sumDBSPL := 0.0
-		for _, equiv := range cases {
-			sumDBSPL += equiv.Results.ProbeDBSPLForEquivalentLoudness
-		}
-		cases[0].Results.ProbeGainForEquivalentLoudness = -1
-		cases[0].Results.ProbeDBSPLForEquivalentLoudness = sumDBSPL / float64(len(cases))
-		uniqueCaseSlice = append(uniqueCaseSlice, cases[0])
-	}
-	fmt.Printf("Merged %v evaluations into %v averaged evaluations of unique probe/masker pairs.\n", len(l.equivalentLoudnesses), len(uniqueCaseSlice))
-	l.equivalentLoudnesses = uniqueCaseSlice
 	return nil
 }
 
