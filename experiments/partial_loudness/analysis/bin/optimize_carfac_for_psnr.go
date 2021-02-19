@@ -86,7 +86,7 @@ var (
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
 	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
 	useSNNR        = flag.Bool("use_snnr", false, "Use SNNR instead of SNR to estimate partial loudness.")
-	erbPerStep     = flag.Float64("erb_per_step", 0.05, "erb_per_step while running CARFAC.")
+	erbPerStep     = flag.Float64("erb_per_step", 0.01, "erb_per_step while running CARFAC.")
 	useGaussianSum = flag.Bool("use_gaussian_sum", false, "Whether to use a gaussian sum of SNRs centered around the output frequency instead of the SNR of the output frequency when predicting loudness.")
 
 	// Alternative modes.
