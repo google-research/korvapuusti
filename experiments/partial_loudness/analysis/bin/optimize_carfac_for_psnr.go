@@ -19,14 +19,12 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/sha1"
 	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"math"
@@ -76,6 +74,7 @@ var (
 	evaluationJSONGlob           = flag.String("evaluation_json_glob", "", "Glob to the files containing evaluations.")
 	evaluationFullScaleSineLevel = flag.Float64("evaluation_full_scale_sine_level", 100.0, "The calibration for a full scale sine during evaluation.")
 	noiseFloor                   = flag.Float64("noise_floor", 35, "Noise floor when evaluations were made.")
+	mergeEvaluations             = flag.Bool("merge_evaluations", true, "Merge evaluations of identical probe/masker combinations.")
 
 	// Optimization settings.
 
@@ -113,6 +112,7 @@ type optConfig struct {
 	ERBPerStep                   float64
 	EvaluationFullScaleSineLevel signals.DB
 	NoiseFloor                   signals.DB
+	MergeEvaluations             bool
 	UseGaussianSum               bool
 }
 
@@ -368,7 +368,7 @@ func (r remoteComputerSlice) shuffledPool() chan *remoteComputer {
 type LossCalculator struct {
 	conf                       *optConfig
 	evaluationJSONGlob         string
-	equivalentLoudnesses       []analysis.EquivalentLoudness
+	equivalentLoudnesses       analysis.EquivalentLoudnesses
 	evaluations                evaluations
 	outDir                     string
 	runLocal                   bool
@@ -388,34 +388,28 @@ func (l *LossCalculator) loadEvaluations() error {
 	}
 
 	for _, evaluationFileName := range evaluationFileNames {
+		equivs := analysis.EquivalentLoudnesses{}
 		evaluationFile, err := os.Open(evaluationFileName)
 		if err != nil {
 			return err
 		}
-		if err := func() error {
-			defer evaluationFile.Close()
-			lineReader := bufio.NewReader(evaluationFile)
-			lines := [][]byte{}
-			for line, err := lineReader.ReadString('\n'); err == nil; line, err = lineReader.ReadString('\n') {
-				lines = append(lines, []byte(line))
-			}
-			if err != nil && err != io.EOF {
-				return err
-			}
-			for _, lineVar := range lines {
-				line := lineVar
-				equivalentLoudness := analysis.EquivalentLoudness{}
-				if err := json.Unmarshal(line, &equivalentLoudness); err != nil {
-					return err
-				}
-				if equivalentLoudness.EntryType == "EquivalentLoudnessMeasurement" {
-					l.equivalentLoudnesses = append(l.equivalentLoudnesses, equivalentLoudness)
-				}
-			}
-			return nil
-		}(); err != nil {
+		defer evaluationFile.Close()
+		if err := equivs.LoadAppend(evaluationFile); err != nil {
 			return err
 		}
+		for _, equiv := range equivs {
+			if equiv.EntryType == "EquivalentLoudnessMeasurement" {
+				l.equivalentLoudnesses = append(l.equivalentLoudnesses, equiv)
+			}
+		}
+	}
+	if l.conf.MergeEvaluations {
+		merged, err := l.equivalentLoudnesses.Merge()
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Merged %v evaluations into %v\n", len(l.equivalentLoudnesses), len(merged))
+		l.equivalentLoudnesses = merged
 	}
 	return nil
 }
@@ -976,6 +970,7 @@ func main() {
 			ERBPerStep:                   *erbPerStep,
 			EvaluationFullScaleSineLevel: signals.DB(*evaluationFullScaleSineLevel),
 			NoiseFloor:                   signals.DB(*noiseFloor),
+			MergeEvaluations:             *mergeEvaluations,
 			UseGaussianSum:               *useGaussianSum,
 		},
 		outDir:                     *outputDir,

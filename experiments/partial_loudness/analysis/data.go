@@ -18,7 +18,10 @@
 package analysis
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/google-research/korvapuusti/tools/spectrum"
@@ -125,6 +128,85 @@ type EquivalentLoudness struct {
 	Analysis Analysis
 	// Samples contains a window of the samples played out to the evaluator, without the compensation for the headphone frequency response.
 	Samples Samples
+}
+
+type EquivalentLoudnesses []EquivalentLoudness
+
+// LoadAppend loads all EquivalentLoudness values from the reader and appends them.
+func (e *EquivalentLoudnesses) LoadAppend(source io.Reader) error {
+	lineReader := bufio.NewReader(source)
+	var err error
+	var line string
+	for line, err = lineReader.ReadString('\n'); err == nil; line, err = lineReader.ReadString('\n') {
+		equiv := EquivalentLoudness{}
+		if err := json.Unmarshal([]byte(line), &equiv); err != nil {
+			return err
+		}
+		*e = append(*e, equiv)
+	}
+	if err != nil && err != io.EOF {
+		return err
+	}
+	return nil
+}
+
+// Store stores all EquivalentLoudness values into the writer.
+func (e EquivalentLoudnesses) Store(dest io.Writer) error {
+	enc := json.NewEncoder(dest)
+	for _, equiv := range e {
+		if err := enc.Encode(equiv); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Merge removes all except the first occurence of each identical probe/masker combinations,
+// replaces the ProbeDBSPLForEquivalentLoudness with the average of the measurements, and
+// the ProbeGainForEquivalentLoudness with -1.0.
+func (e EquivalentLoudnesses) Merge() (EquivalentLoudnesses, error) {
+	uniqueComboSum := map[string]float64{}
+	uniqueComboCount := map[string]float64{}
+	getKey := func(e EquivalentLoudness) (string, error) {
+		combo := e.Evaluation
+		combo.ID = ""
+		d, err := json.Marshal(combo)
+		if err != nil {
+			return "", err
+		}
+		return string(d), nil
+	}
+	for _, equiv := range e {
+		if equiv.EntryType == "EquivalentLoudnessMeasurement" {
+			key, err := getKey(equiv)
+			if err != nil {
+				return nil, err
+			}
+			uniqueComboSum[key] += equiv.Results.ProbeDBSPLForEquivalentLoudness
+			uniqueComboCount[key] += 1
+		}
+	}
+	result := EquivalentLoudnesses{}
+	for _, equiv := range e {
+		if equiv.EntryType == "EquivalentLoudnessMeasurement" {
+			key, err := getKey(equiv)
+			if err != nil {
+				return nil, err
+			}
+			sum, found := uniqueComboSum[key]
+			if found {
+				avg := sum / uniqueComboCount[key]
+				equiv.Results.ProbeDBSPLForEquivalentLoudness = avg
+				equiv.Results.ProbeGainForEquivalentLoudness = -1.0
+				result = append(result, equiv)
+				delete(uniqueComboSum, key)
+				delete(uniqueComboCount, key)
+			}
+		} else {
+			result = append(result, equiv)
+		}
+	}
+	return result, nil
 }
 
 func (e *EquivalentLoudness) toTFExample(val reflect.Value, namePrefix string, ex *tf.Example) error {

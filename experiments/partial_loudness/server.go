@@ -76,6 +76,7 @@ var (
 	signalType                     = flag.String("signal_type", "", "Preset signal type for the experiment.")
 	hideControls                   = flag.Bool("hide_controls", false, "Whether to hide the controls in the experiment.")
 	headphoneFrequencyResponseFile = flag.String("headphone_frequency_response_file", "", "Frequency response file for headphones used, produced by the calibrate/calibrate.html tool.")
+	mergedOutput                   = flag.String("merged_output", "", "If provided, will read `experiment_output` file, merge all evaluations of the same probe/masker pair into an average, and store in this file.")
 )
 
 type server struct {
@@ -217,6 +218,28 @@ func (s *server) createAssetFunc(dir string, contentType string) func(w http.Res
 	}
 }
 
+func merge(source string, destination string) error {
+	equivs := analysis.EquivalentLoudnesses{}
+	sourceFile, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+	if err := equivs.LoadAppend(sourceFile); err != nil {
+		return err
+	}
+	merged, err := equivs.Merge()
+	if err != nil {
+		return err
+	}
+	destFile, err := os.Create(destination)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+	return merged.Store(destFile)
+}
+
 func main() {
 	flag.Parse()
 	s := &server{}
@@ -241,6 +264,13 @@ func main() {
 			"Path":         *headphoneFrequencyResponseFile,
 			"Measurements": measurements,
 		})
+	}
+	if *mergedOutput != "" {
+		if err := merge(*experimentOutput, *mergedOutput); err != nil {
+			panic(err)
+		}
+		log.Printf("Merged %v into %v", *experimentOutput, *mergedOutput)
+		return
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/signal/", s.renderSignal)
