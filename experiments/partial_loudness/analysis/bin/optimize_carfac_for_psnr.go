@@ -85,7 +85,7 @@ var (
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
 	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
 	useSNNR        = flag.Bool("use_snnr", false, "Use SNNR instead of SNR to estimate partial loudness.")
-	erbPerStep     = flag.Float64("erb_per_step", 0.05, "erb_per_step while running CARFAC.")
+	erbPerStep     = flag.Float64("erb_per_step", 0.01, "erb_per_step while running CARFAC.")
 	useGaussianSum = flag.Bool("use_gaussian_sum", false, "Whether to use a gaussian sum of SNRs centered around the output frequency instead of the SNR of the output frequency when predicting loudness.")
 
 	// Alternative modes.
@@ -127,19 +127,19 @@ func (o *optConfig) zeta(zetaConst float64) float64 {
 type XValues struct {
 	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"-,-"`
 
-	VelocityScale float64 `start:"0.1" scale:"0.02,0.5" limits:"-,-"`
-	VOffset       float64 `start:"0.04" scale:"0.0,0.5" limits:"-,-"`
+	VelocityScale float64 `start:"0.1" scale:"0.02,0.5" limits:"0.0,-"`
+	VOffset       float64 `start:"0.04" scale:"0.0,0.5" limits:"0.0,-"`
 	MinZeta       float64 `scale:"0.01,0.5" limits:"0.0,-"`
 	MaxZeta       float64 `scale:"0.1,5.0" limits:"-,-"`
-	ZeroRatio     float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
+	ZeroRatio     float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"0.0,-"`
 
 	StageGain       float64 `start:"2.0" scale:"1.2,8.0" limits:"1.2,-"`
-	AGC1Scale0      float64 `start:"1.0" scale:"0.5,3.0" limits:"-,-"`
-	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
-	AGC2Scale0      float64 `start:"1.65" scale:"0.2,2.0" limits:"-,-"`
-	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"-,-"`
-	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.008" limits:"-,-"`
-	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"-,-"`
+	AGC1Scale0      float64 `start:"1.0" scale:"0.5,3.0" limits:"0.0,-"`
+	AGC1ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"0.0,-"`
+	AGC2Scale0      float64 `start:"1.65" scale:"0.2,2.0" limits:"0.0,-"`
+	AGC2ScaleMul    float64 `start:"1.4142135623730951" scale:"1.2,3.0" limits:"0.0,-"`
+	TimeConstant0   float64 `start:"0.002" scale:"0.001,0.008" limits:"0.0,-"`
+	TimeConstantMul float64 `start:"4" scale:"2.0,8.0" limits:"0.0,-"`
 
 	GaussianStdDev   float64 `start:"1.0" scale:"0.2,20" limits:"-,-" gaussian:"true"`
 	LoudnessConstant float64 `start:"40.0" scale:"0.0,80.0" limits:"-,-"`
