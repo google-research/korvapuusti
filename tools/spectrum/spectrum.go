@@ -85,24 +85,24 @@ func Compute(buffer []float64, rate signals.Hz) S {
 	invBuffer := 1.0 / float64(len(buffer))
 	totalMean := (cmplx.Abs(spec.Coeffs[0]) + cmplx.Abs(spec.Coeffs[halfCoefficients])) * invBuffer
 
+	totalSquares := 0.0
+	noiseSquares := make([]float64, len(spec.Coeffs))
+	for bin, coeff := range spec.Coeffs {
+		if bin == 0 {
+			continue
+		}
+		square := (real(coeff)*real(coeff) + imag(coeff)*imag(coeff)) * invBuffer
+		totalSquares += square
+		noiseSquares[bin] = square
+	}
 	spec.NoisePower = make([]float64, halfCoefficients)
 	for bin := range spec.NoisePower {
 		if bin == 0 {
 			continue
 		}
-		noiseSquares := 0.0
-		totalSquares := 0.0
-		for otherBin, otherCoeff := range spec.Coeffs {
-			square := (real(otherCoeff)*real(otherCoeff) + imag(otherCoeff)*imag(otherCoeff)) * invBuffer
-			totalSquares += square
-			// Skip _this_ bin when calculating noise (i.e. other bins), as well as the negative frequency for the same bin.
-			if otherBin != bin && len(spec.Coeffs)-otherBin != bin {
-				noiseSquares += square
-			}
-		}
-		noisePower := noiseSquares*invBuffer - totalMean*totalMean
+		noisePower := (totalSquares-noiseSquares[bin]-noiseSquares[len(spec.Coeffs)-bin])*invBuffer - totalMean*totalMean
 		if noisePower <= 0 {
-			noisePower = 1e-10
+			noisePower = 1e-20
 		}
 		spec.NoisePower[bin] = 10 * math.Log10(noisePower)
 	}

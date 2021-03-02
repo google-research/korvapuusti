@@ -35,6 +35,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"runtime/pprof"
 	"sort"
 	"strconv"
 	"strings"
@@ -68,6 +69,7 @@ var (
 	lossCalculationOutputRatio = flag.Int("loss_calculation_output_ratio", 100, "How seldom to output data about the best/worst results of a calculation run.")
 	remoteComputers            = flag.String("remote_computers", "", "Comma separated list of host:port pairs defining remote computers to use. Not providing this will instead run a remote computer unless run_local is provided.")
 	runLocal                   = flag.Bool("run_local", false, "Run locally instead of using the distributed mode.")
+	cpuprofile                 = flag.String("cpuprofile", "", "Write cpu profile to file.")
 
 	// Definition of evaluations.
 
@@ -628,6 +630,19 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 }
 
 func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLogAllTo string) float64 {
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer func() {
+			pprof.StopCPUProfile()
+			f.Close()
+			fmt.Printf("Stored cpu profile in %v\n", *cpuprofile)
+			os.Exit(0)
+		}()
+	}
 	l.lossCalculations++
 	xv := XValues{}
 	xv.setFromNormalizedFloat64Slice(l.conf, x)
