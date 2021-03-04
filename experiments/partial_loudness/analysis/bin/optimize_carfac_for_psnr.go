@@ -923,9 +923,10 @@ func (l *LossCalculator) optimize() error {
 	}
 	defer finalFile.Close()
 	if err := json.NewEncoder(finalFile).Encode(map[string]interface{}{
-		"X":    resultValues,
-		"Conf": l.conf,
-		"Loss": l.lossHelper(resultValues.toNormalizedFloat64Slice(l.conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
+		"X":                  resultValues,
+		"Conf":               l.conf,
+		"Loss":               l.lossHelper(resultValues.toNormalizedFloat64Slice(l.conf), "worst_evaluation_run_final_results", "all_evaluation_runs_final_results"),
+		"EvaluationJSONGlob": l.evaluationJSONGlob,
 	}); err != nil {
 		return err
 	}
