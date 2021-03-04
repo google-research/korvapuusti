@@ -713,7 +713,7 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 			worstRun = psnrsByRunID[runID]
 		}
 	}
-	if len(l.remoteComputers) > 0 {
+	if l.runLocal || len(l.remoteComputers) > 0 {
 		if forceLogWorstTo != "" || l.lossCalculations%l.lossCalculationOutputRatio == 0 {
 			name := "worst_evaluation_run"
 			if forceLogWorstTo != "" {
