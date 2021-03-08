@@ -2,8 +2,6 @@
 #define KORVAPUUSTI_TOOLS_CARFAC_CARFAC_H_
 
 #ifdef __cplusplus
-#include "carfac/cpp/carfac.h"
-
 extern "C" {
 #endif
 
@@ -62,6 +60,32 @@ void carfac_reset(carfac *cf);
 int carfac_bm(carfac *cf, float_ary result);
 
 int carfac_nap(carfac *cf, float_ary result);
+
+
+void set_default_params(
+		float *velocity_scale,
+		float *v_offset,
+		float *min_zeta,
+		float *max_zeta,
+		float *zero_ratio,
+		float *high_f_damping_compression,
+		float *erb_per_step,
+		float *erb_break_freq,
+		float *erb_q,
+		
+		float *tau_lpf,
+		float *tau1_out,
+		float *tau1_in,
+		float *ac_corner_hz,
+
+		float *stage_gain,
+		float *agc1_scale0,
+		float *agc1_scale_mul,
+		float *agc2_scale0,
+		float *agc2_scale_mul,
+		float *time_constant0,
+		float *time_constant_mul,
+		float *agc_mix_coeff);
 
 #ifdef __cplusplus
 }  // extern "C"

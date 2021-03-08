@@ -6,6 +6,59 @@
 
 #include "../carfac/cpp/carfac.h"
 
+void set_default_params(
+		float *velocity_scale,
+		float *v_offset,
+		float *min_zeta,
+		float *max_zeta,
+		float *zero_ratio,
+		float *high_f_damping_compression,
+		float *erb_per_step,
+		float *erb_break_freq,
+		float *erb_q,
+		
+		float *tau_lpf,
+		float *tau1_out,
+		float *tau1_in,
+		float *ac_corner_hz,
+
+		float *stage_gain,
+		float *agc1_scale0,
+		float *agc1_scale_mul,
+		float *agc2_scale0,
+		float *agc2_scale_mul,
+		float *time_constant0,
+		float *time_constant_mul,
+		float *agc_mix_coeff) {
+  CARParams car_params;
+  IHCParams ihc_params;
+  AGCParams agc_params;
+
+  *velocity_scale = car_params.velocity_scale;
+  *v_offset = car_params.v_offset;
+  *min_zeta = car_params.min_zeta;
+  *max_zeta = car_params.max_zeta;
+  *zero_ratio = car_params.zero_ratio;
+  *high_f_damping_compression = car_params.high_f_damping_compression;
+  *erb_per_step = car_params.erb_per_step;
+  *erb_break_freq = car_params.erb_break_freq;
+  *erb_q = car_params.erb_q;
+
+  *tau_lpf = ihc_params.tau_lpf;
+  *tau1_out = ihc_params.tau1_out;
+  *tau1_in = ihc_params.tau1_in;
+  *ac_corner_hz = ihc_params.ac_corner_hz;
+
+  *stage_gain = agc_params.agc_stage_gain;
+  *agc1_scale0 = agc_params.agc1_scales[0];
+  *agc1_scale_mul = agc_params.agc1_scales[1] / agc_params.agc1_scales[0];
+  *agc2_scale0 = agc_params.agc2_scales[0];
+  *agc2_scale_mul = agc_params.agc2_scales[1] / agc_params.agc2_scales[0];
+  *time_constant0 = agc_params.time_constants[0];
+  *time_constant_mul = agc_params.time_constants[1] / agc_params.time_constants[0];
+  *agc_mix_coeff = agc_params.agc_mix_coeff;
+}
+
 carfac create_carfac(
 		int sample_rate,
 		

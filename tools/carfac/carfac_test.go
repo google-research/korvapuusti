@@ -33,6 +33,38 @@ func makeSignal(l int) []float32 {
 	return buf
 }
 
+func TestDefaultParams(t *testing.T) {
+	cp := CARFACParams{}
+	cp.Default(44100)
+	assertEq32(t, *cp.VelocityScale, 0.1)
+	assertEq32(t, *cp.VOffset, 0.04)
+	assertEq32(t, *cp.MinZeta, 0.1)
+	assertEq32(t, *cp.MaxZeta, 0.35)
+	assertEq32(t, *cp.ZeroRatio, math.Sqrt(2.0))
+	assertEq32(t, *cp.HighFDampingCompression, 0.5)
+	assertEq32(t, *cp.ERBPerStep, 0.5)
+	assertEq32(t, *cp.ERBBreakFreq, 165.3)
+	assertEq32(t, *cp.ERBQ, 1000/(24.7*4.37))
+	assertEq32(t, *cp.TauLPF, 0.000080)
+	assertEq32(t, *cp.Tau1Out, 0.0005)
+	assertEq32(t, *cp.Tau1In, 0.01)
+	assertEq32(t, *cp.ACCornerHz, 20.0)
+	assertEq32(t, *cp.StageGain, 2.0)
+	assertEq32(t, *cp.AGC1Scale0, 1.0)
+	assertEq32(t, *cp.AGC1ScaleMul, math.Sqrt(2.0))
+	assertEq32(t, *cp.AGC2Scale0, 1.65)
+	assertEq32(t, *cp.AGC2ScaleMul, math.Sqrt(2.0))
+	assertEq32(t, *cp.TimeConstant0, 0.002)
+	assertEq32(t, *cp.TimeConstantMul, 4.0)
+	assertEq32(t, *cp.AGCMixCoeff, 0.5)
+}
+
+func assertEq32(t *testing.T, f1 float64, f2 float64) {
+	if float32(f1) != float32(f2) {
+		t.Errorf("Got %v, wanted %v", f1, f2)
+	}
+}
+
 func TestCARFAC(t *testing.T) {
 	for _, tc := range []struct {
 		f1        func() ([]float32, error)

@@ -121,6 +121,80 @@ type CARFACParams struct {
 	AGCMixCoeff     *float64
 }
 
+func (c *CARFACParams) Default(sampleRate int) *CARFACParams {
+	c.SampleRate = sampleRate
+	var cVelocityScale, cVOffset, cMinZeta, cMaxZeta, cZeroRatio, cHighFDampingCompression, cERBPerStep, cERBBreakFreq, cERBQ, cTauLPF, cTau1Out, cTau1In, cACCornerHz, cStageGain, cAGC1Scale0, cAGC1ScaleMul, cAGC2Scale0, cAGC2ScaleMul, cTimeConstant0, cTimeConstantMul, cAGCMixCoeff C.float
+	C.set_default_params(
+		&cVelocityScale,
+		&cVOffset,
+		&cMinZeta,
+		&cMaxZeta,
+		&cZeroRatio,
+		&cHighFDampingCompression,
+		&cERBPerStep,
+		&cERBBreakFreq,
+		&cERBQ,
+
+		&cTauLPF,
+		&cTau1Out,
+		&cTau1In,
+		&cACCornerHz,
+
+		&cStageGain,
+		&cAGC1Scale0,
+		&cAGC1ScaleMul,
+		&cAGC2Scale0,
+		&cAGC2ScaleMul,
+		&cTimeConstant0,
+		&cTimeConstantMul,
+		&cAGCMixCoeff,
+	)
+	velocityScale := float64(cVelocityScale)
+	c.VelocityScale = &velocityScale
+	vOffset := float64(cVOffset)
+	c.VOffset = &vOffset
+	minZeta := float64(cMinZeta)
+	c.MinZeta = &minZeta
+	maxZeta := float64(cMaxZeta)
+	c.MaxZeta = &maxZeta
+	zeroRatio := float64(cZeroRatio)
+	c.ZeroRatio = &zeroRatio
+	highFDampingCompression := float64(cHighFDampingCompression)
+	c.HighFDampingCompression = &highFDampingCompression
+	erbPerStep := float64(cERBPerStep)
+	c.ERBPerStep = &erbPerStep
+	erbBreakFreq := float64(cERBBreakFreq)
+	c.ERBBreakFreq = &erbBreakFreq
+	erbQ := float64(cERBQ)
+	c.ERBQ = &erbQ
+	tauLPF := float64(cTauLPF)
+	c.TauLPF = &tauLPF
+	tau1Out := float64(cTau1Out)
+	c.Tau1Out = &tau1Out
+	tau1In := float64(cTau1In)
+	c.Tau1In = &tau1In
+	acCornerHz := float64(cACCornerHz)
+	c.ACCornerHz = &acCornerHz
+	stageGain := float64(cStageGain)
+	c.StageGain = &stageGain
+	acg1Scale0 := float64(cAGC1Scale0)
+	c.AGC1Scale0 = &acg1Scale0
+	agc1ScaleMul := float64(cAGC1ScaleMul)
+	c.AGC1ScaleMul = &agc1ScaleMul
+	agc2Scale0 := float64(cAGC2Scale0)
+	c.AGC2Scale0 = &agc2Scale0
+	agc2ScaleMul := float64(cAGC2ScaleMul)
+	c.AGC2ScaleMul = &agc2ScaleMul
+	timeConstant0 := float64(cTimeConstant0)
+	c.TimeConstant0 = &timeConstant0
+	timeConstantMul := float64(cTimeConstantMul)
+	c.TimeConstantMul = &timeConstantMul
+	agcMixCoeff := float64(cAGCMixCoeff)
+	c.AGCMixCoeff = &agcMixCoeff
+
+	return c
+}
+
 func (c CARFACParams) cFloat(f *float64) *C.float {
 	if f == nil {
 		return nil
