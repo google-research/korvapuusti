@@ -906,7 +906,7 @@ func (l *LossCalculator) optimize() error {
 	if *startX == "" {
 		initX.init(l.conf)
 	} else {
-		if err := json.Unmarshal([]byte(*startX), initX); err != nil {
+		if err := json.Unmarshal([]byte(*startX), &initX); err != nil {
 			return err
 		}
 	}
