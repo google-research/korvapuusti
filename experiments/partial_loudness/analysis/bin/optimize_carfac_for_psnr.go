@@ -643,7 +643,6 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 			os.Exit(0)
 		}()
 	}
-	l.lossCalculations++
 	xv := XValues{}
 	xv.setFromNormalizedFloat64Slice(l.conf, x)
 	fmt.Printf("Evaluation ** %v ** using %+v with %s\n", l.lossCalculations, l.conf, xv.activeValues(l.conf))
@@ -753,6 +752,7 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 	}
 	totalLoss := loss + limitLoss
 	fmt.Printf("Got loss %v (limit loss %v: %v)\n", totalLoss, limitLoss, strings.Join(explanation, ", "))
+	l.lossCalculations++
 	return totalLoss
 }
 
