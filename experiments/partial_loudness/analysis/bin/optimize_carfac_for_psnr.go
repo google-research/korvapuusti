@@ -714,12 +714,22 @@ func (l *LossCalculator) lossHelper(x []float64, forceLogWorstTo string, forceLo
 		}
 	}
 	if l.runLocal || len(l.remoteComputers) > 0 {
-		if forceLogWorstTo != "" || l.lossCalculations%l.lossCalculationOutputRatio == 0 {
-			name := "worst_evaluation_run"
-			if forceLogWorstTo != "" {
-				name = forceLogWorstTo
+		if l.lossCalculations%l.lossCalculationOutputRatio == 0 {
+			if err := l.logPSNRs(worstRun, "worst_evaluation_run"); err != nil {
+				l.err = err
+				return 0.0
 			}
-			if err := l.logPSNRs(worstRun, name); err != nil {
+			all := psnrs{}
+			for _, runs := range psnrsByRunID {
+				all = append(all, runs...)
+			}
+			if err := l.logPSNRs(all, "all_evaluation_runs"); err != nil {
+				l.err = err
+				return 0.0
+			}
+		}
+		if forceLogWorstTo != "" {
+			if err := l.logPSNRs(worstRun, forceLogWorstTo); err != nil {
 				l.err = err
 				return 0.0
 			}
