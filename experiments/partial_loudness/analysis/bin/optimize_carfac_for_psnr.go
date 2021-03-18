@@ -43,6 +43,7 @@ import (
 	"github.com/cheggaaa/pb"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
 	"github.com/google-research/korvapuusti/tools/carfac"
+	"github.com/google-research/korvapuusti/tools/loudness"
 	"github.com/google-research/korvapuusti/tools/spectrum"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
 	"github.com/google-research/korvapuusti/tools/workerpool"
@@ -86,7 +87,7 @@ var (
 	usingBM        = flag.Bool("using_bm", true, "Whether to use the basilar membrane output of CARFAC (as opposed to the neural activation pattern output).")
 	disabledFields = flag.String("disabled_fields", "", "Comma separated fields to avoid optimizing (leave at start value).")
 	noLimits       = flag.Bool("no_limits", false, "Disable the limit loss.")
-	useSNNR        = flag.Bool("use_snnr", false, "Use SNNR instead of SNR to estimate partial loudness.")
+	useSNNR        = flag.Bool("use_snnr", true, "Use SNNR instead of SNR to estimate partial loudness.")
 	erbPerStep     = flag.Float64("erb_per_step", 0.01, "erb_per_step while running CARFAC.")
 	useGaussianSum = flag.Bool("use_gaussian_sum", false, "Whether to use a gaussian sum of SNRs centered around the output frequency instead of the SNR of the output frequency when predicting loudness.")
 
@@ -588,6 +589,7 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 		return err
 	}
 	resp.PSNR = -math.MaxFloat64
+	resp.PredictedLoudness = -math.MaxFloat64
 	for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
 		channel := make([]float64, fftWindowSize)
 		for sampleIdx := range channel {
@@ -623,9 +625,13 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 			if binSnr > resp.PSNR {
 				resp.PSNR = binSnr
 			}
+			binCFLoudness := req.XValues.LoudnessConstant + req.XValues.LoudnessScale*binSnr
+			binSPLLoudness := loudness.Phons2SPL(binCFLoudness, float64(binIdx)*float64(spec.BinWidth))
+			if binSPLLoudness > float64(resp.PredictedLoudness) {
+				resp.PredictedLoudness = signals.DB(binSPLLoudness)
+			}
 		}
 	}
-	resp.PredictedLoudness = signals.DB(req.XValues.LoudnessConstant + req.XValues.LoudnessScale*resp.PSNR)
 	return nil
 }
 
