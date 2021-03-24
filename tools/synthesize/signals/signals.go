@@ -705,6 +705,26 @@ func (f Float64Slice) WriteWAV(w io.Writer, rate float64) error {
 	return err
 }
 
+func (f Float64Slice) Print(width int, w io.Writer) {
+	min := math.MaxFloat64
+	max := -math.MaxFloat64
+	for _, v := range f {
+		if v > max {
+			max = v
+		}
+		if v < min {
+			min = v
+		}
+	}
+	ratio := (max - min) / float64(width)
+	for _, v := range f {
+		for x := min; x < v; x += ratio {
+			fmt.Fprintf(w, " ")
+		}
+		fmt.Fprint(w, "*\n")
+	}
+}
+
 // SpectrumGains returns a slice with the gain (the complex absolute value) of the
 // first half of the FFT of the slice.
 func (f Float64Slice) SpectrumGains() Float64Slice {

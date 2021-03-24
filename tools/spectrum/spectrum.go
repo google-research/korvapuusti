@@ -17,6 +17,9 @@
 package spectrum
 
 import (
+	"bytes"
+	"fmt"
+	"io"
 	"math"
 	"math/cmplx"
 
@@ -30,6 +33,44 @@ type S struct {
 	NoisePower  []float64
 	BinWidth    signals.Hz
 	Rate        signals.Hz
+}
+
+func (s *S) Print(width int, w io.Writer) {
+	headers := []string{}
+	gains := []float64{}
+	maxHeaderLen := 0
+	maxGain := -math.MaxFloat64
+	for i := 0; i < len(s.Coeffs)/2; i++ {
+		header := fmt.Sprintf("%.2fHz ", signals.Hz(i)*s.BinWidth)
+		if len(header) > maxHeaderLen {
+			maxHeaderLen = len(header)
+		}
+		headers = append(headers, header)
+		gain := cmplx.Abs(s.Coeffs[i])
+		if !math.IsInf(gain, 1) && gain > maxGain {
+			maxGain = cmplx.Abs(s.Coeffs[i])
+		}
+		gains = append(gains, gain)
+	}
+	gainLen := width - maxHeaderLen
+	widthPerGain := float64(gainLen) / maxGain
+	for i := 0; i < len(s.Coeffs)/2; i++ {
+		header := bytes.NewBufferString(headers[i])
+		for len(header.String()) < maxHeaderLen {
+			fmt.Fprint(header, " ")
+		}
+		gainPart := &bytes.Buffer{}
+		if math.IsInf(gains[i], 1) {
+			for len(gainPart.String()) < gainLen {
+				fmt.Fprintf(gainPart, "+Inf ")
+			}
+		} else {
+			for len(gainPart.String()) < int((gains[i])*widthPerGain) {
+				fmt.Fprintf(gainPart, "*")
+			}
+		}
+		fmt.Fprintf(w, "%v%v\n", header.String(), gainPart.String())
+	}
 }
 
 func (s *S) toFloat32(f []float64) []float32 {
@@ -57,8 +98,8 @@ func (s *S) F32NoisePower() []float32 {
 	return s.toFloat32(s.NoisePower)
 }
 
-func ComputeSignalPower(buffer []float64, rate signals.Hz) S {
-	spec := S{
+func ComputeSignalPower(buffer []float64, rate signals.Hz) *S {
+	spec := &S{
 		BinWidth: rate / signals.Hz(len(buffer)),
 		Rate:     rate,
 		Coeffs:   fft.FFTReal(buffer),
@@ -78,7 +119,7 @@ func ComputeSignalPower(buffer []float64, rate signals.Hz) S {
 	return spec
 }
 
-func Compute(buffer []float64, rate signals.Hz) S {
+func Compute(buffer []float64, rate signals.Hz) *S {
 	spec := ComputeSignalPower(buffer, rate)
 
 	halfCoefficients := len(spec.Coeffs) / 2
