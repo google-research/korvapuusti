@@ -16,10 +16,13 @@ type LTIConf struct {
 	Zeros []complex128
 }
 
-func (l LTIConf) Make() *LTI {
-	histLen := len(l.Zeros)
+func (l LTIConf) Make() (*LTI, error) {
+	if !l.Causal() {
+		return nil, fmt.Errorf("anti-causal")
+	}
+	histLen := len(l.Zeros) + 1
 	if len(l.Poles) > histLen {
-		histLen = len(l.Poles)
+		histLen = len(l.Poles) + 1
 	}
 	lti := &LTI{
 		gain:       complex(l.Gain, 0),
@@ -28,7 +31,7 @@ func (l LTIConf) Make() *LTI {
 		inHist:     make([]complex128, histLen),
 		outHist:    make([]complex128, histLen),
 	}
-	return lti
+	return lti, nil
 }
 
 func (l LTIConf) Stable() bool {
@@ -38,6 +41,10 @@ func (l LTIConf) Stable() bool {
 		}
 	}
 	return true
+}
+
+func (l LTIConf) Causal() bool {
+	return len(l.Poles) >= len(l.Zeros)
 }
 
 func (l LTIConf) Print(height, width int, w io.Writer) {
@@ -159,20 +166,19 @@ func (l *LTI) Next(v complex128) complex128 {
 	res := complex128(0)
 	zeroCoeffExponentOffset := 0
 	if len(l.poleCoeffs) > len(l.zeroCoeffs) {
-		zeroCoeffExponentOffset = len(l.poleCoeffs) - len(l.poleCoeffs)
+		zeroCoeffExponentOffset = len(l.poleCoeffs) - len(l.zeroCoeffs)
 	}
-	for i := 0; i < len(l.zeroCoeffs); i++ {
+	for i := range l.zeroCoeffs {
+		//		fmt.Printf("res += x[n-%v] * g * zc%v => %v += %v * %v * %v = %v\n", res, i+zeroCoeffExponentOffset, i, l.x(-(i + zeroCoeffExponentOffset)), l.gain, l.zeroCoeffs[i], res+l.x(-(i+zeroCoeffExponentOffset))*l.gain*l.zeroCoeffs[i])
 		res += l.x(-(i + zeroCoeffExponentOffset)) * l.gain * l.zeroCoeffs[i]
 	}
-	poleCoeffExponentOffset := 0
-	if len(l.zeroCoeffs) > len(l.poleCoeffs) {
-		poleCoeffExponentOffset = len(l.zeroCoeffs) - len(l.poleCoeffs)
-	}
 	for i := 1; i < len(l.poleCoeffs); i++ {
-		res -= l.y(-(i + poleCoeffExponentOffset)) * l.poleCoeffs[i]
+		//		fmt.Printf("res -= y[n-%v] * pc%v => %v += %v * %v = %v\n", i, i, res, l.y(-i), l.poleCoeffs[i], res-l.y(-i)*l.poleCoeffs[i])
+		res -= l.y(-i) * l.poleCoeffs[i]
 	}
 	res /= l.poleCoeffs[0]
 	l.pushY(res)
+	//	fmt.Printf("returning %v\n", res)
 	return res
 }
 
@@ -189,7 +195,7 @@ func (l *LTI) DifferenceEquation(numbers bool) string {
 	fmt.Fprintf(res, "(")
 	zeroCoeffExponentOffset := 0
 	if len(l.poleCoeffs) > len(l.zeroCoeffs) {
-		zeroCoeffExponentOffset = len(l.poleCoeffs) - len(l.poleCoeffs)
+		zeroCoeffExponentOffset = len(l.poleCoeffs) - len(l.zeroCoeffs)
 	}
 	for i := range l.zeroCoeffs {
 		step := fmt.Sprintf("n-%v", i+zeroCoeffExponentOffset)
@@ -197,7 +203,15 @@ func (l *LTI) DifferenceEquation(numbers bool) string {
 			step = "n"
 		}
 		if numbers {
-			fmt.Fprintf(res, "x[%v] * %v", step, l.gain*l.zeroCoeffs[i])
+			if l.gain*l.zeroCoeffs[i] == 0 {
+				fmt.Fprint(res, "0")
+			} else {
+				if l.gain*l.zeroCoeffs[i] == 1 {
+					fmt.Fprintf(res, "x[%v]", step)
+				} else {
+					fmt.Fprintf(res, "x[%v] * %v", step, l.gain*l.zeroCoeffs[i])
+				}
+			}
 		} else {
 			fmt.Fprintf(res, "x[%v] * g * qc%v", step, i)
 		}
@@ -206,26 +220,30 @@ func (l *LTI) DifferenceEquation(numbers bool) string {
 		}
 	}
 	fmt.Fprintf(res, " - (")
-	poleCoeffExponentOffset := 0
-	if len(l.zeroCoeffs) > len(l.poleCoeffs) {
-		poleCoeffExponentOffset = len(l.zeroCoeffs) - len(l.poleCoeffs)
-	}
 	for i := 1; i < len(l.poleCoeffs); i++ {
-		step := fmt.Sprintf("n-%v", i+poleCoeffExponentOffset)
-		if i+poleCoeffExponentOffset == 0 {
-			step = "n"
-		}
 		if numbers {
-			fmt.Fprintf(res, "y[%v] * %v", step, l.poleCoeffs[i])
+			if l.poleCoeffs[i] == 0 {
+				fmt.Fprint(res, "0")
+			} else {
+				if l.poleCoeffs[i] == 1 {
+					fmt.Fprintf(res, "y[n-%v]", i)
+				} else {
+					fmt.Fprintf(res, "y[n-%v] * %v", i, l.poleCoeffs[i])
+				}
+			}
 		} else {
-			fmt.Fprintf(res, "y[%v] * pc%v", step, i)
+			fmt.Fprintf(res, "y[n-%v] * pc%v", i, i)
 		}
 		if i+1 < len(l.poleCoeffs) {
 			fmt.Fprintf(res, " + ")
 		}
 	}
 	if numbers {
-		fmt.Fprintf(res, ")) / %v", l.poleCoeffs[0])
+		if l.poleCoeffs[0] == 1 {
+			fmt.Fprintf(res, "))")
+		} else {
+			fmt.Fprintf(res, ")) / %v", l.poleCoeffs[0])
+		}
 	} else {
 		fmt.Fprintf(res, ")) / pc0")
 	}
@@ -245,7 +263,7 @@ func (l *LTI) pushX(v complex128) {
 }
 
 func (l *LTI) y(d int) complex128 {
-	return l.outHist[(len(l.outHist)+l.outIdx+d)%len(l.outHist)]
+	return l.outHist[(len(l.outHist)+l.outIdx+d+1)%len(l.outHist)]
 }
 
 func (l *LTI) pushY(v complex128) {
@@ -256,8 +274,8 @@ func (l *LTI) pushY(v complex128) {
 	l.outHist[l.outIdx] = v
 }
 
-// combine returns all combinations of num elements from a slice of length.
-func combine(length, num int) [][]int {
+// takeNumOfLength returns all combinations of num elements from a set of length.
+func takeNumOfLength(length, num int) [][]int {
 	var helper func(int, int) [][]int
 	helper = func(pos, remaining int) [][]int {
 		combos := [][]int{}
@@ -286,7 +304,7 @@ func coeffs(constants []complex128) []complex128 {
 		if num == 0 {
 			sum = 1
 		}
-		combos := combine(len(constants), num)
+		combos := takeNumOfLength(len(constants), num)
 		for _, parts := range combos {
 			prod := complex128(1)
 			for _, part := range parts {
