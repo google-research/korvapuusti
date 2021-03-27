@@ -20,16 +20,12 @@ func (l LTIConf) Make() (*LTI, error) {
 	if !l.Causal() {
 		return nil, fmt.Errorf("anti-causal")
 	}
-	histLen := len(l.Zeros) + 1
-	if len(l.Poles) > histLen {
-		histLen = len(l.Poles) + 1
-	}
 	lti := &LTI{
 		gain:       complex(l.Gain, 0),
 		poleCoeffs: coeffs(l.Poles),
 		zeroCoeffs: coeffs(l.Zeros),
-		inHist:     make([]complex128, histLen),
-		outHist:    make([]complex128, histLen),
+		xHist:      make([]complex128, len(l.Poles)+1),
+		yHist:      make([]complex128, len(l.Poles)+1),
 	}
 	return lti, nil
 }
@@ -145,10 +141,9 @@ type LTI struct {
 	gain       complex128
 	poleCoeffs []complex128
 	zeroCoeffs []complex128
-	inHist     []complex128
-	inIdx      int
-	outHist    []complex128
-	outIdx     int
+	xHist      []complex128
+	yHist      []complex128
+	histIdx    int
 }
 
 func MakePZ(params [][2]float64) []complex128 {
@@ -161,24 +156,31 @@ func MakePZ(params [][2]float64) []complex128 {
 	return res
 }
 
-func (l *LTI) Next(v complex128) complex128 {
-	l.pushX(v)
+func (l *LTI) Preload(x, y complex128) {
+	l.setX(x)
+	l.setY(y)
+	l.incHist()
+}
+
+func (l *LTI) Y(x complex128) complex128 {
+	l.setX(x)
 	res := complex128(0)
 	zeroCoeffExponentOffset := 0
 	if len(l.poleCoeffs) > len(l.zeroCoeffs) {
 		zeroCoeffExponentOffset = len(l.poleCoeffs) - len(l.zeroCoeffs)
 	}
 	for i := range l.zeroCoeffs {
-		//		fmt.Printf("res += x[n-%v] * g * zc%v => %v += %v * %v * %v = %v\n", res, i+zeroCoeffExponentOffset, i, l.x(-(i + zeroCoeffExponentOffset)), l.gain, l.zeroCoeffs[i], res+l.x(-(i+zeroCoeffExponentOffset))*l.gain*l.zeroCoeffs[i])
-		res += l.x(-(i + zeroCoeffExponentOffset)) * l.gain * l.zeroCoeffs[i]
+		//fmt.Printf("res += x[n-%v] * g * zc%v => %v += %v * %v * %v = %v\n", res, i+zeroCoeffExponentOffset, i, l.getX(-(i + zeroCoeffExponentOffset)), l.gain, l.zeroCoeffs[i], res+l.getX(-(i+zeroCoeffExponentOffset))*l.gain*l.zeroCoeffs[i])
+		res += l.getX(-(i + zeroCoeffExponentOffset)) * l.gain * l.zeroCoeffs[i]
 	}
 	for i := 1; i < len(l.poleCoeffs); i++ {
-		//		fmt.Printf("res -= y[n-%v] * pc%v => %v += %v * %v = %v\n", i, i, res, l.y(-i), l.poleCoeffs[i], res-l.y(-i)*l.poleCoeffs[i])
-		res -= l.y(-i) * l.poleCoeffs[i]
+		//fmt.Printf("res -= y[n-%v] * pc%v => %v += %v * %v = %v\n", i, i, res, l.getY(-i), l.poleCoeffs[i], res-l.getY(-i)*l.poleCoeffs[i])
+		res -= l.getY(-i) * l.poleCoeffs[i]
 	}
 	res /= l.poleCoeffs[0]
-	l.pushY(res)
-	//	fmt.Printf("returning %v\n", res)
+	l.setY(res)
+	l.incHist()
+	//fmt.Printf("returning %v\n", res)
 	return res
 }
 
@@ -250,28 +252,30 @@ func (l *LTI) DifferenceEquation(numbers bool) string {
 	return res.String()
 }
 
-func (l *LTI) x(d int) complex128 {
-	return l.inHist[(len(l.inHist)+l.inIdx+d)%len(l.inHist)]
+func (l *LTI) getX(d int) complex128 {
+	return l.xHist[(len(l.xHist)+l.histIdx+d)%len(l.xHist)]
 }
 
-func (l *LTI) pushX(v complex128) {
-	if len(l.inHist) == 0 {
+func (l *LTI) setX(v complex128) {
+	if len(l.xHist) == 0 {
 		return
 	}
-	l.inIdx = (l.inIdx + 1) % len(l.inHist)
-	l.inHist[l.inIdx] = v
+	l.xHist[l.histIdx] = v
 }
 
-func (l *LTI) y(d int) complex128 {
-	return l.outHist[(len(l.outHist)+l.outIdx+d+1)%len(l.outHist)]
+func (l *LTI) incHist() {
+	l.histIdx = (l.histIdx + 1) % len(l.xHist)
 }
 
-func (l *LTI) pushY(v complex128) {
-	if len(l.outHist) == 0 {
+func (l *LTI) getY(d int) complex128 {
+	return l.yHist[(len(l.yHist)+l.histIdx+d)%len(l.yHist)]
+}
+
+func (l *LTI) setY(v complex128) {
+	if len(l.yHist) == 0 {
 		return
 	}
-	l.outIdx = (l.outIdx + 1) % len(l.outHist)
-	l.outHist[l.outIdx] = v
+	l.yHist[l.histIdx] = v
 }
 
 // takeNumOfLength returns all combinations of num elements from a set of length.

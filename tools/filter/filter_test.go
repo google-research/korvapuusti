@@ -55,6 +55,25 @@ func TestMemory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	for i := 0; i < 4; i++ {
+		lti.Preload(complex(float64(i), 0), complex(0, float64(i)))
+	}
+	for i := 0; i < 4; i++ {
+		if lti.getX(i-4) != complex(float64(i), 0) {
+			t.Errorf("got %v, wanted %v", lti.getX(i-3), complex(float64(i), 0))
+		}
+		if lti.getY(i-4) != complex(0, float64(i)) {
+			t.Errorf("got %v, wanted %v", lti.getY(i-3), complex(0, float64(i)))
+		}
+	}
+
+	lti, err = LTIConf{
+		Poles: []complex128{0, 0, 0, 0},
+		Zeros: []complex128{0, 0, 0},
+	}.Make()
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, tc := range []struct {
 		xBefore []complex128
 		xPush   complex128
@@ -99,17 +118,18 @@ func TestMemory(t *testing.T) {
 		},
 	} {
 		for i, want := range tc.xBefore {
-			if got := lti.x(-i); got != want {
+			if got := lti.getX(-i); got != want {
 				t.Errorf("got x[-%v] %v, wanted %v", i, got, want)
 			}
 		}
-		lti.pushX(tc.xPush)
 		for i, want := range tc.yBefore {
-			if got := lti.y(-i - 1); got != want {
+			if got := lti.getY(-i); got != want {
 				t.Errorf("got y[-%v] %v, wanted %v", i, got, want)
 			}
 		}
-		lti.pushY(tc.yPush)
+		lti.incHist()
+		lti.setX(tc.xPush)
+		lti.setY(tc.yPush)
 	}
 
 }
@@ -373,12 +393,82 @@ func TestGoldenSequence(t *testing.T) {
 		-3.27238955e-311, 2.70302017e-298, 8.19752510e-312, -6.75755042e-299,
 		-2.05351908e-312, 1.68938761e-299, 5.14414222e-313, -4.22346901e-300,
 		-1.28862168e-313, 1.05586725e-300, 3.22801953e-314, -2.63966813e-301}
-	if got := real(lti.Next(complex(1, 0))); math.Abs((got-want[0])/want[0]) > 1e-8 {
+	if got := real(lti.Y(complex(1, 0))); math.Abs((got-want[0])/want[0]) > 1e-8 {
 		t.Fatalf("got %v for idx 0, wanted %v", got, want[0])
 	}
 	for i := 1; i < len(want); i++ {
-		if got := real(lti.Next(complex(0, 0))); math.Abs((got-want[i])/want[i]) > 1e-8 {
+		if got := real(lti.Y(complex(0, 0))); math.Abs((got-want[i])/want[i]) > 1e-8 {
 			t.Fatalf("got %v for idx %v, wanted %v", got, i, want[i])
+		}
+	}
+}
+
+func TestFFTConformance(t *testing.T) {
+	for _, tc := range []struct {
+		conf LTIConf
+	}{
+		{
+			conf: LTIConf{
+				Gain:  0.5,
+				Zeros: []complex128{},
+				Poles: []complex128{0.8},
+			},
+		},
+		/*		{
+					conf: LTIConf{
+						Gain:  1,
+						Zeros: MakePZ([][2]float64{{0.5, 3 * math.Pi / 4}}),
+						Poles: MakePZ([][2]float64{{0.5, math.Pi / 2}}),
+					},
+				},
+				{
+					conf: LTIConf{
+						Gain:  1,
+						Poles: []complex128{3, 5},
+						Zeros: []complex128{1, 2},
+					},
+				},
+				{
+					conf: LTIConf{
+						Gain:  1,
+						Poles: []complex128{1, 2, 3},
+						Zeros: []complex128{5, 7},
+					},
+				},
+				{
+					conf: LTIConf{
+						Gain:  1,
+						Zeros: nil,
+						Poles: []complex128{0},
+					},
+				},*/
+	} {
+		lti, err := tc.conf.Make()
+		if err != nil {
+			t.Fatal(err)
+		}
+		steps := 1000
+		x := make([]float64, steps)
+		preload := len(tc.conf.Poles)
+		for i := 0; i < preload; i++ {
+			x[i] = 1.0
+		}
+		x[preload] = 1.0
+		xCoeffs := fft.FFTReal(x)
+		wPerStep := 2 * math.Pi / float64(steps)
+		yCoeffs := make([]complex128, steps)
+		for i := 0; i < steps; i++ {
+			z := cmplx.Exp(complex(0, wPerStep*float64(i)))
+			yCoeffs[i] = xCoeffs[i] * tc.conf.H(z)
+		}
+		yCmplx := fft.IFFT(yCoeffs)
+		for i := 0; i < preload; i++ {
+			lti.Preload(complex(x[i], 0), complex(real(yCmplx[i]), 0))
+		}
+		for i := preload; i < steps; i++ {
+			if got := lti.Y(complex(x[i], 0)); math.Abs(real(got)-real(yCmplx[i])) > 1e-13 {
+				t.Errorf("got %v at step %v, wanted %v", real(got), i, real(yCmplx[i]))
+			}
 		}
 	}
 }
@@ -428,9 +518,9 @@ func TestImpulseResponse(t *testing.T) {
 			t.Fatal(err)
 		}
 		s := make(signals.Float64Slice, 1000)
-		s[0] = real(lti.Next(complex(1, 0)))
+		s[0] = real(lti.Y(complex(1, 0)))
 		for i := 1; i < len(s); i++ {
-			v := lti.Next(complex(0, 0))
+			v := lti.Y(complex(0, 0))
 			s[i] = real(v)
 		}
 		coeffs := fft.FFTReal(s)
