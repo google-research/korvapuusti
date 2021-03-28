@@ -476,6 +476,115 @@ func TestFFTConformance(t *testing.T) {
 	}
 }
 
+func TestConvolve(t *testing.T) {
+	for _, tc := range []struct {
+		conf LTIConf
+	}{
+		{
+			conf: LTIConf{
+				Gain:  0.5,
+				Zeros: []complex128{},
+				Poles: []complex128{0.8},
+			},
+		},
+		{
+			conf: LTIConf{
+				Gain:  1,
+				Zeros: MakePZ([][2]float64{{0.5, 3 * math.Pi / 4}}),
+				Poles: MakePZ([][2]float64{{0.5, math.Pi / 2}}),
+			},
+		},
+		{
+			conf: LTIConf{
+				Gain:  2,
+				Poles: MakePZ([][2]float64{{0.9, 9 * math.Pi / 10}, {0.4, 8 * math.Pi / 9}}),
+				Zeros: MakePZ([][2]float64{{0.1, math.Pi / 10}}),
+			},
+		},
+		{
+			conf: LTIConf{
+				Gain:  1.5,
+				Poles: MakePZ([][2]float64{{0.1, 3 * math.Pi / 10}, {0.2, 4 * math.Pi / 10}, {0.3, 5 * math.Pi / 10}}),
+				Zeros: MakePZ([][2]float64{{0.3, 6 * math.Pi / 10}, {0.5, 8 * math.Pi / 10}}),
+			},
+		},
+		{
+			conf: LTIConf{
+				Gain:  1,
+				Zeros: nil,
+				Poles: MakePZ([][2]float64{{0.001, 0.001}}),
+			},
+		},
+	} {
+		lti, err := tc.conf.Make()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		x := make([]complex128, 1000)
+		for i := range x {
+			x[i] = complex(rand.Float64(), 0)
+		}
+		yGot := tc.conf.Convolve(x)
+		for i := 0; i < len(tc.conf.Poles); i++ {
+			lti.Preload(x[i], yGot[i])
+		}
+		for i := len(tc.conf.Poles); i < len(x); i++ {
+			yWant := lti.Y(x[i])
+			diff := math.Abs(real(yWant) - real(yGot[i]))
+			if diff > 1e-11 {
+				t.Errorf("convolve produced %v at %v, wanted %v", yGot[i], i, yWant)
+			}
+		}
+	}
+}
+
+func BenchmarkStep(b *testing.B) {
+	signal := make([]complex128, 1<<16+1)
+	for i := range signal {
+		signal[i] = complex(rand.Float64(), 0)
+	}
+	filter, err := LTIConf{
+		Gain:  1.0,
+		Poles: MakePZ([][2]float64{{0.8, 3 * math.Pi / 4}, {0.5, 4 * math.Pi / 5}}),
+		Zeros: MakePZ([][2]float64{{0.3, 6 * math.Pi / 10}, {0.8, 3 * math.Pi / 10}}),
+	}.Make()
+	if err != nil {
+		b.Fatal(err)
+	}
+	for _, pow := range []int{9, 10, 11, 12, 13, 14, 15, 16} {
+		size := 1<<pow + 1
+		b.Run(fmt.Sprintf("Length%v", size), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				for n := 0; n < size; n++ {
+					filter.Y(signal[n])
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkConvolve(b *testing.B) {
+	signal := make([]complex128, 1<<16+1)
+	for i := range signal {
+		signal[i] = complex(rand.Float64(), 0)
+	}
+	conf := LTIConf{
+		Gain:  1.0,
+		Poles: MakePZ([][2]float64{{0.8, 3 * math.Pi / 4}, {0.5, 4 * math.Pi / 5}}),
+		Zeros: MakePZ([][2]float64{{0.3, 6 * math.Pi / 10}, {0.8, 3 * math.Pi / 10}}),
+	}
+	for _, pow := range []int{9, 10, 11, 12, 13, 14, 15, 16} {
+		for _, size := range []int{1 << pow, 1<<pow + 1} {
+			b.Run(fmt.Sprintf("Length%v", size), func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					conf.Convolve(signal[:size])
+				}
+			})
+		}
+	}
+}
+
 func TestImpulseResponse(t *testing.T) {
 	for tcIdx, tc := range []struct {
 		conf LTIConf

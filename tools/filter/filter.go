@@ -8,6 +8,7 @@ import (
 	"math/cmplx"
 
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
+	"github.com/mjibson/go-dsp/fft"
 )
 
 type LTIConf struct {
@@ -91,6 +92,16 @@ func (l LTIConf) Print(height, width int, w io.Writer) {
 
 func Hz2Z(f, rate signals.Hz) complex128 {
 	return cmplx.Exp(complex(0, math.Pi*f/rate))
+}
+
+func (l LTIConf) Convolve(s []complex128) []complex128 {
+	coeffs := fft.FFT(s)
+	wPerBin := 2 * math.Pi / float64(len(coeffs))
+	for i := range coeffs {
+		z := cmplx.Exp(complex(0, wPerBin*float64(i)))
+		coeffs[i] *= l.H(z)
+	}
+	return fft.IFFT(coeffs)
 }
 
 func (l LTIConf) H(z complex128) complex128 {
