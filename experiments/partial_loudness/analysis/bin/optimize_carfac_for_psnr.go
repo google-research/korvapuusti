@@ -28,6 +28,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"math/cmplx"
 	"math/rand"
 	"net/http"
 	"net/rpc"
@@ -43,6 +44,7 @@ import (
 	"github.com/cheggaaa/pb"
 	"github.com/google-research/korvapuusti/experiments/partial_loudness/analysis"
 	"github.com/google-research/korvapuusti/tools/carfac"
+	"github.com/google-research/korvapuusti/tools/filter"
 	"github.com/google-research/korvapuusti/tools/spectrum"
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
 	"github.com/google-research/korvapuusti/tools/workerpool"
@@ -127,6 +129,22 @@ func (o *optConfig) zeta(zetaConst float64) float64 {
 }
 
 type XValues struct {
+	EarFilterGain   float64 `start:"1.33827607" scale:"0.5,3" limits:"0,-"`
+	EarFilterPole0R float64 `start:"0.054297683326681764" scale:"0.005,0.5" limits:"0.0,0.99"`
+	EarFilterPole0W float64 `start:"3.141331635901676" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterPole1R float64 `start:"0.8263984943285164" scale:"0.08,0.99" limits:"0.0,0.99"`
+	EarFilterPole1W float64 `start:"1.2099643827990358" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterPole2R float64 `start:"0.9304265498670948" scale:"0.09,0.99" limits:"0.0,0.99"`
+	EarFilterPole2W float64 `start:"-0.3410482755986183" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterPole3R float64 `start:"0.8085892137147705" scale:"0.08,0.99" limits:"0.0,0.99"`
+	EarFilterPole3W float64 `start:"-0.6161562213322251" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterZero0R float64 `start:"0.6518283718941934" scale:"0.06,1.0" limits:"-,-"`
+	EarFilterZero0W float64 `start:"0.22432708206811797" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterZero1R float64 `start:"0.9116950782526477" scale:"0.09,1.0" limits:"-,-"`
+	EarFilterZero1W float64 `start:"-1.224002751979398" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterZero2R float64 `start:"0.5721096312561226" scale:"0.05,1.0" limits:"-,-"`
+	EarFilterZero2W float64 `start:"-4.005493913734338e-05" scale:"0.0,3.1415" limits:"-,-"`
+
 	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"-,-"`
 
 	VelocityScale float64 `start:"0.1" scale:"0.02,0.5" limits:"0.0,-"`
@@ -549,8 +567,35 @@ func (l *LossCalculator) NumCPU(req struct{}, result *int) error {
 	return nil
 }
 
+func (l *LossCalculator) limitCmplx(r, w float64) complex128 {
+	if r >= 1.0 {
+		r = 0.99
+	}
+	return cmplx.Rect(r, w)
+}
+
 func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) error {
 	evaluation := l.evaluations[req.EvaluationIndex]
+
+	filterConf := filter.LTIConf{
+		Gain: req.XValues.EarFilterGain,
+		Poles: []complex128{
+			l.limitCmplx(req.XValues.EarFilterPole0R, req.XValues.EarFilterPole0W),
+			l.limitCmplx(req.XValues.EarFilterPole1R, req.XValues.EarFilterPole1W),
+			l.limitCmplx(req.XValues.EarFilterPole2R, req.XValues.EarFilterPole2W),
+			l.limitCmplx(req.XValues.EarFilterPole3R, req.XValues.EarFilterPole3W),
+		},
+		Zeros: []complex128{
+			complex(req.XValues.EarFilterZero0R, req.XValues.EarFilterZero0W),
+			complex(req.XValues.EarFilterZero1R, req.XValues.EarFilterZero1W),
+			complex(req.XValues.EarFilterZero2R, req.XValues.EarFilterZero2W),
+		},
+	}
+	lti, err := filterConf.Make()
+	if err != nil {
+		return err
+	}
+
 	carfacParams := carfac.CARFACParams{
 		SampleRate: rate,
 
@@ -570,6 +615,7 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 		TimeConstantMul: &req.XValues.TimeConstantMul,
 	}
 	cf := carfac.New(carfacParams)
+
 	// The runtime finalizer will run this automatically, but to speed up the cleanup.
 	defer cf.Destroy()
 	scaledSignal := evaluation.Signal.ToFloat32AddLevel(l.conf.EvaluationFullScaleSineLevel - signals.DB(req.XValues.CarfacFullScaleSineLevel))
@@ -578,7 +624,6 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 		cf.RunOpen(scaledSignal[len(evaluation.Signal)-cf.NumSamples():])
 	}
 	var cfOut []float32
-	var err error
 	if !l.conf.UsingNAP {
 		cfOut, err = cf.BM()
 	} else {
@@ -592,10 +637,10 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 	for chanIdx := 0; chanIdx < cf.NumChannels(); chanIdx++ {
 		channel := make([]float64, fftWindowSize)
 		for sampleIdx := range channel {
-			channel[sampleIdx] = float64(cfOut[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx])
+			channel[sampleIdx] = real(lti.Y(complex(float64(cfOut[(cf.NumSamples()-fftWindowSize+sampleIdx)*cf.NumChannels()+chanIdx]), 0)))
 		}
 		channelPower := 0.0
-		spec := spectrum.S{}
+		var spec *spectrum.S
 		if l.conf.UseSNNR {
 			channelPower = 10 * math.Log10(stat.Variance(channel, nil))
 			spec = spectrum.ComputeSignalPower(channel, rate)
