@@ -131,19 +131,19 @@ func (o *optConfig) zeta(zetaConst float64) float64 {
 type XValues struct {
 	EarFilterGain   float64 `start:"1.33827607" scale:"0.5,3" limits:"0,-"`
 	EarFilterPole0R float64 `start:"0.054297683326681764" scale:"0.005,0.5" limits:"0.0,0.99"`
-	EarFilterPole0W float64 `start:"3.141331635901676" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterPole0W float64 `start:"3.141331635901676" scale:"2.0.4.0" limits:"-,-"`
 	EarFilterPole1R float64 `start:"0.8263984943285164" scale:"0.08,0.99" limits:"0.0,0.99"`
-	EarFilterPole1W float64 `start:"1.2099643827990358" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterPole1W float64 `start:"1.2099643827990358" scale:"0.8,2.0" limits:"-,-"`
 	EarFilterPole2R float64 `start:"0.9304265498670948" scale:"0.09,0.99" limits:"0.0,0.99"`
-	EarFilterPole2W float64 `start:"-0.3410482755986183" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterPole2W float64 `start:"-0.3410482755986183" scale:"0.2,0.4" limits:"-,-"`
 	EarFilterPole3R float64 `start:"0.8085892137147705" scale:"0.08,0.99" limits:"0.0,0.99"`
-	EarFilterPole3W float64 `start:"-0.6161562213322251" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterPole3W float64 `start:"-0.6161562213322251" scale:"0.4,0.8" limits:"-,-"`
 	EarFilterZero0R float64 `start:"0.6518283718941934" scale:"0.06,1.0" limits:"-,-"`
-	EarFilterZero0W float64 `start:"0.22432708206811797" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterZero0W float64 `start:"0.22432708206811797" scale:"0.1,0.4" limits:"-,-"`
 	EarFilterZero1R float64 `start:"0.9116950782526477" scale:"0.09,1.0" limits:"-,-"`
-	EarFilterZero1W float64 `start:"-1.224002751979398" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterZero1W float64 `start:"-1.224002751979398" scale:"0.8,1.6" limits:"-,-"`
 	EarFilterZero2R float64 `start:"0.5721096312561226" scale:"0.05,1.0" limits:"-,-"`
-	EarFilterZero2W float64 `start:"-4.005493913734338e-05" scale:"0.0,3.1415" limits:"-,-"`
+	EarFilterZero2W float64 `start:"-4.005493913734338e-05" scale:"4e-6,4e-3" limits:"-,-"`
 
 	CarfacFullScaleSineLevel float64 `start:"100.0" scale:"70.0,130.0" limits:"-,-"`
 
