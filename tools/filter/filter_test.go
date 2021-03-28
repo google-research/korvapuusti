@@ -414,40 +414,40 @@ func TestFFTConformance(t *testing.T) {
 				Poles: []complex128{0.8},
 			},
 		},
-		/*		{
-					conf: LTIConf{
-						Gain:  1,
-						Zeros: MakePZ([][2]float64{{0.5, 3 * math.Pi / 4}}),
-						Poles: MakePZ([][2]float64{{0.5, math.Pi / 2}}),
-					},
-				},
-				{
-					conf: LTIConf{
-						Gain:  1,
-						Poles: []complex128{3, 5},
-						Zeros: []complex128{1, 2},
-					},
-				},
-				{
-					conf: LTIConf{
-						Gain:  1,
-						Poles: []complex128{1, 2, 3},
-						Zeros: []complex128{5, 7},
-					},
-				},
-				{
-					conf: LTIConf{
-						Gain:  1,
-						Zeros: nil,
-						Poles: []complex128{0},
-					},
-				},*/
+		{
+			conf: LTIConf{
+				Gain:  1,
+				Zeros: MakePZ([][2]float64{{0.5, 3 * math.Pi / 4}}),
+				Poles: MakePZ([][2]float64{{0.5, math.Pi / 2}}),
+			},
+		},
+		{
+			conf: LTIConf{
+				Gain:  2,
+				Poles: MakePZ([][2]float64{{0.9, 9 * math.Pi / 10}, {0.4, 8 * math.Pi / 9}}),
+				Zeros: MakePZ([][2]float64{{0.1, math.Pi / 10}}),
+			},
+		},
+		{
+			conf: LTIConf{
+				Gain:  1.5,
+				Poles: MakePZ([][2]float64{{0.1, 3 * math.Pi / 10}, {0.2, 4 * math.Pi / 10}, {0.3, 5 * math.Pi / 10}}),
+				Zeros: MakePZ([][2]float64{{0.3, 6 * math.Pi / 10}, {0.5, 8 * math.Pi / 10}}),
+			},
+		},
+		{
+			conf: LTIConf{
+				Gain:  1,
+				Zeros: nil,
+				Poles: MakePZ([][2]float64{{0.001, 0.001}}),
+			},
+		},
 	} {
 		lti, err := tc.conf.Make()
 		if err != nil {
 			t.Fatal(err)
 		}
-		steps := 1000
+		steps := 100
 		x := make([]float64, steps)
 		preload := len(tc.conf.Poles)
 		for i := 0; i < preload; i++ {
@@ -466,15 +466,18 @@ func TestFFTConformance(t *testing.T) {
 			lti.Preload(complex(x[i], 0), complex(real(yCmplx[i]), 0))
 		}
 		for i := preload; i < steps; i++ {
-			if got := lti.Y(complex(x[i], 0)); math.Abs(real(got)-real(yCmplx[i])) > 1e-13 {
-				t.Errorf("got %v at step %v, wanted %v", real(got), i, real(yCmplx[i]))
+			want := real(lti.Y(complex(x[i], 0)))
+			got := real(yCmplx[i])
+			diff := math.Abs(want - got)
+			if diff > 1e-13 {
+				t.Errorf("got %v at step %v, wanted %v", got, i, want)
 			}
 		}
 	}
 }
 
 func TestImpulseResponse(t *testing.T) {
-	for _, tc := range []struct {
+	for tcIdx, tc := range []struct {
 		conf LTIConf
 	}{
 		{
@@ -493,44 +496,79 @@ func TestImpulseResponse(t *testing.T) {
 		},
 		{
 			conf: LTIConf{
-				Gain:  1,
-				Poles: []complex128{3, 5},
-				Zeros: []complex128{1, 2},
+				Gain:  2,
+				Poles: MakePZ([][2]float64{{0.9, 9 * math.Pi / 10}, {0.4, 8 * math.Pi / 9}}),
+				Zeros: MakePZ([][2]float64{{0.1, math.Pi / 10}}),
 			},
 		},
 		{
 			conf: LTIConf{
-				Gain:  1,
-				Poles: []complex128{1, 2, 3},
-				Zeros: []complex128{5, 7},
+				Gain:  1.5,
+				Poles: MakePZ([][2]float64{{0.1, 3 * math.Pi / 10}, {0.2, 4 * math.Pi / 10}, {0.3, 5 * math.Pi / 10}}),
+				Zeros: MakePZ([][2]float64{{0.3, 6 * math.Pi / 10}, {0.5, 8 * math.Pi / 10}}),
 			},
 		},
 		{
 			conf: LTIConf{
 				Gain:  1,
 				Zeros: nil,
-				Poles: []complex128{0},
+				Poles: MakePZ([][2]float64{{0.001, 0.001}}),
 			},
 		},
 	} {
+		// Initialize filter.
 		lti, err := tc.conf.Make()
 		if err != nil {
 			t.Fatal(err)
 		}
-		s := make(signals.Float64Slice, 1000)
-		s[0] = real(lti.Y(complex(1, 0)))
-		for i := 1; i < len(s); i++ {
-			v := lti.Y(complex(0, 0))
-			s[i] = real(v)
+
+		// Set up time constants.
+		steps := 1000
+		wPerStep := 2 * math.Pi / float64(steps)
+
+		// Define x array.
+		x := make([]float64, steps) // x[n]
+
+		// Initialize x array with a step response.
+		preload := len(tc.conf.Poles)
+		for i := 0; i < preload; i++ {
+			x[i] = 1.0
 		}
-		coeffs := fft.FFTReal(s)
-		wStep := 2 * math.Pi / float64(len(coeffs))
-		for idx, coeff := range coeffs {
-			w := float64(idx) * wStep
-			expectedGain := cmplx.Abs(tc.conf.H(cmplx.Exp(complex(0, w))))
-			fftGain := cmplx.Abs(coeff)
-			if math.Abs(fftGain-expectedGain) > 1e-10 {
-				t.Errorf("got gain %v for w %v, wanted %v", fftGain, w, expectedGain)
+		x[preload] = 1.0
+
+		// Compute X and Y = X*H.
+		xCoeffs := fft.FFTReal(x)                           // X(z) = FFT(x[n])
+		expectedYCoeffs := make([]complex128, len(xCoeffs)) // Y(z)
+		for i := range expectedYCoeffs {
+			z := cmplx.Exp(complex(0, wPerStep*float64(i)))
+			expectedYCoeffs[i] = xCoeffs[i] * tc.conf.H(z) // Y(z) = X(z) * H(z)
+		}
+
+		// Compute a correct y.
+		yCmplx := fft.IFFT(expectedYCoeffs) // y[n] = IFFT(Y(z))
+
+		// Populate the filter and a y array with the beginning of the correct values.
+		y := make(signals.Float64Slice, steps)
+		for i := 0; i < preload; i++ {
+			y[i] = real(yCmplx[i])
+			lti.Preload(complex(x[i], 0), complex(y[i], 0))
+		}
+
+		// Compute the rest of the y values using the filter.
+		for i := preload; i < steps; i++ {
+			y[i] = real(lti.Y(complex(x[i], 0)))
+		}
+
+		// Compute the FFT coeffs for the computed y values.
+		computedYCoeffs := fft.FFTReal(y) // Y(z) = FFT(y[n])
+
+		for i, computedCoeff := range computedYCoeffs {
+			w := wPerStep * float64(i)
+			expectedGain := cmplx.Abs(expectedYCoeffs[i])
+			fftGain := cmplx.Abs(computedCoeff)
+			diff := math.Abs(fftGain - expectedGain)
+			if diff > 1e-11 {
+				t.Errorf("tc %v got gain %v for w %v, wanted %v", tcIdx, fftGain, w, expectedGain)
 			}
 		}
 	}
