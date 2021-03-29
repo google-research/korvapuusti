@@ -133,7 +133,7 @@ func (o *optConfig) zeta(zetaConst float64) float64 {
 type XValues struct {
 	EarFilterGain   float64 `start:"1.33827607" scale:"0.5,3" limits:"0.01,-" prefilter:"true"`
 	EarFilterPole0R float64 `start:"0.054297683326681764" scale:"0.005,0.5" limits:"0.0,0.99" prefilter:"true"`
-	EarFilterPole0W float64 `start:"3.141331635901676" scale:"2.0.4.0" limits:"-,-" prefilter:"true"`
+	EarFilterPole0W float64 `start:"3.141331635901676" scale:"2.0,4.0" limits:"-,-" prefilter:"true"`
 	EarFilterPole1R float64 `start:"0.8263984943285164" scale:"0.08,0.99" limits:"0.0,0.99" prefilter:"true"`
 	EarFilterPole1W float64 `start:"1.2099643827990358" scale:"0.8,2.0" limits:"-,-" prefilter:"true"`
 	EarFilterPole2R float64 `start:"0.9304265498670948" scale:"0.09,0.99" limits:"0.0,0.99" prefilter:"true"`
