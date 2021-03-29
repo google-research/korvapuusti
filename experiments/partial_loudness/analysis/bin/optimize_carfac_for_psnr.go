@@ -628,15 +628,19 @@ func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) 
 		TimeConstantMul: &req.XValues.TimeConstantMul,
 	}
 	cf := carfac.New(carfacParams)
-
 	// The runtime finalizer will run this automatically, but to speed up the cleanup.
 	defer cf.Destroy()
-	signal := evaluation.Signal.ToFloat32AddLevel(l.conf.EvaluationFullScaleSineLevel - signals.DB(req.XValues.CarfacFullScaleSineLevel))
+
+	var signal64 signals.Float64Slice
 	if l.conf.PreFilter {
-		for i := range signal {
-			signal[i] = real(lti.Y(complex(signal[i], 0)))
+		signal64 = make(signals.Float64Slice, len(evaluation.Signal))
+		for i := range signal64 {
+			signal64[i] = real(lti.Y(complex(evaluation.Signal[i], 0)))
 		}
+	} else {
+		signal64 = evaluation.Signal
 	}
+	signal := signal64.ToFloat32AddLevel(l.conf.EvaluationFullScaleSineLevel - signals.DB(req.XValues.CarfacFullScaleSineLevel))
 	cf.Run(signal[len(evaluation.Signal)-cf.NumSamples():])
 	if l.conf.OpenLoop {
 		cf.RunOpen(signal[len(evaluation.Signal)-cf.NumSamples():])
