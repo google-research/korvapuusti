@@ -574,22 +574,31 @@ func (l *LossCalculator) limitCmplx(r, w float64) complex128 {
 	return cmplx.Rect(r, w)
 }
 
+func (l *LossCalculator) duplicateAndConjugate(pz []complex128) []complex128 {
+	res := make([]complex128, 0, len(pz)*2)
+	for i := range pz {
+		res = append(res, pz[i])
+		res = append(res, cmplx.Conj(pz[i]))
+	}
+	return res
+}
+
 func (l *LossCalculator) ComputePSNR(req ComputePSNRReq, resp *ComputePSNRResp) error {
 	evaluation := l.evaluations[req.EvaluationIndex]
 
 	filterConf := filter.LTIConf{
 		Gain: req.XValues.EarFilterGain,
-		Poles: []complex128{
+		Poles: l.duplicateAndConjugate([]complex128{
 			l.limitCmplx(req.XValues.EarFilterPole0R, req.XValues.EarFilterPole0W),
 			l.limitCmplx(req.XValues.EarFilterPole1R, req.XValues.EarFilterPole1W),
 			l.limitCmplx(req.XValues.EarFilterPole2R, req.XValues.EarFilterPole2W),
 			l.limitCmplx(req.XValues.EarFilterPole3R, req.XValues.EarFilterPole3W),
-		},
-		Zeros: []complex128{
-			complex(req.XValues.EarFilterZero0R, req.XValues.EarFilterZero0W),
-			complex(req.XValues.EarFilterZero1R, req.XValues.EarFilterZero1W),
-			complex(req.XValues.EarFilterZero2R, req.XValues.EarFilterZero2W),
-		},
+		}),
+		Zeros: l.duplicateAndConjugate([]complex128{
+			cmplx.Rect(req.XValues.EarFilterZero0R, req.XValues.EarFilterZero0W),
+			cmplx.Rect(req.XValues.EarFilterZero1R, req.XValues.EarFilterZero1W),
+			cmplx.Rect(req.XValues.EarFilterZero2R, req.XValues.EarFilterZero2W),
+		}),
 	}
 	lti, err := filterConf.Make()
 	if err != nil {
