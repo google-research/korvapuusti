@@ -29,8 +29,8 @@ import (
 
 type S struct {
 	Coeffs      []complex128 `json:"-" proto:"-"`
-	SignalPower []float64
-	NoisePower  []float64
+	SignalPower []signals.DB
+	NoisePower  []signals.DB
 	BinWidth    signals.Hz
 	Rate        signals.Hz
 }
@@ -73,7 +73,7 @@ func (s *S) Print(width int, w io.Writer) {
 	}
 }
 
-func (s *S) toFloat32(f []float64) []float32 {
+func (s *S) toFloat32(f []signals.DB) []float32 {
 	rval := make([]float32, len(f))
 	for i := range rval {
 		rval[i] = float32(f[i])
@@ -98,7 +98,7 @@ func (s *S) F32NoisePower() []float32 {
 	return s.toFloat32(s.NoisePower)
 }
 
-func ComputeSignalPower(buffer []float64, rate signals.Hz) *S {
+func ComputeSignalPower(buffer signals.Float64Slice, rate signals.Hz) *S {
 	spec := &S{
 		BinWidth: rate / signals.Hz(len(buffer)),
 		Rate:     rate,
@@ -107,19 +107,19 @@ func ComputeSignalPower(buffer []float64, rate signals.Hz) *S {
 	halfCoefficients := len(spec.Coeffs) / 2
 	invBuffer := 1.0 / float64(len(buffer))
 
-	spec.SignalPower = make([]float64, halfCoefficients)
+	spec.SignalPower = make([]signals.DB, halfCoefficients)
 	for bin := range spec.SignalPower {
 		if bin == 0 {
 			continue
 		}
 		gain := cmplx.Abs(spec.Coeffs[bin]) * invBuffer * 2
 		power := 0.5 * gain * gain
-		spec.SignalPower[bin] = 10 * math.Log10(power)
+		spec.SignalPower[bin] = signals.DB(10 * math.Log10(power))
 	}
 	return spec
 }
 
-func Compute(buffer []float64, rate signals.Hz) *S {
+func Compute(buffer signals.Float64Slice, rate signals.Hz) *S {
 	spec := ComputeSignalPower(buffer, rate)
 
 	halfCoefficients := len(spec.Coeffs) / 2
@@ -129,14 +129,11 @@ func Compute(buffer []float64, rate signals.Hz) *S {
 	totalSquares := 0.0
 	noiseSquares := make([]float64, len(spec.Coeffs))
 	for bin, coeff := range spec.Coeffs {
-		if bin == 0 {
-			continue
-		}
 		square := (real(coeff)*real(coeff) + imag(coeff)*imag(coeff)) * invBuffer
 		totalSquares += square
 		noiseSquares[bin] = square
 	}
-	spec.NoisePower = make([]float64, halfCoefficients)
+	spec.NoisePower = make([]signals.DB, halfCoefficients)
 	for bin := range spec.NoisePower {
 		if bin == 0 {
 			continue
@@ -145,7 +142,7 @@ func Compute(buffer []float64, rate signals.Hz) *S {
 		if noisePower <= 0 {
 			noisePower = 1e-20
 		}
-		spec.NoisePower[bin] = 10 * math.Log10(noisePower)
+		spec.NoisePower[bin] = signals.DB(10 * math.Log10(noisePower))
 	}
 	return spec
 }
