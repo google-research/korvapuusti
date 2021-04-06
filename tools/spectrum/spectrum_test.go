@@ -36,6 +36,7 @@ func genSig(freq float64, amp float64, num int, rate float64) []float64 {
 type sig struct {
 	freq               float64
 	gain               float64
+	phase              float64
 	expectedNoisePower float64
 }
 
@@ -44,8 +45,9 @@ func TestSNR(t *testing.T) {
 	sigs := []sig{}
 	for i := 0; i < 100; i++ {
 		sigs = append(sigs, sig{
-			freq: float64(i)*4 + 100,
-			gain: float64(i) / 10,
+			freq:  float64(i)*4 + 100,
+			gain:  float64(i) / 10,
+			phase: float64(i) * 2 * math.Pi / 100.0,
 		})
 	}
 	superpos := make([]float64, int(sampleRate))
@@ -54,7 +56,7 @@ func TestSNR(t *testing.T) {
 		sum := 0.0
 		for i := range superpos {
 			// Adding a 1 to make sure the signal/noise powers don't break from non zero averages.
-			superpos[i] += 1 + sigs[outerIdx].gain*math.Sin(math.Pi*2*sigs[outerIdx].freq*float64(i)/sampleRate)
+			superpos[i] += 1 + sigs[outerIdx].gain*math.Sin(sigs[outerIdx].phase+math.Pi*2*sigs[outerIdx].freq*float64(i)/sampleRate)
 			noiseVal := 0.0
 			for innerIdx := range sigs {
 				if innerIdx != outerIdx {
