@@ -79,6 +79,7 @@ func TestSNR(t *testing.T) {
 		if got := float64(spec.NoisePower[bin]); math.Abs(got-10*math.Log10(sig.expectedNoisePower)) > 1e-9 {
 			t.Errorf("got noise power %v, wanted %v", math.Pow(10, got/10), sig.expectedNoisePower)
 		}
+		// This is just verification of a simpler way to calculate SNR.
 		expectedSNR := float64(spec.SignalPower[bin] - spec.NoisePower[bin])
 		noisePower := 0.0
 		sigPower := 0.0
