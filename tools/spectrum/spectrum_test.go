@@ -17,9 +17,11 @@ package spectrum
 
 import (
 	"math"
+	"math/cmplx"
 	"testing"
 
 	"github.com/google-research/korvapuusti/tools/synthesize/signals"
+	"github.com/mjibson/go-dsp/fft"
 )
 
 func genSig(freq float64, amp float64, num int, rate float64) []float64 {
@@ -31,32 +33,28 @@ func genSig(freq float64, amp float64, num int, rate float64) []float64 {
 	return res
 }
 
-func TestNoisePower(t *testing.T) {
+type sig struct {
+	freq               float64
+	gain               float64
+	expectedNoisePower float64
+}
+
+func TestSNR(t *testing.T) {
 	sampleRate := 1000.0
-	sigs := []struct {
-		freq               float64
-		gain               float64
-		expectedNoisePower float64
-	}{
-		{
-			freq: 100,
-			gain: 1,
-		},
-		{
-			freq: 300,
-			gain: 2,
-		},
-		{
-			freq: 50,
-			gain: 0.5,
-		},
+	sigs := []sig{}
+	for i := 0; i < 100; i++ {
+		sigs = append(sigs, sig{
+			freq: float64(i)*4 + 100,
+			gain: float64(i) / 10,
+		})
 	}
 	superpos := make([]float64, int(sampleRate))
 	for outerIdx := range sigs {
 		sumOfSquares := 0.0
 		sum := 0.0
 		for i := range superpos {
-			superpos[i] += sigs[outerIdx].gain * math.Sin(math.Pi*2*sigs[outerIdx].freq*float64(i)/sampleRate)
+			// Adding a 1 to make sure the signal/noise powers don't break from non zero averages.
+			superpos[i] += 1 + sigs[outerIdx].gain*math.Sin(math.Pi*2*sigs[outerIdx].freq*float64(i)/sampleRate)
 			noiseVal := 0.0
 			for innerIdx := range sigs {
 				if innerIdx != outerIdx {
@@ -73,9 +71,29 @@ func TestNoisePower(t *testing.T) {
 	if spec.BinWidth != 1.0 {
 		t.Errorf("got bin width %v, wanted 1.0", spec.BinWidth)
 	}
+	coeffs := fft.FFTReal(superpos)
 	for _, sig := range sigs {
-		if got := float64(spec.NoisePower[int(sig.freq/float64(spec.BinWidth))]); math.Abs(got-10*math.Log10(sig.expectedNoisePower)) > 1e-9 {
+		bin := int(sig.freq / float64(spec.BinWidth))
+		if got := float64(spec.NoisePower[bin]); math.Abs(got-10*math.Log10(sig.expectedNoisePower)) > 1e-9 {
 			t.Errorf("got noise power %v, wanted %v", math.Pow(10, got/10), sig.expectedNoisePower)
+		}
+		expectedSNR := float64(spec.SignalPower[bin] - spec.NoisePower[bin])
+		noisePower := 0.0
+		sigPower := 0.0
+		for i := range coeffs[:len(coeffs)/2] {
+			if i == 0 {
+				continue
+			}
+			power := math.Pow(cmplx.Abs(coeffs[i]), 2)
+			if i == bin {
+				sigPower += power
+			} else {
+				noisePower += power
+			}
+		}
+		gotSNR := 10*math.Log10(sigPower) - 10*math.Log10(noisePower)
+		if math.Abs(gotSNR-expectedSNR) > 1e-9 {
+			t.Errorf("got %v, want %v\n", gotSNR, expectedSNR)
 		}
 	}
 }
@@ -104,7 +122,8 @@ func TestSignalPower(t *testing.T) {
 		sumOfSquares := 0.0
 		sum := 0.0
 		for i := range sig {
-			sig[i] = tc.gain * math.Sin(math.Pi*2*tc.freq*float64(i)/sampleRate)
+			// Adding a 1 to make sure the signal/noise powers don't break from non zero averages.
+			sig[i] = 1 + tc.gain*math.Sin(math.Pi*2*tc.freq*float64(i)/sampleRate)
 			sumOfSquares += sig[i] * sig[i]
 			sum += sig[i]
 		}
