@@ -1,3 +1,4 @@
 tools/carfac/*.o
 tools/carfac/benchmark/benchmark
 *.swp
+.ipynb_checkpoints
