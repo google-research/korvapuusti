@@ -181,17 +181,18 @@ func (l *LTI) Y(x complex128) complex128 {
 		zeroCoeffExponentOffset = len(l.poleCoeffs) - len(l.zeroCoeffs)
 	}
 	for i := range l.zeroCoeffs {
-		//fmt.Printf("res += x[n-%v] * g * zc%v => %v += %v * %v * %v = %v\n", res, i+zeroCoeffExponentOffset, i, l.getX(-(i + zeroCoeffExponentOffset)), l.gain, l.zeroCoeffs[i], res+l.getX(-(i+zeroCoeffExponentOffset))*l.gain*l.zeroCoeffs[i])
+		//fmt.Printf("res += x[n-%v] * g * zc%v => %v += %v * %v * %v = %v\n", i+zeroCoeffExponentOffset, i, res, l.getX(-(i + zeroCoeffExponentOffset)), l.gain, l.zeroCoeffs[i], res+l.getX(-(i+zeroCoeffExponentOffset))*l.gain*l.zeroCoeffs[i])
 		res += l.getX(-(i + zeroCoeffExponentOffset)) * l.gain * l.zeroCoeffs[i]
 	}
 	for i := 1; i < len(l.poleCoeffs); i++ {
 		//fmt.Printf("res -= y[n-%v] * pc%v => %v += %v * %v = %v\n", i, i, res, l.getY(-i), l.poleCoeffs[i], res-l.getY(-i)*l.poleCoeffs[i])
 		res -= l.getY(-i) * l.poleCoeffs[i]
 	}
+	//fmt.Printf("res /= pc[0] => %v /= %v = %v\n", res, l.poleCoeffs[0], res/l.poleCoeffs[0])
 	res /= l.poleCoeffs[0]
 	l.setY(res)
 	l.incHist()
-	//fmt.Printf("returning %v\n", res)
+	// fmt.Printf("returning %v\n", res)
 	return res
 }
 
