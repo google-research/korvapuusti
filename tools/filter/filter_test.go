@@ -879,42 +879,6 @@ func TestSpecificCoeffs(t *testing.T) {
 	}
 }
 
-func TestSpecificOutput(t *testing.T) {
-	zt := []complex128{
-		(0.635496172349615 + 0.14499945287904842i),
-		(0.30987058966944614 - 0.8574194617385421i),
-		(0.5721096307971768 - 2.2915816453724273e-05i),
-	}
-	zs := []complex128{}
-	for _, z := range zt {
-		zs = append(zs, z, cmplx.Conj(z))
-	}
-	pt := []complex128{
-		(-0.05429768147702485 + 1.4172655611120915e-05i),
-		(0.2917622403739163 + 0.7731812636894612i),
-		(0.8768382244780407 - 0.31120458350060115i),
-		(0.6598943546882394 - 0.46728573398560225i),
-	}
-	ps := []complex128{}
-	for _, p := range pt {
-		ps = append(ps, p, cmplx.Conj(p))
-	}
-	f, err := LTIConf{
-		Gain:  1.34,
-		Zeros: zs,
-		Poles: ps,
-	}.Make()
-	if err != nil {
-		t.Fatal(err)
-	}
-	x := make([]complex128, 5)
-	x[0] = 1
-	y := make([]complex128, 5)
-	for i := range y {
-		y[i] = f.Y(x[i])
-	}
-}
-
 func TestCoeffs(t *testing.T) {
 	for _, tc := range []struct {
 		num  int
